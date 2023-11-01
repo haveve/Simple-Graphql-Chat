@@ -1,0 +1,90 @@
+  .scroll {
+    max-height: 90%;
+    overflow-y: scroll;
+  }
+
+  .form-control.is-invalid,
+  .was-validated .form-control:invalid {
+    border-color: #ffbe0b !important;
+  }
+
+  .invalid-feedback {
+    color: #ffbe0b !important;
+  }
+
+  body {
+    background-color: turquoise
+  }
+
+  .max-width-50per{
+    max-width: 50% !important;
+  }
+
+  .send-message-container{
+    padding: 15px;
+    background-color: white;
+    border-radius: 15px;
+  }
+
+  .send-message-input {
+    resize: none !important;
+    max-height: 50vh !important;
+    width: 100%;
+    border: 0;
+    font-size: 20px;
+  }
+
+  .send-message-input::-webkit-scrollbar-track {
+    background: #88888800;
+  }
+
+  .send-message-input::-webkit-scrollbar-thumb {
+    background: #88888800;
+  }
+
+  .send-message-input::-webkit-scrollbar-thumb:hover {
+    background: #55555500;
+  }
+
+  .send-message-input:focus {
+    border: 0;
+    outline: 0;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #8888887a;
+    border-bottom-right-radius: 10px;
+    border-bottom-left-radius: 10px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #888;
+    border-bottom-right-radius: 10px;
+    border-bottom-left-radius: 10px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+
+  .chat-bg {
+    background-image: url('./pictures/bg-picture.png');
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
+
+  .chat-transfer {
+    word-break: break-all;
+  }
+
+  .time-font {
+    font-size: 14px;
+  }
+
+  .chat-list {
+    background-color: #fefae0;
+  }

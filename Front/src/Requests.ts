@@ -1,6 +1,6 @@
-import {ajax} from 'rxjs/ajax'
 import { webSocket } from 'rxjs/webSocket'
-import { Message } from './Types';
+import { Message } from './Futures/Types';
+import { backDomain } from './Futures/Constants';
 
 export type AllFieldsRequestType = {
     messageAdded?:Message,
@@ -20,7 +20,7 @@ export type defaultSubscriptionResponse<T> = {
 
 export function ConnectToChat(){
     const socket = webSocket<defaultSubscriptionResponse<any>>({
-        url:`wss://localhost:7000/graphql`,
+        url:`wss://${backDomain}/graphql`,
         protocol: 'graphql-ws'
     })
     socket.next({ "type": "connection_init", "payload": {} })

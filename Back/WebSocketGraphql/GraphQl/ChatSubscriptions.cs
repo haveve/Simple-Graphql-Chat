@@ -86,13 +86,7 @@ public class MessageType : ObjectGraphType<Message>
     {
         Field(o => o.Content);
         Field(o => o.SentAt);
-        Field(o => o.From, false, typeof(MessageFromType)).Resolve(ResolveFrom);
-    }
-
-    private MessageFrom ResolveFrom(IResolveFieldContext<Message> context)
-    {
-        var message = context.Source;
-        return message.From;
+        Field(o => o.From, false, typeof(MessageFromType));
     }
 }
 
@@ -102,7 +96,7 @@ public class MessageInputType : InputObjectGraphType
     {
         Field<StringGraphType>("fromId");
         Field<StringGraphType>("content");
-        Field<DateGraphType>("sentAt");
+        Field<DateTimeGraphType>("sentAt");
     }
 }
 

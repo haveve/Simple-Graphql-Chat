@@ -25,7 +25,7 @@ var app = builder.Build();
 
 app.UseCors(conf =>
 {
-    conf.WithOrigins("http://localhost:3000")
+    conf.WithOrigins(app.Configuration["FrontUrl"])
     .AllowAnyHeader()
     .AllowAnyMethod()
     .AllowCredentials();
