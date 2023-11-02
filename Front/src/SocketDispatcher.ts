@@ -1,6 +1,6 @@
 import { defaultSubscriptionResponse,subscriptionDataType,AllFieldsRequestType} from './Requests';
 import { nanoid } from 'nanoid';
-import { Message, } from './Futures/Types';
+import { Message, } from './Features/Types';
 
 export type DispatchReturnType<T> = {
     dataType:string | null

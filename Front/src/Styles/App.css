@@ -72,7 +72,7 @@
   }
 
   .chat-bg {
-    background-image: url('./pictures/bg-picture.png');
+    background-image: url('../Pictures/bg-picture.png');
     background-repeat: no-repeat;
     background-size: cover;
   }

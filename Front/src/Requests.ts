@@ -1,6 +1,6 @@
 import { webSocket } from 'rxjs/webSocket'
-import { Message } from './Futures/Types';
-import { backDomain } from './Futures/Constants';
+import { Message } from './Features/Types';
+import { backDomain } from './Features/Constants';
 
 export type AllFieldsRequestType = {
     messageAdded?:Message,
