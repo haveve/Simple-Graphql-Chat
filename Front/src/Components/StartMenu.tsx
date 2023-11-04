@@ -15,7 +15,7 @@ export default function StartMenu() {
             </Col>
             <Col className='justify-content-end gap-4 d-flex'>
                 <Button variant='outline-warning' size='lg' onClick={()=>navigate('/')}>Log in</Button>
-                <Button variant='outline-warning' size='lg' onClick={()=>navigate('/sign-in')}>Sign up</Button>
+                <Button variant='outline-warning' size='lg' onClick={()=>navigate('/sign-up')}>Sign up</Button>
             </Col>
         </Row>
         <Outlet />

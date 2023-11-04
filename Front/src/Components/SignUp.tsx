@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { Container, Row, Col, Form, Button } from 'react-bootstrap';
+import { ajaxForRegistration } from '../Requests/AuthorizationRequests';
 export default function SignUp() {
 
     const [nickName, setNickName] = useState('')
@@ -17,8 +18,13 @@ export default function SignUp() {
     const handleSubmit: React.FormEventHandler<HTMLFormElement> = (event) => {
         event.preventDefault()
         const form = event.currentTarget;
-        if (form.checkValidity() === true) {
-
+        if (form.checkValidity()) {
+            ajaxForRegistration({
+                registration:{
+                    email,
+                    nickName
+                }
+            }).subscribe();
             return;
         }
         setValidated(true);

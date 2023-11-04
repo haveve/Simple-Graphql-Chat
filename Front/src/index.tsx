@@ -9,6 +9,8 @@ import {
   createBrowserRouter,
   RouterProvider
 } from "react-router-dom";
+import SetPassword from './Components/SetPassword';
+
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -28,8 +30,12 @@ const Router = createBrowserRouter([
         element:<Auth/>
       },
       {
-        path: 'sign-in',
+        path: 'sign-up',
         element:<SignUp/>
+      },
+      {
+      path:'/set-password',
+      element:<SetPassword/>
       }
     ]
   }

@@ -1,4 +1,4 @@
-import { defaultSubscriptionResponse,subscriptionDataType,AllFieldsRequestType} from './Requests';
+import { defaultSubscriptionResponse,subscriptionDataType,AllFieldsRequestType} from './Requests/Requests';
 import { nanoid } from 'nanoid';
 import { Message, } from './Features/Types';
 

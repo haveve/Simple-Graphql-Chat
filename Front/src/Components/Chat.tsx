@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Container, Row, Col } from 'react-bootstrap';
-import { ConnectToChat } from '../Requests';
+import { ConnectToChat } from '../Requests/Requests';
 import '../Styles/App.css';
 import 'bootstrap/dist/css/bootstrap.min.css'
 import { Message } from '../Features/Types';
-import { WebSocketSubject } from 'rxjs/webSocket'
 import { nanoid } from 'nanoid';
 import { subscriptionToChat, queryGetAll, addOneMessageMutation } from '../Features/Queries';
 import Dispatch, { QUERY_ALL, ADD_MESSAGE_ONE, RECEIVE_SUBSCRIBED_MESSAGE } from '../SocketDispatcher';
@@ -12,11 +11,12 @@ import { GetDateStringFromDateTime, MessagesNormalizeDateFormat, SortMessageByTi
 import { flushSync } from 'react-dom';
 import MessageComponent from '../Components/Message';
 import MultiControl from './MultiControl';
+import { WebSocketProxy,defaultSubscriptionResponse } from '../Requests/Requests';
 
 function Chat() {
   const [currentId, setId] = useState(-1);
   const [messages, setMessages] = useState<Message[]>([]);
-  let connection = useRef<WebSocketSubject<any>>();
+  let connection = useRef<WebSocketProxy<defaultSubscriptionResponse<any>>>();
   let lastMessage = useRef<HTMLDivElement>(null);
   useEffect(() => {
     connection.current = ConnectToChat()
@@ -41,6 +41,12 @@ function Chat() {
             console.log(response.data)
             break;
         }
+      },
+      error:()=>{
+
+      },
+      complete:()=>{
+        
       }
     })
     connection.current.next({
