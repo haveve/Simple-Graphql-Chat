@@ -19,6 +19,7 @@ using GraphQL.Transport;
 using GraphQLParser;
 using Newtonsoft.Json.Linq;
 using TimeTracker.Models;
+using WebSocketGraphql.Services.AuthenticationServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -87,91 +88,3 @@ app.UseGraphQL<IdentitySchema>("/graphql-auth");
 app.UseGraphQLAltair();
 
 app.Run();
-
-public static class AuthOptions
-{
-    public static SymmetricSecurityKey GetSymmetricSecurityKey(string KEY) =>
-        new SymmetricSecurityKey(Encoding.UTF8.GetBytes(KEY));
-
-    public static string GetKey(this IConfiguration configuration)
-    {
-        return configuration["Authorization:Key"];
-    }
-
-    public static string GetIssuer(this IConfiguration configuration)
-    {
-        return configuration["Authorization:Issuer"];
-    }
-
-    public static string GetAudience(this IConfiguration configuration)
-    {
-        return configuration["Authorization:Audience"];
-    }
-}
-
-public class CustomJwtBearerHandler : JwtBearerHandler
-{
-    private readonly IConfiguration _configuration;
-    private readonly IAuthorizationManager _authorizationManager;
-
-    public CustomJwtBearerHandler(IAuthorizationManager authorizationManager, IConfiguration configuration, IOptionsMonitor<JwtBearerOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock)
-        : base(options, logger, encoder, clock)
-    {
-        _configuration = configuration;
-        _authorizationManager = authorizationManager;
-    }
-
-    protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
-    {
-
-        if (!Context.Request.Headers.TryGetValue("Authorization", out var authorizationHeaderValues))
-        {
-            return AuthenticateResult.Fail("Authorization header not found.");
-        }
-
-        var authorizationHeader = authorizationHeaderValues.FirstOrDefault();
-        if (string.IsNullOrEmpty(authorizationHeader) || !authorizationHeader.StartsWith("Bearer "))
-        {
-            return AuthenticateResult.Fail("Bearer token not found in Authorization header.");
-        }
-
-        var token = authorizationHeader.Substring("Bearer ".Length).Trim();
-
-        if (_authorizationManager.IsValidToken(token))
-        {
-            var tokenData = _authorizationManager.ReadJwtToken(token);
-            var principal = new ClaimsPrincipal(new ClaimsIdentity(tokenData.Claims, "Token"));
-            return AuthenticateResult.Success(new AuthenticationTicket(principal, "CustomJwtBearer"));
-        }
-
-        return AuthenticateResult.Fail("Token validation failed.");
-    }
-}
-
-
-class CustomWebSocketAuthenticator : IWebSocketAuthenticationService
-{
-    private readonly IGraphQLSerializer _serializer;
-    private readonly IAuthorizationManager _authorizationManager;
-
-    public CustomWebSocketAuthenticator(IGraphQLSerializer serializer,IAuthorizationManager authorizationManager)
-    {
-        _serializer = serializer;
-        _authorizationManager = authorizationManager;
-    }
-
-    public Task AuthenticateAsync(IWebSocketConnection connection, string subProtocol, OperationMessage operationMessage)
-    {
-        var payload = _serializer.ReadNode<Inputs>(operationMessage.Payload);
-        if ((payload?.TryGetValue("authorization", out var token) ?? false) && token is string tokeString)
-        {
-            if (_authorizationManager.IsValidToken(tokeString))
-            {
-                var tokenData = _authorizationManager.ReadJwtToken(tokeString);
-                var principal = new ClaimsPrincipal(new ClaimsIdentity(tokenData.Claims, "Token"));
-                connection.HttpContext.User = principal;
-            }
-        }
-        return Task.CompletedTask;
-    }
-}

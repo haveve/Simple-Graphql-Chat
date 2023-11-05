@@ -10,6 +10,7 @@ using System.Security.Cryptography;
 using TimeTracker.GraphQL.Types.IdentityTipes.Models;
 using TimeTracker.Models;
 using TimeTracker.Repositories;
+using WebSocketGraphql.Services.AuthenticationServices;
 
 namespace TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager
 {

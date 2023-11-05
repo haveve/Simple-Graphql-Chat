@@ -126,15 +126,15 @@ export function GetAjaxObservable<T, K>(query: string, variables: {}, url: strin
 
     if (tokenString) {
         const token: StoredTokenType = JSON.parse(tokenString)
-        let tokenHeader: any = {
+         tokenHeader = {
             'Authorization': 'Bearer ' + token.token,
         }
     }
 
     if (refreshToken) {
-        // tokenHeader = {
-        //     refresh_token:refreshToken,
-        // }
+        tokenHeader = {
+            refresh_token:refreshToken,
+        }
     }
 
     return ajax<response<T, K>>({
