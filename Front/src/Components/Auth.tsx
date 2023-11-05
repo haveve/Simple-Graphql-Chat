@@ -2,11 +2,15 @@ import React, { useState } from 'react'
 import { Container, Row, Col, Form, Button } from 'react-bootstrap';
 import { logo, title } from '../Features/Constants';
 import { ajaxForLogin } from '../Requests/AuthorizationRequests';
+import { useNavigate } from "react-router-dom";
+import { setCookie } from '../Features/Functions';
 export default function Auth() {
 
     const [nickNameOrEmail, setNickNameOrEmail] = useState('')
     const [password, setPassword] = useState('')
     const [validated, setValidated] = useState<boolean | undefined>()
+
+    const navigate = useNavigate()
 
     const nickNameOrEmailOnChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
         setNickNameOrEmail(event.target.value)
@@ -26,7 +30,10 @@ export default function Auth() {
                     nickNameOrEmail
                 }
             }).subscribe({
-
+                next:()=>{
+                    setCookie({ name: "refresh_sent", value: "false" })
+                    navigate('/main')
+                }
             })
             return;
         }

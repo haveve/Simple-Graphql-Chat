@@ -2,6 +2,7 @@ import { backDomain } from '../Features/Constants';
 import { ajax } from 'rxjs/ajax';
 import { map, catchError, Observable, timer, mergeMap } from 'rxjs';
 import { LogoutDeleteCookie, setCookie, getCookie } from '../Features/Functions';
+import {redirect} from 'react-router'
 
 const url = `https://${backDomain}/graphql-auth`
 
@@ -18,6 +19,7 @@ export enum RefreshStatus {
 
 export function TokenErrorHandler() {
     LogoutDeleteCookie()
+    window.location.pathname = '/'
 }
 
 export function GetTokenObservable() {
@@ -58,8 +60,13 @@ export function DoRefresh(refresh: DoRefreshType) {
         const sub = timer(10, 20).subscribe({
             next: () => {
                 let refreshSentString = getCookie("refresh_sent");
-                let isTokenSent: boolean = refreshSentString ? JSON.parse(refreshSentString) : refreshSentString
 
+                if(!refreshSentString){
+                    sub.unsubscribe();
+                    return;
+                }
+                
+                let isTokenSent: boolean = JSON.parse(refreshSentString)
                 if (!isTokenSent) {
                     subscriber.next()
                     sub.unsubscribe()
@@ -98,7 +105,6 @@ export function WhetherDoRefresh(): DoRefreshType {
             refresh_token: refreshTokenObj.token,
             refreshStatus: RefreshStatus.DoRefresh
         }
-
     }
     return {
         refresh_token: "",
@@ -114,26 +120,29 @@ export enum TokenAjaxStatus {
 
 export function GetAjaxObservable<T, K>(query: string, variables: {}, url: string, refreshToken: string | null = null, withCredentials = false,) {
 
+    const tokenString = getCookie("access_token");
 
+    let tokenHeader: any = {}
 
-    // const token: StoredTokenType = JSON.parse(getCookie("access_token"))
+    if (tokenString) {
+        const token: StoredTokenType = JSON.parse(tokenString)
+        let tokenHeader: any = {
+            'Authorization': 'Bearer ' + token.token,
+        }
+    }
 
-    // let tokenHeader: any = {
-    //     'Authorization': 'Bearer ' + token.token,
-    // }
-
-    // if (refreshToken) {
-    //     tokenHeader = {
-    //         refresh_token: refreshToken
-    //     }
-    // }
+    if (refreshToken) {
+        // tokenHeader = {
+        //     refresh_token:refreshToken,
+        // }
+    }
 
     return ajax<response<T, K>>({
         url,
         method: "POST",
         headers: {
             'Content-Type': 'application/json',
-            // ...tokenHeader
+            ...tokenHeader
         },
         body: JSON.stringify({
             query,
@@ -206,15 +215,15 @@ export type RegistrationType = {
 }
 
 export type SetPasswordByCodeType = {
-    code:string,
-    password:string,
-    email:string
+    code: string,
+    password: string,
+    email: string
 }
 
-export function ajaxSetPasswordByCode(variables:SetPasswordByCodeType){
-    return GetAjaxObservable<string,any>(`query($code:String!,$password:String!,$email:String!){
+export function ajaxSetPasswordByCode(variables: SetPasswordByCodeType) {
+    return GetAjaxObservable<string, any>(`query($code:String!,$password:String!,$email:String!){
         resetUserPasswordByCode(code:$code,password:$password,email:$email)
-      }`,variables,url).pipe(map(response => {
+      }`, variables, url).pipe(map(response => {
         alert(JSON.stringify(response))
     }))
 }

@@ -10,7 +10,7 @@ import {
   RouterProvider
 } from "react-router-dom";
 import SetPassword from './Components/SetPassword';
-
+import { getTokenOrNavigate } from './Features/Functions';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -20,10 +20,12 @@ const Router = createBrowserRouter([
   {
     path:'/main',
     element:<Chat/>,
+    loader: async ()=>getTokenOrNavigate()
   },
   {
     path:'/',
     element:<StartMenu/>,
+    loader:async ()=>getTokenOrNavigate(true),
     children:[
       {
         path:'/',

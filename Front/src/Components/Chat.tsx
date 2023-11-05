@@ -11,7 +11,7 @@ import { GetDateStringFromDateTime, MessagesNormalizeDateFormat, SortMessageByTi
 import { flushSync } from 'react-dom';
 import MessageComponent from '../Components/Message';
 import MultiControl from './MultiControl';
-import { WebSocketProxy,defaultSubscriptionResponse } from '../Requests/Requests';
+import { WebSocketProxy,defaultSubscriptionResponse} from '../Requests/Requests';
 
 function Chat() {
   const [currentId, setId] = useState(-1);
@@ -41,12 +41,6 @@ function Chat() {
             console.log(response.data)
             break;
         }
-      },
-      error:()=>{
-
-      },
-      complete:()=>{
-        
       }
     })
     connection.current.next({

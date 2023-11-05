@@ -40,7 +40,7 @@ export function LogoutDeleteCookie() {
 	deleteCookie("access_token");
 	deleteCookie("user_id");
 	deleteCookie("canUseUserIp");
-	setCookie({ name: "refresh_sent", value: "false" })
+	deleteCookie("refresh_sent");
 }
 
 

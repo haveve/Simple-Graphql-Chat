@@ -16,6 +16,9 @@ using TimeTracker.Repositories;
 using TimeTracker.Services;
 using GraphQL.Server.Transports.AspNetCore.WebSockets;
 using GraphQL.Transport;
+using GraphQLParser;
+using Newtonsoft.Json.Linq;
+using TimeTracker.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -52,6 +55,7 @@ builder.Services.AddGraphQL(c =>
     c.AddSystemTextJson()
     .AddSchema<ChatSchema>()
     .AddSchema<IdentitySchema>()
+    .AddWebSocketAuthentication<CustomWebSocketAuthenticator>()
     .AddGraphTypes(typeof(ChatSchema).Assembly)
     .AddGraphTypes(typeof(IdentitySchema).Assembly);
 });
@@ -73,7 +77,10 @@ app.UseAuthorization();
 
 app.UseWebSockets();
 
-app.UseGraphQL<ChatSchema>("/graphql");
+app.UseGraphQL<ChatSchema>("/graphql", config =>
+{
+    config.AuthorizationRequired = true;
+});
 
 app.UseGraphQL<IdentitySchema>("/graphql-auth");
 
@@ -139,45 +146,32 @@ public class CustomJwtBearerHandler : JwtBearerHandler
 
         return AuthenticateResult.Fail("Token validation failed.");
     }
+}
 
-    //class MyAuthService : IWebSocketAuthenticationService
-    //{
-    //    private readonly IGraphQLSerializer _serializer;
 
-    //    public MyAuthService(IGraphQLSerializer serializer)
-    //    {
-    //        _serializer = serializer;
-    //    }
+class CustomWebSocketAuthenticator : IWebSocketAuthenticationService
+{
+    private readonly IGraphQLSerializer _serializer;
+    private readonly IAuthorizationManager _authorizationManager;
 
-    //    public async ValueTask<bool> AuthenticateAsync(IWebSocketConnection connection, OperationMessage operationMessage)
-    //    {
-    //        // read payload of ConnectionInit message and look for an "Authorization" entry that starts with "Bearer "
-    //        var payload = _serializer.ReadNode<Inputs>(operationMessage.Payload);
-    //        if ((payload?.TryGetValue("Authorization", out var value) ?? false) && value is string valueString)
-    //        {
-    //            var user = ParseToken(valueString);
-    //            if (user != null)
-    //            {
-    //                // set user and indicate authentication was successful
-    //                connection.HttpContext.User = user;
-    //                return true;
-    //            }
-    //        }
-    //        return false; // authentication failed
-    //    }
+    public CustomWebSocketAuthenticator(IGraphQLSerializer serializer,IAuthorizationManager authorizationManager)
+    {
+        _serializer = serializer;
+        _authorizationManager = authorizationManager;
+    }
 
-    //    public async Task AuthenticateAsync(IWebSocketConnection connection, string subProtocol, OperationMessage operationMessage)
-    //    {
-    //        var payload = _serializer.ReadNode<Inputs>(operationMessage.Payload);
-    //        if ((payload?.TryGetValue("Authorization", out var value) ?? false) && value is string valueString)
-    //        {
-    //            var user = ParseToken(valueString);
-    //            if (user != null)
-    //            {
-    //                // set user and indicate authentication was successful
-    //                connection.HttpContext.User = user;
-    //            }
-    //        }
-    //    }
-    //}
+    public Task AuthenticateAsync(IWebSocketConnection connection, string subProtocol, OperationMessage operationMessage)
+    {
+        var payload = _serializer.ReadNode<Inputs>(operationMessage.Payload);
+        if ((payload?.TryGetValue("authorization", out var token) ?? false) && token is string tokeString)
+        {
+            if (_authorizationManager.IsValidToken(tokeString))
+            {
+                var tokenData = _authorizationManager.ReadJwtToken(tokeString);
+                var principal = new ClaimsPrincipal(new ClaimsIdentity(tokenData.Claims, "Token"));
+                connection.HttpContext.User = principal;
+            }
+        }
+        return Task.CompletedTask;
+    }
 }
