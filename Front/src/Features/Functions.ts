@@ -1,8 +1,26 @@
 import { Message } from "./Types";
 import { redirect } from "react-router";
+import { maxVisibleLength } from "../Components/Chat";
 
 export function GetDateStringFromDateTime(date:Date){
     return date.toJSON();
+}
+
+export function GetAbbreviationFromPhrase(str:string){
+  let startStr = ""
+  str.split(" ").forEach((el,key)=>{
+    if(key < 2)
+    startStr += el[0].toUpperCase();
+  })
+  return startStr
+}
+
+export function GetDisplayedName(str:string){
+  if(str.length > maxVisibleLength)
+  {
+    return str.substring(0,maxVisibleLength) + '...'
+  }
+  return str
 }
 
 export function GetFullDateTime(currentdate:Date){

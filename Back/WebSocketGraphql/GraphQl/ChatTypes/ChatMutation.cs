@@ -1,24 +1,22 @@
 ﻿using GraphQL;
 using GraphQL.Types;
-using WebSocketGraphql.GraphQl.ChatTypes.Models;
 using WebSocketGraphql.GraphQl.ChatTypes.Types;
+using WebSocketGraphql.Models;
 using WebSocketGraphql.Repositories;
 
 namespace WebSocketGraphql.GraphQl.ChatTypes
 {
-    public class ChatMutation : ObjectGraphType<object>
+    public class ChatMutation : ObjectGraphType
     {
         public ChatMutation(IChat chat)
         {
-            Field<StringGraphType>("addMessage")
+            Field<BooleanGraphType>("addMessage")
                 .Argument<MessageInputType>("message")
-                .Resolve(context =>
+                .ResolveAsync(async context =>
                 {
-                    var receivedMessage = context.GetArgument<ReceivedMessage>("message");
-                    chat.AddMessage(receivedMessage);
-                    return "OK";
+                    var receivedMessage = context.GetArgument<Message>("message");
+                    return await chat.AddMessageAsync(receivedMessage);
                 });
         }
     }
-
 }

@@ -1,4 +1,5 @@
-﻿using GraphQL.Types;
+﻿using GraphQL;
+using GraphQL.Types;
 using WebSocketGraphql.GraphQl.ChatTypes.Types;
 using WebSocketGraphql.Repositories;
 
@@ -8,7 +9,13 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
     {
         public ChatQuery(IChat chat)
         {
-            Field<ListGraphType<MessageType>>("messages").Resolve(_ => chat.AllMessages);
+            Field<ListGraphType<MessageType>>("messages")
+                .Argument<NonNullGraphType<IntGraphType>>("chatId")
+                .ResolveAsync(async context =>
+                {
+                    int chatId = context.GetArgument<int>("chatId");
+                    return await chat.GetAllMessages(chatId);
+                });
         }
     }
 

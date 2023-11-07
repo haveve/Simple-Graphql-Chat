@@ -1,5 +1,5 @@
 ﻿using GraphQL.Types;
-using WebSocketGraphql.GraphQl.ChatTypes.Models;
+using WebSocketGraphql.Models;
 
 namespace WebSocketGraphql.GraphQl.ChatTypes.Types
 {
@@ -7,9 +7,10 @@ namespace WebSocketGraphql.GraphQl.ChatTypes.Types
     {
         public MessageType()
         {
-            Field(o => o.Content);
-            Field(o => o.SentAt);
-            Field(o => o.From, false, typeof(MessageFromType));
+            Field(el => el.FromId, nullable: false);
+            Field(el => el.ChatId, nullable: false);
+            Field(el => el.SentAt, nullable: false);
+            Field(el => el.Content, nullable: false);
         }
     }
 }

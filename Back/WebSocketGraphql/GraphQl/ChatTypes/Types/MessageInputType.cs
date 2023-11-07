@@ -1,14 +1,17 @@
 ﻿using GraphQL.Types;
+using WebSocketGraphql.Models;
 
 namespace WebSocketGraphql.GraphQl.ChatTypes.Types
 {
-    public class MessageInputType : InputObjectGraphType
+    public class MessageInputType : InputObjectGraphType<Message>
     {
         public MessageInputType()
         {
-            Field<StringGraphType>("fromId");
-            Field<StringGraphType>("content");
-            Field<DateTimeGraphType>("sentAt");
+            Field(el => el.FromId, nullable: false);
+            Field(el => el.ChatId, nullable: false);
+            Field(el => el.SentAt, nullable: false);
+            Field(el => el.Content, nullable: false);
+
         }
     }
 }

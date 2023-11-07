@@ -5,7 +5,7 @@ using TimeTracker.Models;
 
 namespace WebSocketGraphql.Services
 {
-    public static class UserMapper
+    public static class Mapper
     {
         static string GetDescriptionFromAttribute(MemberInfo member)
         {
@@ -15,11 +15,11 @@ namespace WebSocketGraphql.Services
             return (attrib?.Description ?? member.Name).ToLower();
         }
 
-        static public void SetUserMapper()
+        static public void SetMapper(Type someType)
         {
-            var map = new CustomPropertyTypeMap(typeof(User), (type, columnName)
+            var map = new CustomPropertyTypeMap(someType, (type, columnName)
             => type.GetProperties().FirstOrDefault(prop => GetDescriptionFromAttribute(prop) == columnName.ToLower()));
-            Dapper.SqlMapper.SetTypeMap(typeof(User), map);
+            Dapper.SqlMapper.SetTypeMap(someType, map);
         }
     }
 }
