@@ -1,6 +1,8 @@
 ﻿using System.Collections.Concurrent;
 using System.Reactive.Subjects;
+using TimeTracker.Models;
 using WebSocketGraphql.Models;
+using WebSocketGraphql.ViewModels;
 
 namespace WebSocketGraphql.Repositories
 {
@@ -9,15 +11,17 @@ namespace WebSocketGraphql.Repositories
 
         Task<bool> AddMessageAsync(Message message);
 
-        Task<IEnumerable<Message>> GetAllMessages(int chatId);
+        Task<IEnumerable<Message>> GetAllMessagesAsync(int chatId);
 
-        IObservable<Message> Messages(int chatId);
+        Task<IEnumerable<ChatParticipant>> GetAllChatParticipatsAsync(int chatId);
 
-        Task<bool> RemoveMessageAsync(int fromId, DateTime sentAt);
+        IObservable<object> SubscribeMessages(int chatId);
+
+        Task<bool> RemoveMessageAsync(Message message);
 
         Task<bool> UpdateMessageAsync(Message message);
 
-        Task<bool> AddChatAsync(ChatModel chat);
+        Task<int> AddChatAsync(ChatModel chat);
 
         Task<bool> RemoveChatAsync(int chatId);
 
@@ -27,5 +31,15 @@ namespace WebSocketGraphql.Repositories
 
         Task<bool> RemoveUserFromChatAsync(int chatId, string nickNameOrEmail);
 
+        Task<IEnumerable<int>> GetUserChats(int userId);
+
+        Task<IEnumerable<int>> GetUserCreationChats(int userId);
+
+        Task<bool> CheckPrecentUserInChat(int userId, int chatId);
+
+        Task<bool> CheckUserOwnChat(int userId, int chatId);
+
+        Task<IEnumerable<ChatResult>> GetUserChatsInstances(int userId);
+  
+        }
     }
-}

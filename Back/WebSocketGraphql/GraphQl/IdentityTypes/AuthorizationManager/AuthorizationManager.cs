@@ -7,9 +7,11 @@ using System.Net;
 using System.Net.WebSockets;
 using System.Security.Claims;
 using System.Security.Cryptography;
+using System.Text.Json;
 using TimeTracker.GraphQL.Types.IdentityTipes.Models;
 using TimeTracker.Models;
 using TimeTracker.Repositories;
+using WebSocketGraphql.Repositories;
 using WebSocketGraphql.Services.AuthenticationServices;
 
 namespace TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager
@@ -24,12 +26,14 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager
 
         public readonly IAuthorizationRepository _authRepo;
         private readonly IConfiguration _configuration;
-        private readonly IUserRepository _userRepository;
-        public AuthorizationManager(IUserRepository userRepository, IAuthorizationRepository authRepo, IConfiguration configuration)
+        private readonly IChat _chat;
+
+        public AuthorizationManager(IAuthorizationRepository authRepo, IConfiguration configuration,IChat chat)
         {
             _authRepo = authRepo;
             _configuration = configuration;
-            _userRepository = userRepository;
+            _chat = chat;
+
         }
 
         public TokenResult GetRefreshToken(int userId)
@@ -53,7 +57,7 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager
             return new(new JwtSecurityTokenHandler().WriteToken(refreshToken), expiredAt, issuedAt);
         }
 
-        public bool IsValidToken(string token)
+        public async Task<bool> IsValidToken(string token, int? chatId = null)
         {
             try
             {
@@ -70,7 +74,28 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager
                     ValidateIssuerSigningKey = true,
                     ClockSkew = TimeSpan.Zero
                 }, out SecurityToken securityToken);
-                return true;
+
+                var tokenData = ReadJwtToken(token);
+                var userId = Convert.ToInt32(tokenData.Claims.First(c => c.ValueType == "UserId").Value);
+                var participatedChats = JsonSerializer.Deserialize<IEnumerable<int>>(tokenData.Claims.First(c => c.ValueType == "UserParticipated").Value);
+                var ownChats = JsonSerializer.Deserialize<IEnumerable<int>>(tokenData.Claims.First(c => c.ValueType == "UserOwn").Value);
+
+                if(chatId is null)
+                {
+                    return true;
+                }
+
+                if (participatedChats!.Any(id => id == chatId) || ownChats!.Any(id => id == chatId))
+                {
+                    return true;
+                }
+
+                if(await _chat.CheckPrecentUserInChat(userId, (int)chatId))
+                {
+                    return true;
+                }
+
+                return false;
             }
             catch
             {
@@ -80,7 +105,7 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager
 
         public JwtSecurityToken ReadJwtToken(string token) => new JwtSecurityTokenHandler().ReadJwtToken(token);
 
-        public ValidateRefreshAndGetAccess ValidateRefreshAndGetAccessToken(string refreshToken)
+        public async Task<ValidateRefreshAndGetAccess> ValidateRefreshAndGetAccessToken(string refreshToken)
         {
 
             JwtSecurityToken objRefreshToken = ReadJwtToken(refreshToken);
@@ -94,7 +119,7 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager
                 return new ValidateRefreshAndGetAccess(null, false, "Refresh token is invalid");
             }
 
-            if (!IsValidToken(refreshToken))
+            if (!await IsValidToken(refreshToken))
             {
                 return new ValidateRefreshAndGetAccess(null, false, "Refresh token is invalid");
             }
@@ -104,14 +129,17 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager
                 return new ValidateRefreshAndGetAccess(null, false, "Refresh token is invalid");
             }
 
-            return new ValidateRefreshAndGetAccess(GetAccessToken(userId), true, null);
+            return new ValidateRefreshAndGetAccess(await GetAccessToken(userId), true, null);
 
         }
 
-        public TokenResult GetAccessToken(int userId)
+        public async Task<TokenResult> GetAccessToken(int userId)
         {
             var expiredAt = DateTime.UtcNow.Add(TimeSpan.FromSeconds(IAuthorizationManager.AccessTokenExpiration));
             var issuedAt = DateTime.UtcNow;
+
+            var participatedChats = await _chat.GetUserChats(userId);
+            var ownChats = await _chat.GetUserCreationChats(userId);
 
             DateTimeOffset issuedAtOffset = issuedAt;
 
@@ -120,7 +148,9 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager
     audience: _configuration.GetAudience(),
     claims: new[] {
             new Claim("UserId", userId.ToString()),
-            new Claim(JwtRegisteredClaimNames.Iat, issuedAtOffset.ToUnixTimeSeconds().ToString())
+            new Claim(JwtRegisteredClaimNames.Iat, issuedAtOffset.ToUnixTimeSeconds().ToString()),
+            new Claim("UserOwn",JsonSerializer.Serialize(ownChats)),
+            new Claim("UserParticipated",JsonSerializer.Serialize(participatedChats))
     },
     expires: expiredAt,
     signingCredentials: new SigningCredentials(AuthOptions.GetSymmetricSecurityKey(_configuration.GetKey()), SecurityAlgorithms.HmacSha256));

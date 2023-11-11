@@ -21,11 +21,11 @@ function Chat() {
 
   const [currentId, setId] = useState(-1);
   const [messages, setMessages] = useState<Message[]>([]);
-  let connection = useRef<WebSocketProxy<defaultSubscriptionResponse<any>>>();
   let lastMessage = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    connection.current = ConnectToChat()
-    connection.current.subscribe({
+    const connection = ConnectToChat()
+    connection.subscribe({
       next: (response) => {
         const dispatched = Dispatch(response);
         switch (dispatched.dataType) {
@@ -48,7 +48,7 @@ function Chat() {
         }
       }
     })
-    connection.current.next({
+    connection.next({
       id: nanoid(),
       type: 'start',
       payload: {
@@ -56,7 +56,7 @@ function Chat() {
       }
     })
 
-    connection.current.next({
+    connection.next({
       id: nanoid(),
       type: 'start',
       payload: {
@@ -64,11 +64,12 @@ function Chat() {
       }
     })
 
-    return () => connection.current!.complete()
+    return () => connection!.complete()
   }, [])
 
   const SendMessage = (createdMessage: string, setCreatedMessage: React.Dispatch<string>) => {
-      connection.current!.next({
+      const connection = ConnectToChat()
+      connection!.next({
         id: nanoid(),
         type: 'start',
         payload: {

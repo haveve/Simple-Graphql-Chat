@@ -3,9 +3,8 @@ using GraphQL.Types;
 using GraphQL;
 using WebSocketGraphql.Repositories;
 using WebSocketGraphql.GraphQl.ChatTypes.Types;
-using System.Linq;
-using System.Reactive.Linq;
-using WebSocketGraphql.Models;
+using WebSocketGraphql.ViewModels;
+using WebSocketGraphql.Services.AuthenticationServices;
 
 namespace WebSocketGraphql.GraphQl.ChatTypes
 {
@@ -19,15 +18,18 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
             AddField(new FieldType
             {
                 Name = "messageAdded",
-                Type = typeof(MessageType),
-                StreamResolver = new SourceStreamResolver<Message>(Subscribe)
+                Type = typeof(MessageOrChatResult),
+                Arguments = new QueryArguments(
+                new QueryArgument<NonNullGraphType<IntGraphType>> { Name = "chatId" }
+                ),
+                StreamResolver = new SourceStreamResolver<object>(Subscribe),
             });
         }
 
-        private IObservable<Message> Subscribe(IResolveFieldContext context)
+        private IObservable<object> Subscribe(IResolveFieldContext context)
         {
             int chatId = context.GetArgument<int>("chatId");
-            return _chat.Messages(chatId);
+            return _chat.SubscribeMessages(chatId);
         }
 
     }

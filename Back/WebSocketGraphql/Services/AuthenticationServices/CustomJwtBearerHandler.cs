@@ -21,27 +21,7 @@ namespace WebSocketGraphql.Services.AuthenticationServices
 
         protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
         {
-            if (!Context.Request.Headers.TryGetValue("Authorization", out var authorizationHeaderValues))
-            {
-                return AuthenticateResult.Fail("Authorization header not found.");
-            }
-
-            var authorizationHeader = authorizationHeaderValues.FirstOrDefault();
-            if (string.IsNullOrEmpty(authorizationHeader) || !authorizationHeader.StartsWith("Bearer "))
-            {
-                return AuthenticateResult.Fail("Bearer token not found in Authorization header.");
-            }
-
-            var token = authorizationHeader.Substring("Bearer ".Length).Trim();
-
-            if (_authorizationManager.IsValidToken(token))
-            {
-                var tokenData = _authorizationManager.ReadJwtToken(token);
-                var principal = new ClaimsPrincipal(new ClaimsIdentity(tokenData.Claims, "Token"));
-                return AuthenticateResult.Success(new AuthenticationTicket(principal, "CustomJwtBearer"));
-            }
-
-            return AuthenticateResult.Fail("Token validation failed.");
+            return AuthenticateResult.Fail("Auhtorization through HTTP(S) was disabled");
         }
     }
 

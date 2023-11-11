@@ -10,8 +10,8 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager
 
         public TokenResult GetRefreshToken(int userId);
         public JwtSecurityToken ReadJwtToken(string accessToken);
-        public ValidateRefreshAndGetAccess ValidateRefreshAndGetAccessToken(string refreshToken);
-        public bool IsValidToken(string token);
-        public TokenResult GetAccessToken(int userId);
+        public Task<ValidateRefreshAndGetAccess> ValidateRefreshAndGetAccessToken(string refreshToken);
+        public Task<bool> IsValidToken(string token, int? chatId = null);
+        public Task<TokenResult> GetAccessToken(int userId);
     }
 }

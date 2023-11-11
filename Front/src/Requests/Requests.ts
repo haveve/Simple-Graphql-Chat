@@ -56,15 +56,19 @@ export class WebSocketProxy<T extends MinWebSocketType>{
 
 }
 
-export function ConnectToChat(): WebSocketProxy<defaultSubscriptionResponse<any>> {
+let socket:WebSocketSubject<defaultSubscriptionResponse<any>>;
+let proxy:WebSocketProxy<defaultSubscriptionResponse<any>>;
 
-    const socket = webSocket<defaultSubscriptionResponse<any>>({
-        url: `wss://${backDomain}/graphql`,
-        protocol: 'graphql-ws'
-    })
+export function ConnectToChat(reconnect:boolean = false): WebSocketProxy<defaultSubscriptionResponse<any>> {
 
-    let proxy = new WebSocketProxy(socket);
-    proxy.next({ "type": "connection_init", "payload": {} })
+    if(!socket || reconnect || socket.closed){
+        socket = webSocket<defaultSubscriptionResponse<any>>({
+            url: `wss://${backDomain}/graphql`,
+            protocol: 'graphql-ws'
+        })   
+        proxy = new WebSocketProxy(socket);
+        proxy.next({ "type": "connection_init", "payload": {} }) 
+    }
 
     return proxy;
 }

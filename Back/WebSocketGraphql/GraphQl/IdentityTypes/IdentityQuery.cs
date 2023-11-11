@@ -63,7 +63,7 @@ namespace TimeTracker.GraphQL.Queries
                     throw new Exception("User has not setted password");
                 }
 
-                var encodedJwt = _authorizationManager.GetAccessToken(user.Id);
+                var encodedJwt =  await _authorizationManager.GetAccessToken(user.Id);
 
                 var refreshToken = _authorizationManager.GetRefreshToken(user.Id);
                 _authorizationRepository.CreateRefreshToken(refreshToken, user.Id);
@@ -79,7 +79,7 @@ namespace TimeTracker.GraphQL.Queries
             });
 
             Field<IdentityOutPutGraphType>("refreshToken").
-                Resolve((context) =>
+                ResolveAsync(async(context) =>
                 {
                     HttpContext httpContext = context.RequestServices!.GetService<IHttpContextAccessor>()!.HttpContext!;
 
@@ -90,7 +90,7 @@ namespace TimeTracker.GraphQL.Queries
                         return ExpiredSessionError(context);
                     }
 
-                    var whetherValid = _authorizationManager.ValidateRefreshAndGetAccessToken(refreshToken);
+                    var whetherValid = await _authorizationManager.ValidateRefreshAndGetAccessToken(refreshToken);
 
                     if (!whetherValid.isValid)
                     {

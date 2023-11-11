@@ -15,3 +15,10 @@ export type Message = {
     sentAt:Date,
     from:From
 }
+
+enum MessageType 
+{ 
+   CREATE = "CREATE",
+   UPDATE = "UPDATE",
+   DELETE = "DELETE"
+}

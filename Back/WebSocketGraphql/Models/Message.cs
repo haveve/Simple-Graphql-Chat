@@ -9,8 +9,8 @@ namespace WebSocketGraphql.Models
         [Description("content")]
         public string Content { get; set; }
         [Description("from_id")]
-        public int FromId { get; set; }
+        public int FromId { get; set; } = 0;
         [Description("chat_id")]
-        public int ChatId { get; set; }
+        public int ChatId { get; set; } = 0;
      }
 }

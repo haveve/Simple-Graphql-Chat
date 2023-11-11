@@ -3,6 +3,7 @@ using GraphQL.Transport;
 using GraphQL;
 using System.Security.Claims;
 using TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager;
+using GraphQL.Validation;
 
 namespace WebSocketGraphql.Services.AuthenticationServices
 {
@@ -17,19 +18,21 @@ namespace WebSocketGraphql.Services.AuthenticationServices
             _authorizationManager = authorizationManager;
         }
 
-        public Task AuthenticateAsync(IWebSocketConnection connection, string subProtocol, OperationMessage operationMessage)
+        public async Task AuthenticateAsync(IWebSocketConnection connection, string subProtocol, OperationMessage operationMessage)
         {
             var payload = _serializer.ReadNode<Inputs>(operationMessage.Payload);
+            var variables = _serializer.ReadNode<Variables>(operationMessage.Payload);
             if ((payload?.TryGetValue("authorization", out var token) ?? false) && token is string tokeString)
             {
-                if (_authorizationManager.IsValidToken(tokeString))
+
+                var chatId = variables?.FirstOrDefault(el => el.Name == "chatId")?.Value;
+                if (await _authorizationManager.IsValidToken(tokeString, chatId is int id ? id: null ))
                 {
                     var tokenData = _authorizationManager.ReadJwtToken(tokeString);
                     var principal = new ClaimsPrincipal(new ClaimsIdentity(tokenData.Claims, "Token"));
                     connection.HttpContext.User = principal;
                 }
             }
-            return Task.CompletedTask;
         }
     }
 }

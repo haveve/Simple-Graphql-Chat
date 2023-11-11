@@ -2,23 +2,12 @@ using GraphQL;
 using GraphQL.MicrosoftDI;
 using GraphQL.Types;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
-using System.Security.Claims;
-using System.Text.Encodings.Web;
-using System.Text;
 using TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager;
 using WebSocketGraphql.Repositories;
 using WebSocketGraphql.GraphQl.Schemes;
 using TimeTracker.GraphQL.Schemas;
 using TimeTracker.Repositories;
 using TimeTracker.Services;
-using GraphQL.Server.Transports.AspNetCore.WebSockets;
-using GraphQL.Transport;
-using GraphQLParser;
-using Newtonsoft.Json.Linq;
-using TimeTracker.Models;
 using WebSocketGraphql.Services.AuthenticationServices;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -29,6 +18,7 @@ builder.Services.AddSingleton<DapperContext>();
 builder.Services.AddSingleton<IAuthorizationRepository, AuthorizationRepository>();
 builder.Services.AddSingleton<IUserRepository, UserRepository>();
 builder.Services.AddSingleton<IEmailSender, EmailSender>();
+builder.Services.AddSingleton<AuthHelper>();
 
 builder.Services.AddHttpContextAccessor();
 
@@ -58,7 +48,8 @@ builder.Services.AddGraphQL(c =>
     .AddSchema<IdentitySchema>()
     .AddWebSocketAuthentication<CustomWebSocketAuthenticator>()
     .AddGraphTypes(typeof(ChatSchema).Assembly)
-    .AddGraphTypes(typeof(IdentitySchema).Assembly);
+    .AddGraphTypes(typeof(IdentitySchema).Assembly)
+    .AddErrorInfoProvider(opt => opt.ExposeExceptionDetails = true);
 });
 
 var app = builder.Build();
@@ -80,7 +71,7 @@ app.UseWebSockets();
 
 app.UseGraphQL<ChatSchema>("/graphql", config =>
 {
-    config.AuthorizationRequired = true;
+    config.AuthorizationRequired = false;
 });
 
 app.UseGraphQL<IdentitySchema>("/graphql-auth");

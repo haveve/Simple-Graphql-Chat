@@ -6,6 +6,7 @@ using Dapper;
 using TimeTracker.Models;
 using WebSocketGraphql.Services;
 using WebSocketGraphql.Models;
+using WebSocketGraphql.ViewModels;
 
 namespace TimeTracker.Repositories
 {
@@ -21,6 +22,8 @@ namespace TimeTracker.Repositories
            Mapper.SetMapper(typeof(User));
            Mapper.SetMapper(typeof(ChatModel));
            Mapper.SetMapper(typeof(Message));
+           Mapper.SetMapper(typeof(ChatResult));
+           Mapper.SetMapper(typeof(ChatParticipant));
 
         }
         public IDbConnection CreateConnection()
