@@ -17,6 +17,8 @@ namespace WebSocketGraphql.Repositories
 
         IObservable<object> SubscribeMessages(int chatId);
 
+        IObservable<UserNotification> SubscribeUserNotification();
+
         Task<bool> RemoveMessageAsync(Message message);
 
         Task<bool> UpdateMessageAsync(Message message);

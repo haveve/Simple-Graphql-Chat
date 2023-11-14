@@ -27,6 +27,11 @@ namespace WebSocketGraphql.Repositories
             _userChatNotifyer = new Subject<UserNotification>();
         }
 
+        public IObservable<UserNotification> SubscribeUserNotification()
+        {
+            return _userChatNotifyer.AsObservable();
+        }
+
         public async Task<bool> AddMessageAsync(Message message)
         {
             string query = "INSERT INTO Message (chat_id,sent_at,fromt_id,content) VALUES(@ChatId,@SentAt,@FromId,@Content)";
@@ -45,6 +50,8 @@ namespace WebSocketGraphql.Repositories
             public string ChatName { get; set; }
             public int UserId { get; set; }
             public string NickName { get; set; }
+            public int ChatMembersCount { get; set; } = 0;
+            public int CreatorId { get; set; } = 0;
         }
 
         public async Task<bool> AddUserToChatAsync(int chatId, string nickNameOrEmail)
@@ -64,7 +71,7 @@ namespace WebSocketGraphql.Repositories
 			ELSE
             BEGIN
                 INSERT INTO Users_Chat_Keys (user_id,chat_id) VALUES(@userId,@chatId)
-                SELECT @userId as UserId, @nickName as NickName, name as ChatName FROM Chat WHERE id = @chatId
+                SELECT @userId as UserId,creator as CreatorId , @nickName as NickName,name as ChatName,(SELECT Count(*) FROM Users_Chat_Keys WHERE chat_id = @chatId) AS ChatMembersCount FROM Chat WHERE id = @chatId
 				COMMIT TRANSACTION
             END";
 
@@ -77,6 +84,7 @@ namespace WebSocketGraphql.Repositories
             }
 
             var subject = GetOrCreateChat(chatId);
+
             subject.OnNext(new MessageSubscription(new()
             {
                 ChatId = chatId,
@@ -91,7 +99,9 @@ namespace WebSocketGraphql.Repositories
                 UserId = user.UserId,
                 NotificationType = ChatNotificationType.ENROLL,
                 Name = user.ChatName,
-                Id = chatId
+                Id = chatId,
+                CreatorId = user.CreatorId,
+                ChatMembersCount = user.ChatMembersCount
             });
 
             return true;
@@ -247,14 +257,16 @@ namespace WebSocketGraphql.Repositories
                 FromId = user.UserId,
                 SentAt = DateTime.UtcNow
             })
-            { Type = MessageType.USER_REMOVED });
+            { Type = MessageType.USER_REMOVE });
 
             _userChatNotifyer.OnNext(new UserNotification()
             {
                 UserId = user.UserId,
                 NotificationType = ChatNotificationType.BANISH,
                 Name = user.ChatName,
-                Id = chatId
+                Id = chatId,
+                CreatorId = user.CreatorId,
+                ChatMembersCount = user.ChatMembersCount
             });
 
             return true;

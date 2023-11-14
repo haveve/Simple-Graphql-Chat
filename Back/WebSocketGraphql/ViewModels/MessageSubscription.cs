@@ -12,6 +12,7 @@ namespace WebSocketGraphql.ViewModels
             FromId = message.FromId;
             Content = message.Content;
             SentAt = message.SentAt;
+            NickName = message.NickName;
         }
     }
 
@@ -21,7 +22,7 @@ namespace WebSocketGraphql.ViewModels
        UPDATE,
        DELETE,
        USER_ADD,
-       USER_REMOVED
+       USER_REMOVE
     }
 
 }

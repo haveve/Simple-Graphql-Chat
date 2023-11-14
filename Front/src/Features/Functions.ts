@@ -2,6 +2,10 @@ import { Message } from "./Types";
 import { redirect } from "react-router";
 import { maxVisibleLength } from "../Components/Chat";
 
+export function SetMessageId(message:Message){
+  message.id = message.sentAt.toISOString()+message.fromId+message.chatId
+}
+
 export function GetDateStringFromDateTime(date:Date){
     return date.toJSON();
 }
@@ -51,6 +55,10 @@ export function SortMessageByTime(messages:Message[],reverse:boolean = false){
     messages.sort((el1,el2)=>{
         return sign * (el1.sentAt.getTime() - el2.sentAt.getTime())
     })
+}
+
+export function StringToDate(str:string){
+  return new Date(str)
 }
 
 export function LogoutDeleteCookie() {

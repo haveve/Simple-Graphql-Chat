@@ -90,7 +90,7 @@ namespace TimeTracker.GraphQL.Queries
                         return ExpiredSessionError(context);
                     }
 
-                    var whetherValid = await _authorizationManager.ValidateRefreshAndGetAccessToken(refreshToken);
+                    var whetherValid = await _authorizationManager.ValidateRefreshToken(refreshToken);
 
                     if (!whetherValid.isValid)
                     {

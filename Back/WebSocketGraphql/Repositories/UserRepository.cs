@@ -49,7 +49,7 @@ namespace TimeTracker.Repositories
 
         public async Task<User?> GetUserAsync(int id)
         {
-            string query = "SELECT id,nick_name,email,password,acrivate_code FROM Users WHERE id = @id";
+            string query = "SELECT id,nick_name,email FROM Users WHERE id = @id";
             using var connection = _dapperContext.CreateConnection();
             return await connection.QuerySingleOrDefaultAsync<User>(query, param: new { id }).ConfigureAwait(false);
         }

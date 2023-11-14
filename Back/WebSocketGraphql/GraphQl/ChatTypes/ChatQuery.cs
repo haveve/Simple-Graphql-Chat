@@ -1,5 +1,6 @@
 ﻿using GraphQL;
 using GraphQL.Types;
+using TimeTracker.Repositories;
 using WebSocketGraphql.GraphQl.ChatTypes.Types;
 using WebSocketGraphql.Models;
 using WebSocketGraphql.Repositories;
@@ -10,7 +11,7 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
 {
     public class ChatQuery : ObjectGraphType
     {
-        public ChatQuery(IChat chat, AuthHelper helper)
+        public ChatQuery(IChat chat,IUserRepository user, AuthHelper helper)
         {
             Field<ListGraphType<MessageGraphType>>("messages")
                 .Argument<NonNullGraphType<IntGraphType>>("chatId")
@@ -41,6 +42,12 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
                     return await chat.GetAllChatParticipatsAsync(chatId);
                 });
 
+            Field<NonNullGraphType<UserGraphType>>("user")
+                .ResolveAsync(async context =>
+                {
+                    var id = helper.GetUserId(context.User!);
+                    return await user.GetUserAsync(id);
+                });
         }
 
         private void ThrowError(string message)

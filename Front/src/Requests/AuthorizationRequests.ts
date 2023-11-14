@@ -4,7 +4,7 @@ import { map, catchError, Observable, timer, mergeMap } from 'rxjs';
 import { LogoutDeleteCookie, setCookie, getCookie } from '../Features/Functions';
 import {redirect} from 'react-router'
 
-const url = `https://${backDomain}/graphql-auth`
+export const url = `https://${backDomain}/graphql-auth`
 
 export type response<T = any, K = any> = {
     data: T,
@@ -32,7 +32,6 @@ export type DoRefreshType = {
 }
 
 export function DoRefresh(refresh: DoRefreshType) {
-
     switch (refresh.refreshStatus) {
         case RefreshStatus.DoRefresh:
             const refreshSentString = getCookie("refresh_sent");

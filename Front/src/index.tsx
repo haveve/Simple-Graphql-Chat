@@ -11,6 +11,8 @@ import {
 } from "react-router-dom";
 import SetPassword from './Components/SetPassword';
 import { getTokenOrNavigate } from './Features/Functions';
+import store from './Redux/store';
+import { Provider } from 'react-redux'
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -18,26 +20,26 @@ const root = ReactDOM.createRoot(
 
 const Router = createBrowserRouter([
   {
-    path:'/main',
-    element:<Chat/>,
-    loader: async ()=>getTokenOrNavigate()
+    path: '/main',
+    element: <Chat />,
+    loader: async () => getTokenOrNavigate()
   },
   {
-    path:'/',
-    element:<StartMenu/>,
-    loader:async ()=>getTokenOrNavigate(true),
-    children:[
+    path: '/',
+    element: <StartMenu />,
+    loader: async () => getTokenOrNavigate(true),
+    children: [
       {
-        path:'/',
-        element:<Auth/>
+        path: '/',
+        element: <Auth />
       },
       {
         path: 'sign-up',
-        element:<SignUp/>
+        element: <SignUp />
       },
       {
-      path:'/set-password',
-      element:<SetPassword/>
+        path: '/set-password',
+        element: <SetPassword />
       }
     ]
   }
@@ -45,5 +47,7 @@ const Router = createBrowserRouter([
 
 
 root.render(
-    <RouterProvider router={Router}/>
+  <Provider store={store}>
+    <RouterProvider router={Router} />
+  </Provider>
 );

@@ -13,7 +13,7 @@ namespace TimeTracker.Models
         [Description("nick_name")]
         public string NickName { get; set; }
         [Description("password")]
-        public string Password { get; set; }
+        public string Password { get; set; } = null;
         [Description("email")]
         public string Email { get; set; }
         [Description("activate_code")]

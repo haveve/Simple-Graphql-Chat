@@ -11,6 +11,7 @@ namespace WebSocketGraphql.GraphQl.ChatTypes.Types
             Field(el => el.ChatId, nullable: false);
             Field(el => el.SentAt, nullable: false);
             Field(el => el.Content, nullable: false);
+            Field(el => el.NickName, nullable: false);
         }
     }
 }

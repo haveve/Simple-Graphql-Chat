@@ -9,6 +9,7 @@ using TimeTracker.GraphQL.Schemas;
 using TimeTracker.Repositories;
 using TimeTracker.Services;
 using WebSocketGraphql.Services.AuthenticationServices;
+using Microsoft.AspNetCore.WebSockets;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -71,7 +72,7 @@ app.UseWebSockets();
 
 app.UseGraphQL<ChatSchema>("/graphql", config =>
 {
-    config.AuthorizationRequired = false;
+    config.AuthorizationRequired = true;
 });
 
 app.UseGraphQL<IdentitySchema>("/graphql-auth");

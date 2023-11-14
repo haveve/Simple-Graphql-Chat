@@ -27,12 +27,14 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager
         public readonly IAuthorizationRepository _authRepo;
         private readonly IConfiguration _configuration;
         private readonly IChat _chat;
+        private readonly IUserRepository _userRepo;
 
-        public AuthorizationManager(IAuthorizationRepository authRepo, IConfiguration configuration,IChat chat)
+        public AuthorizationManager(IUserRepository userRepo,IAuthorizationRepository authRepo, IConfiguration configuration,IChat chat, AuthHelper authHelper)
         {
             _authRepo = authRepo;
             _configuration = configuration;
             _chat = chat;
+            _userRepo = userRepo;
 
         }
 
@@ -57,7 +59,7 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager
             return new(new JwtSecurityTokenHandler().WriteToken(refreshToken), expiredAt, issuedAt);
         }
 
-        public async Task<bool> IsValidToken(string token, int? chatId = null)
+        public async Task<bool> IsValidToken(string token, int? chatId = null, bool refresh = false)
         {
             try
             {
@@ -75,10 +77,15 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager
                     ClockSkew = TimeSpan.Zero
                 }, out SecurityToken securityToken);
 
+                if (refresh)
+                {
+                    return true;
+                }
+
                 var tokenData = ReadJwtToken(token);
-                var userId = Convert.ToInt32(tokenData.Claims.First(c => c.ValueType == "UserId").Value);
-                var participatedChats = JsonSerializer.Deserialize<IEnumerable<int>>(tokenData.Claims.First(c => c.ValueType == "UserParticipated").Value);
-                var ownChats = JsonSerializer.Deserialize<IEnumerable<int>>(tokenData.Claims.First(c => c.ValueType == "UserOwn").Value);
+                var userId = Convert.ToInt32(tokenData.Claims.First(c => c.Type == "UserId").Value);
+                var participatedChats = JsonSerializer.Deserialize<IEnumerable<int>>(tokenData.Claims.First(c => c.Type == "UserParticipated").Value);
+                var ownChats = JsonSerializer.Deserialize<IEnumerable<int>>(tokenData.Claims.First(c => c.Type == "UserOwn").Value);
 
                 if(chatId is null)
                 {
@@ -105,7 +112,7 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager
 
         public JwtSecurityToken ReadJwtToken(string token) => new JwtSecurityTokenHandler().ReadJwtToken(token);
 
-        public async Task<ValidateRefreshAndGetAccess> ValidateRefreshAndGetAccessToken(string refreshToken)
+        public async Task<ValidateRefreshAndGetAccess> ValidateRefreshToken(string refreshToken)
         {
 
             JwtSecurityToken objRefreshToken = ReadJwtToken(refreshToken);
@@ -119,7 +126,7 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager
                 return new ValidateRefreshAndGetAccess(null, false, "Refresh token is invalid");
             }
 
-            if (!await IsValidToken(refreshToken))
+            if (!await IsValidToken(refreshToken,refresh:isRefresh))
             {
                 return new ValidateRefreshAndGetAccess(null, false, "Refresh token is invalid");
             }
@@ -140,6 +147,7 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager
 
             var participatedChats = await _chat.GetUserChats(userId);
             var ownChats = await _chat.GetUserCreationChats(userId);
+            var user = await _userRepo.GetUserAsync(userId);
 
             DateTimeOffset issuedAtOffset = issuedAt;
 
@@ -150,7 +158,8 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager
             new Claim("UserId", userId.ToString()),
             new Claim(JwtRegisteredClaimNames.Iat, issuedAtOffset.ToUnixTimeSeconds().ToString()),
             new Claim("UserOwn",JsonSerializer.Serialize(ownChats)),
-            new Claim("UserParticipated",JsonSerializer.Serialize(participatedChats))
+            new Claim("UserParticipated",JsonSerializer.Serialize(participatedChats)),
+            new Claim("UserNickName",user!.NickName)
     },
     expires: expiredAt,
     signingCredentials: new SigningCredentials(AuthOptions.GetSymmetricSecurityKey(_configuration.GetKey()), SecurityAlgorithms.HmacSha256));

@@ -39,7 +39,12 @@ namespace WebSocketGraphql.Services.AuthenticationServices
 
         public int GetUserId(ClaimsPrincipal authUser)
         {
-           return JsonSerializer.Deserialize<int>(authUser.Claims.First(c => c.ValueType == "UserId").Value);
+           return JsonSerializer.Deserialize<int>(authUser.Claims.First(c => c.Type == "UserId").Value);
+        }
+
+        public string GetUserNickName(ClaimsPrincipal authUser) 
+        {
+            return authUser.Claims.First(c => c.ValueType == "UserNickName").Value;
         }
     }
 }

@@ -19,6 +19,7 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
                     var receivedMessage = context.GetArgument<Message>("message");
                     receivedMessage.ChatId = context.GetArgument<int>("chatId");
                     receivedMessage.FromId = helper.GetUserId(context.User!);
+                    receivedMessage.NickName = helper.GetUserNickName(context.User!);
 
                     if (!await chat.AddMessageAsync(receivedMessage))
                     {
@@ -27,7 +28,7 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
 
                     return receivedMessage;
                 });
-            Field<NonNullGraphType<StringGraphType>>("removeMessage")
+            Field<NonNullGraphType<MessageGraphType>>("removeMessage")
                 .Argument<NonNullGraphType<IntGraphType>>("chatId")
                 .Argument<NonNullGraphType<MessageInputGraphType>>("message")
                 .ResolveAsync(async context =>
@@ -35,13 +36,14 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
                     var receivedMessage = context.GetArgument<Message>("message");
                     receivedMessage.ChatId = context.GetArgument<int>("chatId");
                     receivedMessage.FromId = helper.GetUserId(context.User!);
+                    receivedMessage.NickName = helper.GetUserNickName(context.User!);
+
 
                     if (!await chat.RemoveMessageAsync(receivedMessage))
                     {
                         ThrowError("Message cannot be removed because of some reasons");
                     }
-
-                    return "Ok";
+                    return receivedMessage;
                 });
 
             Field<NonNullGraphType<MessageGraphType>>("updateMessage")
@@ -52,6 +54,7 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
                     var receivedMessage = context.GetArgument<Message>("message");
                     receivedMessage.ChatId = context.GetArgument<int>("chatId");
                     receivedMessage.FromId = helper.GetUserId(context.User!);
+                    receivedMessage.NickName = helper.GetUserNickName(context.User!);
 
 
                     if (!await chat.UpdateMessageAsync(receivedMessage))
@@ -62,7 +65,7 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
                     return receivedMessage;
                 });
 
-            Field<ChatGraphType>("createChat")
+            Field<NonNullGraphType<ChatGraphType>>("createChat")
                 .Argument<NonNullGraphType<StringGraphType>>("name")
                 .ResolveAsync(async (context) =>
                 {
@@ -76,7 +79,7 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
                     return chatData;
                 });
 
-            Field<NonNullGraphType<IntGraphType>>("updateChat")
+            Field<NonNullGraphType<ChatGraphType>>("updateChat")
                 .Argument<NonNullGraphType<ChatInputGraphType>>("chat")
                 .ResolveAsync(async (context) =>
                 {
@@ -95,7 +98,7 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
                 });
 
 
-            Field<NonNullGraphType<StringGraphType>>("removeChat")
+            Field<NonNullGraphType<IntGraphType>>("removeChat")
                 .Argument<NonNullGraphType<IntGraphType>>("chatId")
                 .ResolveAsync(async (context) =>
                 {
@@ -110,7 +113,7 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
                         ThrowError("Chat cannot be updated because of some reasons");
                     }
 
-                    return "Ok";
+                    return chatId;
                 });
 
             Field<NonNullGraphType<StringGraphType>>("addUserToChat")
