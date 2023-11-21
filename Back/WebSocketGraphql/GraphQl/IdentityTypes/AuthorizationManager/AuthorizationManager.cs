@@ -97,7 +97,7 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager
                     return true;
                 }
 
-                if(await _chat.CheckPrecentUserInChat(userId, (int)chatId))
+                if(await _chat.CheckPresentUserInChatAsync(userId, (int)chatId))
                 {
                     return true;
                 }
@@ -145,8 +145,8 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager
             var expiredAt = DateTime.UtcNow.Add(TimeSpan.FromSeconds(IAuthorizationManager.AccessTokenExpiration));
             var issuedAt = DateTime.UtcNow;
 
-            var participatedChats = await _chat.GetUserChats(userId);
-            var ownChats = await _chat.GetUserCreationChats(userId);
+           var participatedChats = await _chat.GetUserChatsAsync(userId);
+            var ownChats = await _chat.GetUserCreationChatsAsync(userId);
             var user = await _userRepo.GetUserAsync(userId);
 
             DateTimeOffset issuedAtOffset = issuedAt;

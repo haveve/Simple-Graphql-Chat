@@ -5,6 +5,7 @@ namespace WebSocketGraphql.ViewModels
     public class MessageSubscription:Message
     {
         public MessageType Type { get; set; }
+        public bool DeleteAll { get; set; } = false;
 
         public MessageSubscription(Message message)
         {

@@ -9,7 +9,7 @@ using TimeTracker.GraphQL.Schemas;
 using TimeTracker.Repositories;
 using TimeTracker.Services;
 using WebSocketGraphql.Services.AuthenticationServices;
-using Microsoft.AspNetCore.WebSockets;
+using GraphQL.Server.Transports.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,12 +20,12 @@ builder.Services.AddSingleton<IAuthorizationRepository, AuthorizationRepository>
 builder.Services.AddSingleton<IUserRepository, UserRepository>();
 builder.Services.AddSingleton<IEmailSender, EmailSender>();
 builder.Services.AddSingleton<AuthHelper>();
-
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddSingleton<ISchema, ChatSchema>(service =>
 {
-    return new ChatSchema(new SelfActivatingServiceProvider(service));
+    var schema = new ChatSchema(new SelfActivatingServiceProvider(service));
+    return schema;
 });
 
 builder.Services.AddSingleton<ISchema, IdentitySchema>(service =>
@@ -47,9 +47,10 @@ builder.Services.AddGraphQL(c =>
     c.AddSystemTextJson()
     .AddSchema<ChatSchema>()
     .AddSchema<IdentitySchema>()
-    .AddWebSocketAuthentication<CustomWebSocketAuthenticator>()
     .AddGraphTypes(typeof(ChatSchema).Assembly)
     .AddGraphTypes(typeof(IdentitySchema).Assembly)
+    .AddValidationRule<CustomAuthorizationValidationRule>()
+    .AddWebSocketAuthentication<CustomWebSocketAuthenticator>()
     .AddErrorInfoProvider(opt => opt.ExposeExceptionDetails = true);
 });
 
@@ -58,8 +59,8 @@ var app = builder.Build();
 app.UseCors(conf =>
 {
     conf.WithOrigins(app.Configuration["FrontUrl"])
+    .WithMethods("POST")
     .AllowAnyHeader()
-    .AllowAnyMethod()
     .AllowCredentials();
 });
 
@@ -70,10 +71,7 @@ app.UseAuthorization();
 
 app.UseWebSockets();
 
-app.UseGraphQL<ChatSchema>("/graphql", config =>
-{
-    config.AuthorizationRequired = true;
-});
+app.UseGraphQL<ChatSchema>("/graphql");
 
 app.UseGraphQL<IdentitySchema>("/graphql-auth");
 

@@ -16,7 +16,7 @@ namespace WebSocketGraphql.Repositories
 {
     public class Chat : IChat
     {
-        private ConcurrentDictionary<int, ISubject<object>> _chats;
+        private ConcurrentDictionary<int, Subject<object>> _chats;
         private ISubject<UserNotification> _userChatNotifyer;
         private readonly DapperContext _dapperContext;
 
@@ -27,14 +27,29 @@ namespace WebSocketGraphql.Repositories
             _userChatNotifyer = new Subject<UserNotification>();
         }
 
+        public void NotifyAllChats(IEnumerable<int> chatIds,object obj)
+        {
+            foreach(int i in chatIds)
+            {
+                try
+                {
+                    _chats[i].OnNext(obj);
+                }
+                catch
+                {
+
+                }
+            }
+        }
+
         public IObservable<UserNotification> SubscribeUserNotification()
         {
             return _userChatNotifyer.AsObservable();
         }
 
-        public async Task<bool> AddMessageAsync(Message message)
+        public async ValueTask<bool> AddMessageAsync(Message message)
         {
-            string query = "INSERT INTO Message (chat_id,sent_at,fromt_id,content) VALUES(@ChatId,@SentAt,@FromId,@Content)";
+            string query = "INSERT INTO Message (chat_id,sent_at,from_id,content) VALUES(@ChatId,@SentAt,@FromId,@Content)";
             using var connection = _dapperContext.CreateConnection();
             bool result = await connection.ExecuteAsync(query, message).ConfigureAwait(false) > 0;
             if (result)
@@ -54,12 +69,12 @@ namespace WebSocketGraphql.Repositories
             public int CreatorId { get; set; } = 0;
         }
 
-        public async Task<bool> AddUserToChatAsync(int chatId, string nickNameOrEmail)
+        public async ValueTask<bool> AddUserToChatAsync(int chatId, string nickNameOrEmail, string by)
         {
             string query = @"
             BEGIN TRANSACTION
             Declare @userId INT 
-            Declare @nickName NVARCHAT(75)
+            Declare @nickName NVARCHAR(18)
 
             SELECT @userId = id, @nickName = nick_name FROM Users WHERE nick_name = @nickNameOrEmail OR email = @nickNameOrEmail
             
@@ -85,14 +100,19 @@ namespace WebSocketGraphql.Repositories
 
             var subject = GetOrCreateChat(chatId);
 
-            subject.OnNext(new MessageSubscription(new()
+            var message = new MessageSubscription(new()
             {
                 ChatId = chatId,
-                Content = $"{user.NickName} was added to chat",
+                Content = $"{user.NickName} was added to chat by {by}",
                 FromId = user.UserId,
-                SentAt = DateTime.UtcNow
+                SentAt = DateTime.UtcNow,
+                NickName = user.NickName
             })
-            { Type = MessageType.USER_ADD });
+            { Type = MessageType.USER_ADD };
+
+            var result = await AddTechMessageAsync(chatId, message);
+
+            subject.OnNext(message);
 
             _userChatNotifyer.OnNext(new UserNotification()
             {
@@ -104,7 +124,7 @@ namespace WebSocketGraphql.Repositories
                 ChatMembersCount = user.ChatMembersCount
             });
 
-            return true;
+            return result;
 
         }
 
@@ -127,36 +147,61 @@ namespace WebSocketGraphql.Repositories
             return GetOrCreateChat(chatId).AsObservable();
         }
 
-        public async Task<IEnumerable<ChatParticipant>> GetAllChatParticipatsAsync(int chatId)
+        public async Task<IEnumerable<ChatParticipant>> GetAllChatParticipatsAsync(int chatId,string search = "")
         {
-            string query = @"SELECT u.nick_name,u.id FROM Users as u
+            string query = @"
+                            SELECT u.nick_name,u.id, u.online FROM Users as u
+                            JOIN Chat as ch
+                            ON ch.id = @chatId AND u.id = ch.creator
+                            WHERE u.nick_name LIKE @search + '%'
+                            UNION ALL
+                            SELECT u.nick_name,u.id, u.online FROM Users as u
                             JOIN Users_Chat_Keys as uck
-                            ON u.id = uck.user_id
-                            WHERE uck.chat_id = @chatId";
+                            ON u.id = uck.user_id AND uck.chat_id = @chatId
+                            WHERE u.nick_name LIKE @search + '%'";
             using var connection = _dapperContext.CreateConnection();
-            return await connection.QueryAsync<ChatParticipant>(query, new { chatId });
+            return await connection.QueryAsync<ChatParticipant>(query, new { chatId, search});
         }
 
         public async Task<IEnumerable<Message>> GetAllMessagesAsync(int chatId)
         {
-            string query = "SELECT sent_at,content,from_id,chat_id FROM MESSAGE WHERE chat_id = @chatId";
+            string query = @"SELECT u.nick_name, m.sent_at,m.content,m.from_id,m.chat_id FROM Message as m 
+                                JOIN Users as u 
+                                ON u.id = m.from_id
+                                WHERE m.chat_id = @chatId
+                            UNION ALL
+                            SELECT null,sent_at,content,null,chat_id FROM TechMessage
+                            WHERE chat_id = @chatId
+                            ORDER BY sent_at";
             using var connection = _dapperContext.CreateConnection();
             return await connection.QueryAsync<Message>(query, new { chatId });
         }
 
-        public async Task<IEnumerable<ChatResult>> GetUserChatsInstances(int userId)
+        public async Task<IEnumerable<ChatModel>> GetUserChatsInstancesAsync(int userId)
         {
-            string query = @"SELECT ch.creator,ch.id,ch.name, (SELECT Count(*) FROM Users_Chat_Keys WHERE chat_id = ch.id) AS ChatMembersCount FROM Chat AS ch
+            string query = @"SELECT ch.creator,ch.id,ch.name FROM Chat AS ch
                             JOIN  Users_Chat_Keys as uck
                             ON ch.id = uck.chat_id AND uck.user_id = @userId 
                             UNION ALL
                             SELECT ch.creator,ch.id,ch.name FROM Chat AS ch 
                             WHERE ch.creator = @userId";
             using var connection = _dapperContext.CreateConnection();
-            return await connection.QueryAsync<ChatResult>(query, new { userId }).ConfigureAwait(false);
+            return await connection.QueryAsync<ChatModel>(query, new { userId }).ConfigureAwait(false);
         }
 
-        public async Task<bool> RemoveMessageAsync(Message message)
+        public async Task<ChatResult?> GetFullChatInfoAsync(int chatId, int userId)
+        {
+            string query = @"SELECT ch.creator,ch.id,ch.name, (SELECT Count(*) FROM Users_Chat_Keys WHERE chat_id = ch.id) AS ChatMembersCount FROM Chat AS ch
+                            JOIN  Users_Chat_Keys as uck
+                            ON ch.id = @chatId AND uck.chat_id = @chatId AND uck.user_id = @userId
+                            UNION ALL
+                            SELECT ch.creator,ch.id,ch.name,(SELECT Count(*) FROM Users_Chat_Keys WHERE chat_id = ch.id) AS ChatMembersCount FROM Chat AS ch 
+                            WHERE ch.id = @chatId and ch.creator = @userId";
+            using var connection = _dapperContext.CreateConnection();
+            return await connection.QuerySingleOrDefaultAsync<ChatResult>(query, new { userId,chatId }).ConfigureAwait(false);
+        }
+
+        public async ValueTask<bool> RemoveMessageAsync(Message message)
         {
             string query = "DELETE Message WHERE from_id = @FromId AND sent_at = @SentAt AND chat_id = @ChatId";
             using var connection = _dapperContext.CreateConnection();
@@ -169,7 +214,7 @@ namespace WebSocketGraphql.Repositories
             return result;
         }
 
-        public async Task<bool> UpdateMessageAsync(Message message)
+        public async ValueTask<bool> UpdateMessageAsync(Message message)
         {
             string query = "UPDATE Message SET content = @content WHERE sent_at = @SentAt AND from_id = @FromId";
             using var connection = _dapperContext.CreateConnection();
@@ -182,16 +227,21 @@ namespace WebSocketGraphql.Repositories
             return result;
         }
 
-        public async Task<int> AddChatAsync(ChatModel chat)
+        public async ValueTask<int> AddChatAsync(ChatModel chat)
         {
             string query = "INSERT INTO Chat (name,creator) OUTPUT Inserted.id VALUES(@Name,@CreatorId)";
             using var connection = _dapperContext.CreateConnection();
             return await connection.QuerySingleAsync<int>(query, chat).ConfigureAwait(false);
         }
-
-        public async Task<bool> RemoveChatAsync(int chatId)
+        
+        public async ValueTask<bool> LeaveFromChatAsync(string nickName, int chatId, bool deleteMessages = false)
         {
-            string query = "DELETE Chat WHERE chat_id = @chatId";
+            return await RemoveUserFromChatAsync(chatId,nickName, deleteMessages).ConfigureAwait(false);
+        }
+
+        public async ValueTask<bool> RemoveChatAsync(int chatId)
+        {
+            string query = "DELETE Chat WHERE id = @chatId";
             using var connection = _dapperContext.CreateConnection();
             bool result =  await connection.ExecuteAsync(query, new { chatId }).ConfigureAwait(false) > 0;
 
@@ -204,9 +254,16 @@ namespace WebSocketGraphql.Repositories
             return result;
         }
 
-        public async Task<bool> UpdateChatAsync(int chatId, string name)
+        public async ValueTask<bool> AddTechMessageAsync(int chatId, Message message)
         {
-            string query = "UPDATE Chat SET Name = @name WHERE chat_id = @chatId";
+            string query = "INSERT INTO TechMessage(chat_id,content,sent_at) VALUES(@chatId,@Content,@SentAt)";
+            using var connection = _dapperContext.CreateConnection();
+            return await connection.ExecuteAsync(query, new { chatId,message.Content,message.SentAt}).ConfigureAwait(false) > 0;
+        }
+
+        public async ValueTask<bool> UpdateChatAsync(int chatId, string name)
+        {
+            string query = "UPDATE Chat SET Name = @name WHERE id = @chatId";
             using var connection = _dapperContext.CreateConnection();
             bool result = await connection.ExecuteAsync(query, new { chatId, name }).ConfigureAwait(false) > 0;
 
@@ -220,12 +277,12 @@ namespace WebSocketGraphql.Repositories
 
         }
 
-        public async Task<bool> RemoveUserFromChatAsync(int chatId, string nickNameOrEmail)
+        public async ValueTask<bool> RemoveUserFromChatAsync(int chatId, string nickNameOrEmail, bool deleteAll = false, string? byOrSelf = null)
         {
             string query = @"
             BEGIN TRANSACTION
             Declare @userId INT 
-            Declare @nickName NVARCHAT(75)
+            Declare @nickName NVARCHAR(18)
 
             SELECT @userId = id, @nickName = nick_name FROM Users WHERE nick_name = @nickNameOrEmail OR email = @nickNameOrEmail
             
@@ -238,11 +295,14 @@ namespace WebSocketGraphql.Repositories
             BEGIN
                 DELETE Users_Chat_Keys WHERE user_id = @userId AND chat_id = @chatId
                 SELECT @userId as UserId, @nickName as NickName, name as ChatName FROM Chat WHERE id = @chatId
-				COMMIT TRANSACTION
+				IF(@deleteAll = 1)
+                DELETE FROM Message
+                where from_id = @userId AND chat_id = @chatId
+                COMMIT TRANSACTION
             END";
 
             using var connection = _dapperContext.CreateConnection();
-            ChatOperationUser? user = await connection.QuerySingleOrDefaultAsync<ChatOperationUser?>(query, new { chatId, nickNameOrEmail }).ConfigureAwait(false);
+            ChatOperationUser? user = await connection.QuerySingleOrDefaultAsync<ChatOperationUser?>(query, new { chatId, nickNameOrEmail,deleteAll }).ConfigureAwait(false);
 
             if (user is null)
             {
@@ -250,14 +310,21 @@ namespace WebSocketGraphql.Repositories
             }
 
             var subject = GetOrCreateChat(chatId);
-            subject.OnNext(new MessageSubscription(new()
+
+            string leaveOrRemove = byOrSelf is null ? "leave" : "removed";
+            string byOrNothing = byOrSelf is null ?  string.Empty: $"by {byOrSelf}";
+
+            var message = new MessageSubscription(new()
             {
                 ChatId = chatId,
-                Content = $"{user.NickName} was removed from chat",
+                Content = $"{user.NickName} was {leaveOrRemove} from chat {byOrNothing}",
                 FromId = user.UserId,
-                SentAt = DateTime.UtcNow
+                SentAt = DateTime.UtcNow,
             })
-            { Type = MessageType.USER_REMOVE });
+            { Type = MessageType.USER_REMOVE, DeleteAll = deleteAll };
+
+            var result = await AddTechMessageAsync(chatId, message);
+            subject.OnNext(message);
 
             _userChatNotifyer.OnNext(new UserNotification()
             {
@@ -269,10 +336,10 @@ namespace WebSocketGraphql.Repositories
                 ChatMembersCount = user.ChatMembersCount
             });
 
-            return true;
+            return result;
         }
 
-        public async Task<IEnumerable<int>> GetUserChats(int userId)
+        public async Task<IEnumerable<int>> GetUserChatsAsync(int userId)
         {
             string query = "SELECT chat_id FROM Users_Chat_Keys WHERE user_id = @userId";
             using var connection = _dapperContext.CreateConnection();
@@ -280,14 +347,14 @@ namespace WebSocketGraphql.Repositories
         }
 
 
-        public async Task<IEnumerable<int>> GetUserCreationChats(int userId)
+        public async Task<IEnumerable<int>> GetUserCreationChatsAsync(int userId)
         {
-            string query = "SELECT creator FROM Chat where creator = @userId";
+            string query = "SELECT id FROM Chat where creator = @userId";
             using var connection = _dapperContext.CreateConnection();
             return await connection.QueryAsync<int>(query, new { userId }).ConfigureAwait(false);
         }
 
-        public async Task<bool> CheckPrecentUserInChat(int userId, int chatId)
+        public async ValueTask<bool> CheckPresentUserInChatAsync(int userId, int chatId)
         {
             string query = @"IF(EXISTS( SELECT * FROM Chat as c 
 		  full join Users_Chat_Keys as u
@@ -301,7 +368,7 @@ namespace WebSocketGraphql.Repositories
             return await connection.QuerySingleAsync<bool>(query, new { userId, chatId }).ConfigureAwait(false);
         }
 
-        public async Task<bool> CheckUserOwnChat(int userId, int chatId)
+        public async ValueTask<bool> CheckUserOwnChatAsync(int userId, int chatId)
         {
             string query = @"IF(EXISTS( SELECT * FROM Chat WHERE creator = @userId AND id = @chatId))
                     SELECT 1
@@ -311,6 +378,40 @@ namespace WebSocketGraphql.Repositories
             using var connection = _dapperContext.CreateConnection();
             return await connection.QuerySingleAsync<bool>(query, new { userId, chatId }).ConfigureAwait(false);
 
+        }
+
+        public Task<bool> SetOnile(int userId)
+        {
+            var task = Task.Run(() =>
+            {
+                string query = @"UPDATE Users 
+                SET online = 1
+                WHERE id = @userId";
+                using var connection = _dapperContext.CreateConnection();
+                return connection.Execute(query, new { userId }) > 0;
+            });
+            return task;
+        }
+
+        public Task<IEnumerable<int>> SetOffline(int userId)
+        {
+            string query = @"SET NOCOUNT ON
+            UPDATE Users 
+            SET online = 0
+            WHERE id = @userId
+
+            SELECT chat_id FROM Users_Chat_Keys
+            UNION ALL
+            SELECT id From Chat";
+
+
+            var task = Task.Run(() =>
+            {
+                using var connection = _dapperContext.CreateConnection();
+                return connection.Query<int>(query, new { userId });
+            });
+
+            return task;
         }
 
     }

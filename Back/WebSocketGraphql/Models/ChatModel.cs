@@ -9,6 +9,6 @@ namespace WebSocketGraphql.Models
         [Description("name")]
         public string Name { get; set; }
         [Description("creator")]
-        public int CreatorId { get; set; }
+        public int CreatorId { get; set; } = 0;
     }
 }

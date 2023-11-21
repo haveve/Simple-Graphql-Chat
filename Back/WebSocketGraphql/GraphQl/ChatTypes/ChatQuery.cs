@@ -21,26 +21,32 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
                     return await chat.GetAllMessagesAsync(chatId);
                 });
 
-            Field<ListGraphType<ExtendedChatGraphType>>("chats")
+            Field<ListGraphType<ChatGraphType>>("chats")
                 .ResolveAsync(async (context) =>
                 {
                     int userId = helper.GetUserId(context.User!);
-                    return await chat.GetUserChatsInstances(userId);
+                    return await chat.GetUserChatsInstancesAsync(userId);
                 });
 
-            Field<ListGraphType<ChatParticipantGraphType>>("participats")
+            Field<ListGraphType<ChatParticipantGraphType>>("participants")
                 .Argument<NonNullGraphType<IntGraphType>>("chatId")
+                .Argument<StringGraphType>("search")
                 .ResolveAsync(async context =>
                 {
                     int chatId = context.GetArgument<int>("chatId");
-
-                    if (!await helper.CheckChatOwner(helper.GetUserId(context.User!), chatId, context.User!))
-                    {
-                        ThrowError("You does not have anough rights");
-                    }
-
-                    return await chat.GetAllChatParticipatsAsync(chatId);
+                    string search = context.GetArgument<string>("search") ?? string.Empty;
+                    return await chat.GetAllChatParticipatsAsync(chatId, search);
                 });
+
+            Field<ExtendedChatGraphType>("chatFullInfo")
+    .Argument<NonNullGraphType<IntGraphType>>("chatId")
+    .ResolveAsync(async context =>
+    {
+        int chatId = context.GetArgument<int>("chatId");
+        int userId = helper.GetUserId(context.User!);
+
+        return await chat.GetFullChatInfoAsync(chatId,userId);
+    });
 
             Field<NonNullGraphType<UserGraphType>>("user")
                 .ResolveAsync(async context =>
@@ -48,6 +54,8 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
                     var id = helper.GetUserId(context.User!);
                     return await user.GetUserAsync(id);
                 });
+            Field<NonNullGraphType<StringGraphType>>("ping")
+                .Resolve(_ => "pong");
         }
 
         private void ThrowError(string message)

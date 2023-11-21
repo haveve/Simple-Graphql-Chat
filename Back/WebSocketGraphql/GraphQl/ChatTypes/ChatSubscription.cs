@@ -5,16 +5,18 @@ using WebSocketGraphql.Repositories;
 using WebSocketGraphql.GraphQl.ChatTypes.Types;
 using WebSocketGraphql.ViewModels;
 using WebSocketGraphql.Services.AuthenticationServices;
+using WebSocketGraphql.Helpers;
 
 namespace WebSocketGraphql.GraphQl.ChatTypes
 {
     public class ChatSubscriptions : ObjectGraphType
     {
         private readonly IChat _chat;
-
+        private readonly AuthHelper _authHelper;
         public ChatSubscriptions(IChat chat, AuthHelper authHelper)
         {
             _chat = chat;
+            _authHelper = authHelper;
             AddField(new FieldType
             {
                 Name = "chatNotification",
@@ -22,6 +24,18 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
                 Arguments = new QueryArguments(
                 new QueryArgument<NonNullGraphType<IntGraphType>> { Name = "chatId" }
                 ),
+                Resolver = new FuncFieldResolver<object>(context =>
+                {
+                    if (context.Source is MessageSubscription data)
+                    { 
+                        if (data!.NickName == authHelper.GetUserNickName(context.User!))
+                        {
+                            return null;
+                        }
+                    }
+
+                    return context.Source;
+                }),
                 StreamResolver = new SourceStreamResolver<object>(SubscribeChatNotification),
             });
 
@@ -45,13 +59,20 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
         private IObservable<object> SubscribeChatNotification(IResolveFieldContext context)
         {
             int chatId = context.GetArgument<int>("chatId");
+
             return _chat.SubscribeMessages(chatId);
         }
 
 
         private IObservable<UserNotification> SubscribeUserNotification(IResolveFieldContext context)
         {
-            return _chat.SubscribeUserNotification();
+
+            var ids = _authHelper.GetChatParticipant(context.UserContext);
+            var userId = _authHelper.GetUserId(context.User!);
+
+            var observable = new UserOnlineObservable<UserNotification>(userId, ids!, _chat, _chat.SubscribeUserNotification());
+
+            return observable;
         }
 
     }

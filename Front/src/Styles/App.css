@@ -3,11 +3,11 @@
     overflow-y: scroll;
   }
 
-  .select-chat-scroll{
+  .select-chat-scroll {
     max-height: 100%;
     overflow-y: scroll;
   }
-  
+
   .select-chat-scroll::-webkit-scrollbar-track {
     background: #88888800;
   }
@@ -38,11 +38,11 @@
     background-color: turquoise
   }
 
-  .max-width-50per{
+  .max-width-50per {
     max-width: 50% !important;
   }
 
-  .send-message-container{
+  .send-message-container {
     padding: 15px;
     background-color: white;
     border-radius: 15px;
@@ -109,29 +109,105 @@
 
   .chat-list {
     background-color: #fefae0;
-    user-select:none;
+    user-select: none;
   }
 
-  .chat-icon-size{
+  .chat-icon-size {
     display: inline-flex;
     justify-content: center;
     align-items: center;
     background: #ad6767;
     border-radius: 100px;
-    border:2px black dashed;
+    border: 2px black dashed;
     height: 60px;
     width: 60px;
   }
 
-  .chat{
+  .chat-title-icon-size {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 100px;
+    border: 2px black dashed;
+    height: 55px;
+    width: 55px;
+  }
+
+  .chat {
     border-radius: 20px;
   }
 
-  .selected{
+  .selected {
     background-color: #ffbe0b !important;
   }
 
-  .chat-hover:hover{
+  .chat-hover:hover {
     cursor: pointer;
     background-color: rgb(247, 242, 204);
+  }
+
+  .participants {
+    font-size: 14px;
+    color: gray;
+  }
+
+  .more-chat-info {
+    fill: #888;
+  }
+
+  .more-chat-info:hover {
+    fill: #4b4a4a;
+  }
+
+  .option{
+    border-radius: 10px;
+    background-color: #fefae0;
+    border: 1px black solid;
+    font-size: 20px !important;
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .option>div:hover{
+    cursor: pointer;
+    background-color: rgb(247, 242, 204);
+    font-weight: bold;
+  }
+
+  .option>div:hover>svg{
+    width: 28px;
+    height: 28px;
+  }
+
+  .option svg{
+    width: 26px;
+    height: 26px;
+  }
+
+
+  .chat-info-option{
+    border-radius: 10px;
+    background-color: #ffffff;
+    border: 1px black solid;
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .chat-info-option>div:hover{
+    cursor: pointer;
+    font-weight: bold;
+  }
+
+  .chat-info-option>div:hover>svg{
+    width: 28px;
+    height: 28px;
+  }
+
+  .chat-info-option svg{
+    width: 26px;
+    height: 26px;
+  }
+  
+  .round{
+    border-radius: 20px !important;
   }

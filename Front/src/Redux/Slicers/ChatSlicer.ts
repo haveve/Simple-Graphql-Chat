@@ -1,18 +1,38 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { Chat, ReduxMessage, Message, ChatParticipant } from '../../Features/Types'
-import { nanoid } from 'nanoid'
+import { FullChat, Chat, ReduxMessage, Message, ChatParticipant } from '../../Features/Types'
+import { GetStringFromDateTime, SetMessageId, SortByOnline } from '../../Features/Functions'
+import randomColor from 'randomcolor'
+import { ParticipantState } from '../../Features/Types'
 
 export type Status = 'error' | 'idle' | 'padding' | 'success'
 
+export type ReduxCurrentChat = FullChat & { color: string };
+export type ReduxChat = Chat & { color: string };
+export type ReduxParticipant = ChatParticipant & { color: string }
+
 export type sliceState = {
-    currentChat: Chat | null,
+    currentChat: ReduxCurrentChat | null,
     messages: ReduxMessage[],
     status: Status,
-    participants: ChatParticipant[],
-    chats: Chat[],
-    error?:string
+    participants: ReduxParticipant[],
+    chats: ReduxChat[],
+    error?: string
 }
 
+export type DeleteAll = {
+    chatId: number,
+    fromId: number
+}
+
+export type ChangeChatParticipants = {
+    chatId: number,
+    type: ChangeParticipantsType
+}
+
+export enum ChangeParticipantsType {
+    DELETE,
+    ADD
+}
 
 const initialState: sliceState = {
     currentChat: null,
@@ -22,84 +42,130 @@ const initialState: sliceState = {
     status: 'idle'
 }
 
+
 export const chatSlicer = createSlice({
     name: "chat",
     initialState,
     reducers: {
-        setChat: (state, action: PayloadAction<Chat>) => {
-            state.currentChat = { ...action.payload }
-            state.messages = [];
+        setChat: {
+            reducer: (state, action: PayloadAction<FullChat>) => {
+                state.currentChat = { ...action.payload, color: state.chats.find(el => el.id === action.payload.id)!.color }
+                state.messages = [];
+                state.status = 'idle'
+            },
+            prepare: (payload: FullChat) => {
+                return { payload: { ...payload } }
+            }
         },
 
-        setChats: (state,action:PayloadAction<Chat[]>) => {
-            state.chats = action.payload
+        setChats: {
+            reducer: (state, action: PayloadAction<ReduxChat[]>) => {
+                state.chats = action.payload
+                state.status = 'idle'
+            },
+            prepare: (payload: Chat[]) => {
+                return { payload: payload.map(el => ({ ...el, color: randomColor({ hue: 'red', luminosity: 'light' }) })) }
+            }
         },
 
         dropCurrentChat: (state) => {
+            state.status = 'idle'
             state.currentChat = null;
         },
 
         addChat: (state, action: PayloadAction<Chat>) => {
-            state.chats.push({ ...action.payload });
+            state.status = 'idle'
+            state.chats.unshift({ ...action.payload, color: randomColor({ hue: 'red', luminosity: 'light' }) });
         },
 
         updateChat(state, action: PayloadAction<Chat>) {
+            state.status = 'idle'
             state.chats = state.chats.map(el => {
                 if (el.id === action.payload.id) {
-                    return { ...action.payload }
+                    return { ...el, color: el.color, name: action.payload.name }
                 }
                 return el
             })
             if (state.currentChat?.id === action.payload.id) {
-                state.currentChat.chatMembersCount = action.payload.chatMembersCount;
                 state.currentChat.name = action.payload.name;
             }
         },
 
         removeChat: (state, action: PayloadAction<number>) => {
+            state.status = 'idle'
             state.chats = state.chats.filter(el => el.id !== action.payload)
             if (state.currentChat?.id === action.payload) {
-                dropCurrentChat()
+                state.currentChat = null;
             }
         },
 
         setMessages: {
             reducer: (state, action: PayloadAction<ReduxMessage[]>) => {
+                state.status = 'idle'
                 state.messages = action.payload
             },
-            prepare: (payload: Message[]) => {
+            prepare: (action: Message[]) => {
                 return {
-                    payload: payload.map<ReduxMessage>(el => {
-                        return { ...el, sentAt: el.sentAt.toISOString() }
+                    payload: action.map<ReduxMessage>(el => {
+                        let message = { ...el, sentAt: GetStringFromDateTime(el.sentAt) }
+                        SetMessageId(message)
+                        return message
                     })
                 }
             }
         },
 
-        setParticipants: (state, action: PayloadAction<ChatParticipant[]>) => {
-            state.participants = [...action.payload]
-        },
-
-        addMessage: {
-            reducer: (state, action: PayloadAction<ReduxMessage>) => {
-                state.messages.push(action.payload);
+        setParticipants: {
+            reducer: (state, action: PayloadAction<ReduxParticipant[]>) => {
+                state.status = 'idle'
+                state.participants = [...action.payload]
             },
-            prepare: (payload: Message) => {
+            prepare: (payload: ChatParticipant[]) => {
                 return {
-                    payload: {
-                        ...payload,
-                        sentAt: payload.sentAt.toISOString(),
-                        id: nanoid()
-                    }
+                    payload:
+                        SortByOnline(payload.map(el =>
+                        ({
+                            ...el,
+                            color: randomColor({
+                                hue: 'blue', luminosity: 'light'
+                            })
+                        })
+                        )) as ReduxParticipant[]
                 }
             }
         },
 
+        addMessage: {
+            reducer: (state, action: PayloadAction<ReduxMessage>) => {
+                state.status = 'idle'
+                state.messages.push(action.payload);
+            },
+            prepare: (payload: Message) => {
+                let message = {
+                    ...payload,
+                    sentAt: GetStringFromDateTime(payload.sentAt),
+                }
+
+                SetMessageId(message)
+                return {
+                    payload: message
+                }
+            }
+        },
+
+        deleteAll: (state, action: PayloadAction<DeleteAll>) => {
+            if (state.currentChat?.id === action.payload.chatId) {
+                state.messages = state.messages.filter(message => message.fromId !== action.payload.fromId)
+            }
+        },
+
         removeMessage: (state, action: PayloadAction<string>) => {
+            state.status = 'idle'
             state.messages = state.messages.filter(el => el.id! !== action.payload)
         },
 
         updateMessage(state, action: PayloadAction<Message>) {
+            state.status = 'idle'
             state.messages = state.messages.map(el => {
                 if (el.id! === action.payload.id!) {
                     return { ...action.payload, sentAt: action.payload.sentAt.toISOString() }
@@ -108,14 +174,40 @@ export const chatSlicer = createSlice({
             });
         },
 
-        changeCurrentChatParticipances(state, action: PayloadAction<number>) {
-            if (state.currentChat) {
-                state.currentChat.chatMembersCount += action.payload
+        changeChatParticipances(state, action: PayloadAction<ChangeChatParticipants>) {
+            state.status = 'idle'
+            if (!state.currentChat || action.payload.chatId !== state.currentChat.id) {
+                return;
             }
+            switch (action.payload.type) {
+                case ChangeParticipantsType.DELETE:
+                    state.currentChat.chatMembersCount = state.currentChat.chatMembersCount - 1;
+                    break;
+                case ChangeParticipantsType.ADD:
+                    state.currentChat.chatMembersCount = state.currentChat.chatMembersCount + 1;
+                    break;
+            }
+        },
+
+        setError(state, action: PayloadAction<string>) {
+            state.error = action.payload
+        },
+
+        setState(state, action: PayloadAction<Status>) {
+            state.status = action.payload
+        },
+
+        setParticipantState(state, action: PayloadAction<ParticipantState>) {
+            state.participants = SortByOnline(state.participants.map(el => {
+                if (el.id === action.payload.id) {
+                    return { ...el, online: action.payload.online }
+                }
+                return el
+            })) as ReduxParticipant[]
         }
 
     }
 })
 
 export default chatSlicer.reducer;
-export const { updateMessage, removeMessage,setChats, changeCurrentChatParticipances, setChat, setMessages, addMessage, updateChat, setParticipants, addChat, removeChat, dropCurrentChat } = chatSlicer.actions;
+export const { updateMessage, setParticipantState, deleteAll, setError, setState, removeMessage, setChats, changeChatParticipances, setChat, setMessages, addMessage, updateChat, setParticipants, addChat, removeChat, dropCurrentChat } = chatSlicer.actions;

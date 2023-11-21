@@ -4,6 +4,7 @@ using WebSocketGraphql.GraphQl.ChatTypes.Types;
 using WebSocketGraphql.Models;
 using WebSocketGraphql.Repositories;
 using WebSocketGraphql.Services.AuthenticationServices;
+using WebSocketGraphql.ViewModels;
 
 namespace WebSocketGraphql.GraphQl.ChatTypes
 {
@@ -65,14 +66,15 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
                     return receivedMessage;
                 });
 
-            Field<NonNullGraphType<ChatGraphType>>("createChat")
+            Field<NonNullGraphType<ExtendedChatGraphType>>("createChat")
                 .Argument<NonNullGraphType<StringGraphType>>("name")
                 .ResolveAsync(async (context) =>
                 {
-                    var chatData = new ChatModel()
+                    var chatData = new ChatResult()
                     {
                         Name = context.GetArgument<string>("name"),
-                        CreatorId = helper.GetUserId(context.User!)
+                        CreatorId = helper.GetUserId(context.User!),
+                        ChatMembersCount = 0
                     };
                     chatData.Id = await chat.AddChatAsync(chatData);
 
@@ -84,7 +86,7 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
                 .ResolveAsync(async (context) =>
                 {
                     var chatUpdate = context.GetArgument<ChatModel>("chat");
-                    if (!await helper.CheckChatOwner(helper.GetUserId(context.User!), chatUpdate.Id, context.User!))
+                    if (!await helper.CheckChatOwner(helper.GetUserId(context.User!), chatUpdate.Id, context.UserContext))
                     {
                         ThrowError("You does not have anough rights");
                     }
@@ -103,7 +105,7 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
                 .ResolveAsync(async (context) =>
                 {
                     var chatId = context.GetArgument<int>("chatId");
-                    if (!await helper.CheckChatOwner(helper.GetUserId(context.User!), chatId, context.User!))
+                    if (!await helper.CheckChatOwner(helper.GetUserId(context.User!), chatId, context.UserContext))
                     {
                         ThrowError("You does not have anough rights");
                     }
@@ -124,12 +126,12 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
                     var chatId = context.GetArgument<int>("chatId");
                     var user = context.GetArgument<string>("user");
 
-                    if (!await helper.CheckChatOwner(helper.GetUserId(context.User!), chatId, context.User!))
+                    if (!await helper.CheckChatOwner(helper.GetUserId(context.User!), chatId, context.UserContext))
                     {
                         ThrowError("You does not have anough rights");
                     }
 
-                    if (!await chat.AddUserToChatAsync(chatId, user))
+                    if (!await chat.AddUserToChatAsync(chatId, user, helper.GetUserNickName(context.User!)))
                     {
                         ThrowError("User cannot be added to chat because of some reasons");
                     }
@@ -140,23 +142,42 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
             Field<NonNullGraphType<StringGraphType>>("removeUserFromChat")
                 .Argument<NonNullGraphType<IntGraphType>>("chatId")
                 .Argument<NonNullGraphType<StringGraphType>>("user")
+                .Argument<BooleanGraphType>("deleteAll")
                 .ResolveAsync(async (context) =>
                 {
                     var chatId = context.GetArgument<int>("chatId");
                     var user = context.GetArgument<string>("user");
+                    var deleteAll = context.GetArgument<bool?>("deleteAll");
 
-                    if (!await helper.CheckChatOwner(helper.GetUserId(context.User!), chatId, context.User!))
+                    if (!await helper.CheckChatOwner(helper.GetUserId(context.User!), chatId, context.UserContext))
                     {
                         ThrowError("You does not have anough rights");
                     }
 
-                    if (!await chat.RemoveUserFromChatAsync(chatId, user))
+                    if (!await chat.RemoveUserFromChatAsync(chatId, user, deleteAll??false,helper.GetUserNickName(context.User!)))
                     {
                         ThrowError("User cannot be removed from chat because of some reasons");
                     }
 
                     return "Ok";
                 });
+
+            Field<NonNullGraphType<StringGraphType>>("leaveFromChat")
+    .Argument<NonNullGraphType<IntGraphType>>("chatId")
+    .Argument<BooleanGraphType>("deleteAll")
+    .ResolveAsync(async (context) =>
+    {
+        var chatId = context.GetArgument<int>("chatId");
+        var user = helper.GetUserNickName(context.User!);
+        var deleteAll = context.GetArgument<bool?>("deleteAll");
+
+        if (!await chat.LeaveFromChatAsync(user,chatId,deleteAll??false))
+        {
+            ThrowError("User cannot be removed from chat because of some reasons");
+        }
+
+        return "Ok";
+    });
 
         }
 

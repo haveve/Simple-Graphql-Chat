@@ -9,10 +9,10 @@ namespace WebSocketGraphql.Models
         [Description("content")]
         public string Content { get; set; }
         [Description("from_id")]
-        public int FromId { get; set; } = 0;
+        public int? FromId { get; set; } = null;
         [Description("chat_id")]
         public int ChatId { get; set; } = 0;
         [Description("nick_name")]
-        public string NickName { get; set; } = string.Empty;
+        public string? NickName { get; set; } = null;
      }
 }

@@ -3,12 +3,11 @@ using WebSocketGraphql.ViewModels;
 
 namespace WebSocketGraphql.GraphQl.ChatTypes.Types
 {
-    public class ChatParticipantGraphType : ObjectGraphType<ChatParticipant>
+    public class ChatParticipantSubscriptionGraphType : ObjectGraphType<ChatParticipant>
     {
-        public ChatParticipantGraphType()
+        public ChatParticipantSubscriptionGraphType()
         {
             Field(el => el.Id, nullable: false);
-            Field(el => el.NickName, nullable: false);
             Field(el => el.Online, nullable: false);
         }
     }

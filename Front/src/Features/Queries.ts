@@ -12,7 +12,7 @@ export type PayloadType = {
   variables?:any,
   [name:string]:any
 }
-export type ConnectionType = 'connection_init'|'start'|'stop'|'error'|'connection_keep_alive'|'connection_terminate'
+export type ConnectionType = 'connection_init'|'start'|'stop'|'connection_terminate'
 
 export function RequestBuilder(type:ConnectionType,payload:PayloadType = {},id:string|null = null):defaultSubscriptionResponse<any>{
   id ??= nanoid()
@@ -38,7 +38,9 @@ export const subscriptionToChat = `subscription($chatId:Int!){
       chatId,
       content,
       typeM:type,
-      nickName
+      sentAt,
+      nickName,
+      deleteAll
     }
     ...on ChatResulSubscription{
       typeC:type,
@@ -46,6 +48,10 @@ export const subscriptionToChat = `subscription($chatId:Int!){
       id,
       creatorId,
       chatMembersCount,
+    },
+    ... on ChatParticipantSubscription{
+      id,
+      online
     }
   }
 }`
@@ -66,15 +72,15 @@ export const queryGetAllChats = `query{
   chats{
     id,
     creatorId,
-    chatMembersCount,
     name,
   }
 }`
 
-export const queryParticipants = `query($chatId:Int!){
-  participats(chatId:$chatId){
+export const queryParticipants = `query($chatId:Int!,$search:String){
+  participants(chatId:$chatId,search:$search){
     id,
-    nickName
+    nickName,
+    online
   }
 }`
 
@@ -83,6 +89,15 @@ export const queryUser = `query{
     id,
     email,
     nickName
+  }
+}`
+
+export const queryFullChatInfo = `query($chatId:Int!){
+  chatFullInfo(chatId:$chatId){
+    name,
+    id,
+    creatorId,
+    chatMembersCount
   }
 }`
 
@@ -123,6 +138,7 @@ export const updateMessageMutation = `mutation($message:MessageInput!,$chatId:In
       id,
       creatorId,
       name,
+      chatMembersCount
     }
   }`
 
@@ -142,6 +158,10 @@ export const updateMessageMutation = `mutation($message:MessageInput!,$chatId:In
     addUserToChat(chatId:$chatId,user:$user)
   }`
 
-  export const removeUserFromChatMutation = `mutation($chatId:Int!,$user:String!){
-    removeUserFromChat(chatId:$chatId,user:$user)
+  export const removeUserFromChatMutation = `mutation($chatId:Int!,$user:String!,$deleteAll:Boolean){
+    removeUserFromChat(chatId:$chatId,user:$user,deleteAll:$deleteAll)
+  }`
+
+  export const leaveFromChatMutation = `mutation($chatId:Int!,$deleteAll:Boolean){
+    leaveFromChat(chatId:$chatId,deleteAll:$deleteAll)
   }`

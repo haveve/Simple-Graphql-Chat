@@ -14,39 +14,27 @@ namespace WebSocketGraphql.Services.AuthenticationServices
     {
         private readonly IGraphQLSerializer _serializer;
         private readonly IAuthorizationManager _authorizationManager;
+        private readonly AuthHelper _authHelper;
+        private readonly ILogger<CustomWebSocketAuthenticator> _logger;
 
-        public CustomWebSocketAuthenticator(IGraphQLSerializer serializer, IAuthorizationManager authorizationManager)
+        public CustomWebSocketAuthenticator(ILogger<CustomWebSocketAuthenticator> logger,AuthHelper authHelper,IGraphQLSerializer serializer, IAuthorizationManager authorizationManager)
         {
             _serializer = serializer;
             _authorizationManager = authorizationManager;
+            _authHelper = authHelper;
+            _logger = logger;
         }
-
+        
         public async Task AuthenticateAsync(IWebSocketConnection connection, string subProtocol, OperationMessage operationMessage)
         {
             var payload = _serializer.ReadNode<Inputs>(operationMessage.Payload);
+            _logger.LogCritical(operationMessage.Type);
             if ((payload?.TryGetValue("authorization", out var token) ?? false) && token is string tokeString)
             {
-
-                int? chatId = null;
-                if(payload?.TryGetValue("variables", out var variables)??false)
-                {
-                        var json = JsonConvert.SerializeObject(variables);
-                        var dictionary = JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
-                        var chatData = dictionary?.FirstOrDefault(el => el.Key == "chatId");
-                    try
-                    {
-                        chatId = chatData is null ? null : Convert.ToInt32(chatData.Value.Value);
-                    }
-                    catch
-                    {
-                        chatId = null;
-                    }
-                }
-
-                if (await _authorizationManager.IsValidToken(tokeString, chatId))
+                if (await _authorizationManager.IsValidToken(tokeString, null))
                 {
                     var tokenData = _authorizationManager.ReadJwtToken(tokeString);
-                    var principal = new ClaimsPrincipal(new ClaimsIdentity(tokenData.Claims, "Token"));
+                    var principal = new ClaimsPrincipal(new ClaimsIdentity(_authHelper.GetImmutableClaims(tokenData.Claims), "Token"));
                     connection.HttpContext.User = principal;
                 }
             }

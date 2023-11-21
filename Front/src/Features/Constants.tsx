@@ -8,3 +8,5 @@ export const logo =  <svg xmlns="http://www.w3.org/2000/svg" width="45" height="
 
 export const backDomain = 'localhost:7000'
 
+export const defaultErrorMessage = "There is occured some error. For details check console and turn to administrator"
+export const defaultSuccessMessage = "Operation was successfully commited"

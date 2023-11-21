@@ -7,7 +7,7 @@ namespace WebSocketGraphql.GraphQl.ChatTypes.Types
     {
         public MessageInputGraphType()
         {
-            Field(el => el.SentAt, nullable: false);
+            Field(el => el.SentAt, nullable: false, typeof(DateTimeGraphType));
             Field(el => el.Content, nullable: false);
         }
     }

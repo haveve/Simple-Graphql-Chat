@@ -21,7 +21,7 @@ namespace WebSocketGraphql.Services.AuthenticationServices
 
         protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
         {
-            if (!Context.Request.Query.TryGetValue("Authorization", out var authorizationHeaderValues))
+            if (!Context.Request.Headers.TryGetValue("Authorization", out var authorizationHeaderValues))
             {
                 return AuthenticateResult.Fail("Authorization header not found.");
             }
@@ -36,8 +36,8 @@ namespace WebSocketGraphql.Services.AuthenticationServices
 
             if (await _authorizationManager.IsValidToken(token))
             {
-                var a = _authorizationManager.ReadJwtToken(token);
-                var principal = new ClaimsPrincipal(new ClaimsIdentity(a.Claims, "Token"));
+                var user = _authorizationManager.ReadJwtToken(token);
+                var principal = new ClaimsPrincipal(new ClaimsIdentity(user.Claims.Where(el => el.Type == "UserId"), "Token"));
                 return AuthenticateResult.Success(new AuthenticationTicket(principal, "CustomJwtBearer"));
             }
 

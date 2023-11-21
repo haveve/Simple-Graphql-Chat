@@ -2,24 +2,19 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { Chat, ReduxMessage, Message, ChatParticipant, User } from '../../Features/Types'
 import { Status } from './ChatSlicer'
 
-export type UserInitialType = {
-    user: User | null,
+export type GlobalNotifyInitialType = {
     status: Status
     error?: string
 }
 
-const initialState: UserInitialType = {
-    user: null,
+const initialState: GlobalNotifyInitialType = {
     status: 'idle',
 }
 
 const userSlicer = createSlice({
-    name: 'user',
+    name: 'global-notify',
     initialState,
     reducers: {
-        addUser: (state, action: PayloadAction<User>) => {
-            state.user = { ...action.payload }
-        },
 
         setError(state, action: PayloadAction<string>) {
             state.error = action.payload
@@ -32,4 +27,4 @@ const userSlicer = createSlice({
 })
 
 export default userSlicer.reducer;
-export const { addUser, setState, setError } = userSlicer.actions;
+export const { setState, setError } = userSlicer.actions;

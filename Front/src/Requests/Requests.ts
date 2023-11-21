@@ -1,11 +1,17 @@
 import { webSocket } from 'rxjs/webSocket'
-import { Chat, ChatParticipant, Message, DerivedMessageOrChatInfo, UserNotification, User } from '../Features/Types';
+import { Chat, ChatParticipant, Message, DerivedMessageOrChatInfo, UserNotification, User, FullChat } from '../Features/Types';
 import { backDomain } from '../Features/Constants';
 import { WebSocketSubject } from 'rxjs/webSocket'
-import { Subject, NextObserver, interval, Subscription, Observable, Subscriber } from 'rxjs'
+import { NextObserver, interval, Subscription, Observable, Subscriber } from 'rxjs'
 import { GetTokenObservable, StoredTokenType } from './AuthorizationRequests';
 import { getCookie } from '../Features/Functions';
-import { subscribe } from 'diagnostics_channel';
+import { nanoid } from 'nanoid';
+import store from '../Redux/store';
+import { dropCurrentChat, setError } from '../Redux/Slicers/ChatSlicer';
+import { setState } from '../Redux/Slicers/ChatSlicer';
+import { defaultErrorMessage } from '../Features/Constants';
+
+const dispatch = store.dispatch
 
 const keepAliveInterval = 60;
 
@@ -15,6 +21,7 @@ export type AllFieldsRequestType = {
     chats?: Chat[],
     participants?: ChatParticipant[],
     user?: User,
+    chatFullInfo?:FullChat
     //subscription
     chatNotification?: DerivedMessageOrChatInfo,
     userNotification?: UserNotification,
@@ -22,9 +29,9 @@ export type AllFieldsRequestType = {
     addMessage?: Message,
     removeMessage?: Message,
     updateMessage?: Message,
-    createChat?: Chat,
+    createChat?: FullChat,
     removeChat?: number,
-    updateChat?: Chat,
+    updateChat?: FullChat,
     addUserToChat?: string,
     removeUserFromChat?: string
 }
@@ -43,7 +50,9 @@ export type defaultSubscriptionResponse<T> = {
 export type MinWebSocketType = {
     payload: {
         authorization?: string
+        variables?: { authorization: string }
     }
+    type: string
 }
 
 class SingletonContainer {
@@ -74,10 +83,20 @@ class WebSocketProxy<T extends MinWebSocketType>{
 
     public constructor(webSocket: WebSocketSubject<T>, keepAliveMessage: T) {
         this.webSocket = webSocket
+        this.webSocket.subscribe({
+            error: (error) => {
+                console.log(JSON.stringify(error))
+                if (this.webSocket.closed) {
+                    this.keepAlive.unsubscribe();
+                    dispatch(dropCurrentChat())
+                }
+                dispatch(setError(defaultErrorMessage))
+            }
+        })
         this.keepAlive = interval(keepAliveInterval * 1000).subscribe({
             next: () => {
                 if (!this.webSocket.closed) {
-                    this.webSocket.next(keepAliveMessage)
+                    this.next(keepAliveMessage)
                     return;
                 }
             }
@@ -94,10 +113,17 @@ class WebSocketProxy<T extends MinWebSocketType>{
     }
 
     public next(next: T) {
+        dispatch(setState('padding'))
         GetTokenObservable().subscribe({
             next: () => {
                 const token: StoredTokenType = JSON.parse(getCookie("access_token")!)
-                next.payload.authorization = token.token;
+                if (next.type === 'connection_init')
+                    next.payload.authorization = token.token;
+                else {
+                    if (!next.payload.variables)
+                        next.payload.variables = { authorization: token.token }
+                    next.payload.variables.authorization = token.token
+                }
                 this.webSocket.next(next)
             }
         })
@@ -124,14 +150,16 @@ export function ConnectToChat(reconnect: boolean = false): Observable<WebSocketP
             SingletonContainer.setDone(false);
             GetTokenObservable().subscribe({
                 next: () => {
-
-                    const token: StoredTokenType = JSON.parse(getCookie("access_token")!)
-
                     socket = webSocket<defaultSubscriptionResponse<any>>({
-                        url: `wss://${backDomain}/graphql?Authorization=${token.token}`,
+                        url: `wss://${backDomain}/graphql`,
                         protocol: 'graphql-ws'
                     })
-                    SingletonContainer.SetInstance(new WebSocketProxy(socket, { type: "connection_keep_alive", payload: {} }));
+                    SingletonContainer.SetInstance(new WebSocketProxy(socket, {
+                        id: nanoid(), type: "start", payload: {
+                            query: `query{
+                        ping
+                      }`}
+                    }));
                     const proxy = SingletonContainer.GetInstance();
                     proxy.next({ "type": "connection_init", "payload": {} })
                     SingletonContainer.setDone(true);
@@ -144,4 +172,3 @@ export function ConnectToChat(reconnect: boolean = false): Observable<WebSocketP
         }
     })
 }
-

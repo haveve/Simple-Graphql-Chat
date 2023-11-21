@@ -7,8 +7,8 @@ import { useTypedSelector } from "../Redux/store";
 const MessageComponent = forwardRef<HTMLDivElement,{el:ReduxMessage}>((props,ref)=>{
     const {el} = props
     const currentId = useTypedSelector(store => store.user.user?.id)
-    return <div ref={ref} className={currentId === el.fromId ? 'd-flex mb-3 justify-content-end' : 'mb-3'} >
-      <div className={currentId === el.fromId ? 'max-width-50per text-success d-inline-block bg-white p-3 rounded' : 'max-width-50per text-primary d-inline-block p-3 rounded'}>
+    return el.fromId?<div ref={ref} className={currentId === el.fromId ? 'd-flex mb-3 justify-content-end' : 'mb-3'} >
+      <div className={`max-width-50per text-${currentId === el.fromId ?'success':'info'} d-inline-block bg-white p-3 rounded`}>
         <div className='d-flex justify-content-between gap-5 mb-2 border-bottom'>
           <span>
             {currentId === el.fromId ? 'You' : el.nickName}
@@ -21,7 +21,7 @@ const MessageComponent = forwardRef<HTMLDivElement,{el:ReduxMessage}>((props,ref
           {el.content}
         </div>
       </div>
-    </div>
+    </div>:<div ref = {ref} className="mb-3 text-secondary text-center">{el.content}</div>
 })
 
 export default MessageComponent;

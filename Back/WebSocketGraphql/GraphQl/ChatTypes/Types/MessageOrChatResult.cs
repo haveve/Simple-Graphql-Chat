@@ -8,6 +8,7 @@ namespace WebSocketGraphql.GraphQl.ChatTypes.Types
         {
             Type<MessageSubscriptionGraphType>();
             Type<ChatResulSubscriptionGraphType>();
+            Type<ChatParticipantSubscriptionGraphType>();
         }
     }
 }

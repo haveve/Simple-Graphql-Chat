@@ -1,31 +1,47 @@
+
+
 export type MessageAdd = {
     content:string,
     sentAt:Date
 }
 
-export type DerivedMessageOrChatInfo = (Chat & {typeM:MessageType})&(Message&{typeC:ChatResultType})
+export type ParticipantState = {
+    online:boolean,
+    id:number
+}
+
+export type DerivedMessageOrChatInfo = ParticipantState&(Chat & {typeM:MessageType})&(Message&{typeC:ChatResultType})
 
 export type BaseMessage = {
     id?:string
     content:string,
-    fromId:number,
+    fromId:number|null,
     chatId:number,
     nickName:string
 }
 
 export type ChatParticipant = {
     id:number,
-    nickName:string
+    nickName:string,
+    online:boolean
+}
+
+export type ChatUpdate = {
+    name:string,
+    id:number
 }
 
 export type ReduxMessage = BaseMessage & {sentAt:string}
 
-export type Message = BaseMessage & {sentAt:Date}
+export type Message = BaseMessage & {sentAt:Date,deleteAll?:boolean}
 
 export type Chat = {
     id:number,
     name:string,
     creatorId:number,
+}
+
+export type FullChat = Chat & {
     chatMembersCount:number
 }
 
