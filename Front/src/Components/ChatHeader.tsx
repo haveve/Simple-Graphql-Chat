@@ -1,20 +1,26 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, JSX } from 'react';
 import { Container, Row, Col, Form } from 'react-bootstrap';
-import { GetAbbreviationFromPhrase } from '../Features/Functions';
+import { GetAbbreviationFromPhrase, randomIntFromInterval } from '../Features/Functions';
 import { useTypedSelector } from '../Redux/store';
 import { ReduxChat, ReduxCurrentChat } from '../Redux/Slicers/ChatSlicer';
 import ChatInfo from './ChatInfo';
 import Icon from './Icon';
+import { SmilesList } from '../Features/Constants';
 
 export default function ChatHeader(props: { currentChat: ReduxCurrentChat, withChatInfo?: boolean, onlyIco?: boolean, withoutParticipants?: boolean }) {
 
     const { currentChat, onlyIco, withoutParticipants, withChatInfo } = props
     const [showChatInfo, setShowChatInfo] = useState(false);
+    const [randomImg, setRandomImg] = useState<JSX.Element|null>(null)
     const participantText = 'participant'
 
     const handleChatInfo = () => {
         setShowChatInfo(inf => !inf)
     }
+
+    useEffect(() => {
+        setRandomImg(SmilesList[randomIntFromInterval(0, SmilesList.length - 1)])
+    }, [SmilesList.length,currentChat.id])
 
     const participants = withoutParticipants ? null : <span className='participants'>
         {currentChat!.chatMembersCount === 0 ?
@@ -23,7 +29,7 @@ export default function ChatHeader(props: { currentChat: ReduxCurrentChat, withC
     </span>
 
 
-    const ico = <div className='d-flex' role = {withChatInfo?"button":"img"} onClick={handleChatInfo}>
+    const ico = <div className='d-flex' role={withChatInfo ? "button" : "img"} onClick={handleChatInfo}>
         <div className='chat-title-icon-size h5 ms-2' style={{
             backgroundColor: currentChat!.color
         }}>
@@ -35,19 +41,16 @@ export default function ChatHeader(props: { currentChat: ReduxCurrentChat, withC
         </div>
     </div>
 
-
     const chatInfo = withChatInfo ? <ChatInfo children={ico} show={showChatInfo} handleClose={handleChatInfo} /> : null
 
-    const returned = onlyIco ? ico : <div className='chat-list p-2 d-flex justify-content-between'>
-        <Icon color={currentChat!.color} name={currentChat!.name} withChatInfo = {withChatInfo} handleChatInfo={handleChatInfo}>
+    const returned = onlyIco ? ico : <><div className='chat-list p-2 d-flex justify-content-between'>
+        <Icon color={currentChat!.color} name={currentChat!.name} withChatInfo={withChatInfo} handleChatInfo={handleChatInfo}>
             {participants}
         </Icon>
-        <div className='d-flex align-items-center'>
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" className="more-chat-info bi bi-three-dots-vertical" viewBox="0 0 16 16">
-                <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z" />
-            </svg>
+        <div className='chat-header-emoji'>
+            {randomImg}
         </div>
-    </div>
+    </div></>
 
     return <>
         {returned}

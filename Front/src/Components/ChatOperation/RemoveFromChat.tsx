@@ -18,13 +18,13 @@ export default function RemoveFromChat(props: { chatId: number | null, show: boo
     const participats = useTypedSelector(store => store.chat.participants)
 
     useEffect(() => {
-        if (chatId != null && show) {
+        if (chatId && show) {
             const connection = ConnectToChat();
             connection.subscribe(sub => {
                 sub.next(RequestBuilder('start', { query: queryParticipants, variables: { chatId: chatId } }))
             })
         }
-    }, [chatId,show])
+    }, [chatId, show])
 
     const closeHandler = () => {
         setShow(false)
@@ -47,14 +47,19 @@ export default function RemoveFromChat(props: { chatId: number | null, show: boo
     const textElement = <div className='h4 pt-3'>Are you sure that you wanna <span className='text-danger'>leave </span> <span className='text-primary'>{chat?.name}</span> chat ?</div>
     return chat ? <Modal centered show={show}>
         < Modal.Body className='ps-3'>
-            <ChatHeader currentChat={{...chat!,chatMembersCount:0}} withoutParticipants={true} onlyIco={true} />
+            <ChatHeader currentChat={{ ...chat!, chatMembersCount: 0 }} withoutParticipants={true} onlyIco={true} />
             {textElement}
             <Form.Select size='lg' className='mt-3' onChange={(event) => {
                 setRemoveName(event.target.value)
             }}>
-                    <option value = "">select user</option>
-                {participats.map(el =>
-                    <option value={el.nickName}>{el.nickName}</option>)}
+                <option value="">select user (red color - admin)</option>
+                {participats.map(el => {
+                    if(el.id === chat.creatorId){
+                        return <option value={""} className='text-danger'>{el.nickName}</option>
+                    }
+
+                    return <option value={el.nickName}>{el.nickName}</option>
+                })}
             </Form.Select>
             <Form.Check onChange={deleteAllHandler} reverse label='Do you wanna delete all messages?' className='h5 pb-4 pt-1' size={17} />
             <div className='d-flex justify-content-end gap-3'><Button variant='primary' size='lg' onClick={closeHandler}>Cancel</Button>
