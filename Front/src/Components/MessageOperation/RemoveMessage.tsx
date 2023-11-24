@@ -19,14 +19,14 @@ export default function RemoveMessage(props: { chatId:number|null,messageId: str
             const connection = ConnectToChat()
             setShow(false)
             const messageIn:MessageInput = {
-                content:message.content,
-                sentAt:message.sentAt
+                content: message.content,
+                sentAt: message.sentAt
             }
             connection.subscribe((sub) => sub.next(
                 RequestBuilder('start',
                     { query: removeMessageMutation, variables: {message:messageIn, chatId} })))
         }
-    }
+    }   
 
     const textElement = <div className='ps-3 h4 py-3'>Are you sure that you wanna <span className='text-danger'>remove </span> message</div>
 

@@ -1,8 +1,8 @@
 import { defaultSubscriptionResponse, subscriptionDataType, AllFieldsRequestType } from './Requests/Requests';
 import { ChatNotificationType, ChatResultType, Message, MessageType } from './Features/Types';
 import store from './Redux/store';
-import { updateMessage, removeMessage,deleteAll,setParticipantState, changeChatParticipances, setChats, setMessages, addMessage, updateChat, setParticipants, addChat, removeChat, setError, setChat, ChangeParticipantsType } from './Redux/Slicers/ChatSlicer';
-import { SetMessageId } from './Features/Functions';
+import { updateMessage, removeMessage, deleteAll, setParticipantState, changeChatParticipances, setChats, setMessages, addMessage, updateChat, setParticipants, addChat, removeChat, setError, setChat, ChangeParticipantsType } from './Redux/Slicers/ChatSlicer';
+import { SetMessageId, ToNormalDate } from './Features/Functions';
 import { batch } from 'react-redux'
 import { addUser } from './Redux/Slicers/UserSlicer';
 import { setError as setErrorGlobal } from './Redux/Slicers/GlobalNotification';
@@ -26,13 +26,11 @@ export default function Dispatch(response: defaultSubscriptionResponse<any>) {
         case 'data':
             const responseWithData: defaultSubscriptionResponse<subscriptionDataType<AllFieldsRequestType, any>> = response;
             const data = responseWithData.payload.data;
-
-            if(!data){
+            if (responseWithData.payload.errors) {
                 dispatch(setErrorGlobal(defaultErrorMessage))
                 console.log(JSON.stringify(response));
                 return;
             }
-
             if (data.addMessage) {
                 let message: Message = data.addMessage;
                 dispatch(addMessage(message))
@@ -59,13 +57,14 @@ export default function Dispatch(response: defaultSubscriptionResponse<any>) {
                             break;
                     }
                 }
-                else if(data.chatNotification.typeM){
+                else if (data.chatNotification.typeM) {
                     const messageNotification = data.chatNotification
                     switch (messageNotification.typeM) {
                         case MessageType.CREATE:
                             dispatch(addMessage(messageNotification))
                             break;
                         case MessageType.UPDATE:
+                            SetMessageId(messageNotification)
                             dispatch(updateMessage(messageNotification))
                             break;
                         case MessageType.DELETE:
@@ -75,22 +74,22 @@ export default function Dispatch(response: defaultSubscriptionResponse<any>) {
                         case MessageType.USER_ADD:
                             SetMessageId(messageNotification)
                             batch(() => {
-                                dispatch(addMessage({...messageNotification,fromId:null}))
-                                dispatch(changeChatParticipances({type:ChangeParticipantsType.ADD,chatId:messageNotification.chatId}))
+                                dispatch(addMessage({ ...messageNotification, fromId: null }))
+                                dispatch(changeChatParticipances({ type: ChangeParticipantsType.ADD, chatId: messageNotification.chatId }))
                             })
                             break;
                         case MessageType.USER_REMOVED:
                             SetMessageId(messageNotification)
                             batch(() => {
-                                dispatch(addMessage({...messageNotification,fromId:null}))
-                                dispatch(changeChatParticipances({type:ChangeParticipantsType.DELETE,chatId:messageNotification.chatId}))
-                                if(messageNotification.deleteAll)
-                                    dispatch(deleteAll({chatId:messageNotification.chatId,fromId:messageNotification.fromId!}))
+                                dispatch(addMessage({ ...messageNotification, fromId: null }))
+                                dispatch(changeChatParticipances({ type: ChangeParticipantsType.DELETE, chatId: messageNotification.chatId }))
+                                if (messageNotification.deleteAll)
+                                    dispatch(deleteAll({ chatId: messageNotification.chatId, fromId: messageNotification.fromId! }))
                             })
                             break;
                     }
                 }
-                else{
+                else {
                     dispatch(setParticipantState(data.chatNotification))
                 }
             }
@@ -114,8 +113,9 @@ export default function Dispatch(response: defaultSubscriptionResponse<any>) {
                 dispatch(updateChat(data.updateChat))
             }
             else if (data.updateMessage) {
-                SetMessageId(data.updateMessage)
-                dispatch(updateMessage(data.updateMessage))
+                const message: Message = data.updateMessage
+                SetMessageId(message)
+                dispatch(updateMessage(message))
             }
             else if (data.userNotification) {
                 switch (data.userNotification.notificationType) {
@@ -131,13 +131,12 @@ export default function Dispatch(response: defaultSubscriptionResponse<any>) {
             else if (data.user) {
                 dispatch(addUser(data.user))
             }
-            else if (data.chatFullInfo){
+            else if (data.chatFullInfo) {
                 dispatch(setChat(data.chatFullInfo))
             }
             else {
                 console.log(`unknown data type:${JSON.stringify(responseWithData)}`)
             }
-
             break;
         case 'error':
             dispatch(setErrorGlobal(defaultErrorMessage))

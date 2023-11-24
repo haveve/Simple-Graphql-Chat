@@ -5,7 +5,8 @@ import { ChatParticipant } from "./Types";
 import { ReduxParticipant } from "../Redux/Slicers/ChatSlicer";
 
 export function SetMessageId(message: Message | ReduxMessage) {
-  message.id = `${typeof message.sentAt === 'string' ? message.sentAt : message.sentAt.toISOString()}.${message.fromId}.${message.chatId}`
+  const date = new Date(message.sentAt).toISOString()
+  message.id = `${date}.${message.fromId}.${message.chatId}`
 }
 
 export function GetStringFromDateTime(date: Date) {
@@ -14,11 +15,11 @@ export function GetStringFromDateTime(date: Date) {
 }
 
 
-export function randomIntFromInterval(min:number, max:number) { 
+export function randomIntFromInterval(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1) + min)
 }
 
-export function SortByOnline(data: ChatParticipant[]|ReduxParticipant[], desc?: boolean) {
+export function SortByOnline(data: ChatParticipant[] | ReduxParticipant[], desc?: boolean) {
   data.sort((a, b) => {
     const aOnline = a.online ? 1 : 0
     const bOnline = b.online ? 1 : 0
@@ -68,7 +69,7 @@ export function SortMessageByTime(messages: Message[], reverse: boolean = false)
   })
 }
 
-export function StringToDate(str: string) {
+export function ToNormalDate(str: string | Date) {
   return new Date(str)
 }
 

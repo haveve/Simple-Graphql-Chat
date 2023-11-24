@@ -218,7 +218,8 @@ namespace WebSocketGraphql.Repositories
 
         public async ValueTask<bool> UpdateMessageAsync(Message message)
         {
-            string query = "UPDATE Message SET content = @content WHERE sent_at = @SentAt AND from_id = @FromId";
+            string query = @"DECLARE @CompareDelete DateTime2(3) = @SentAt
+            UPDATE Message SET content = @content WHERE sent_at = @CompareDelete AND from_id = @FromId AND chat_id = @ChatId";
             using var connection = _dapperContext.CreateConnection();
             bool result = await connection.ExecuteAsync(query, message).ConfigureAwait(false) > 0;
             if (result)

@@ -3,6 +3,7 @@ import { FullChat, Chat, ReduxMessage, Message, ChatParticipant } from '../../Fe
 import { GetStringFromDateTime, SetMessageId, SortByOnline } from '../../Features/Functions'
 import randomColor from 'randomcolor'
 import { ParticipantState } from '../../Features/Types'
+import { act } from '@testing-library/react'
 
 export type Status = 'error' | 'idle' | 'padding' | 'success'
 
@@ -168,8 +169,8 @@ export const chatSlicer = createSlice({
         updateMessage(state, action: PayloadAction<Message>) {
             state.status = 'idle'
             state.messages = state.messages.map(el => {
-                if (el.id! === action.payload.id!) {
-                    return { ...action.payload, sentAt: action.payload.sentAt.toISOString() }
+                if (el.id === action.payload.id) {
+                    return { ...el, content: action.payload.content }
                 }
                 return el;
             });
@@ -205,10 +206,16 @@ export const chatSlicer = createSlice({
                 }
                 return el
             })) as ReduxParticipant[]
+        },
+        setUpdateMessage(state, action: PayloadAction<ReduxMessage>) {
+            state.updatedMessage = action.payload
+        },
+        dropUpdateMessage(state) {
+            state.updatedMessage = undefined
         }
 
     }
 })
 
 export default chatSlicer.reducer;
-export const { updateMessage, setParticipantState, deleteAll, setError, setState, removeMessage, setChats, changeChatParticipances, setChat, setMessages, addMessage, updateChat, setParticipants, addChat, removeChat, dropCurrentChat } = chatSlicer.actions;
+export const { setUpdateMessage, dropUpdateMessage, updateMessage, setParticipantState, deleteAll, setError, setState, removeMessage, setChats, changeChatParticipances, setChat, setMessages, addMessage, updateChat, setParticipants, addChat, removeChat, dropCurrentChat } = chatSlicer.actions;

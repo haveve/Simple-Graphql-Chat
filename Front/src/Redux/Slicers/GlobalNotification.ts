@@ -18,6 +18,7 @@ const userSlicer = createSlice({
 
         setError(state, action: PayloadAction<string>) {
             state.error = action.payload
+            state.status = 'error'
         },
 
         setState(state, action: PayloadAction<Status>) {

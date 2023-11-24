@@ -5,14 +5,14 @@ import '../Styles/App.css';
 import 'bootstrap/dist/css/bootstrap.min.css'
 import { addMessageMutation, queryGetAllChats, queryUser, subscriptionToChat, subscriptionToNotification } from '../Features/Queries';
 import Dispatch from '../SocketDispatcher';
-import { GetAbbreviationFromPhrase, GetStringFromDateTime, setCookie } from '../Features/Functions';
+import { GetAbbreviationFromPhrase, setCookie } from '../Features/Functions';
 import MessageComponent from '../Components/Message';
 import MultiControl from './MultiControl';
 import ChatSelect from './ChatSelect';
 import { useTypedSelector, useTypedDispatch } from '../Redux/store';
-import { queryGetAllMessages, RequestBuilder } from '../Features/Queries';
+import { queryGetAllMessages, RequestBuilder, updateMessageMutation } from '../Features/Queries';
 import { AddChat } from './ChatOperation/AddChat';
-import { Status, dropCurrentChat, setState as setStateChat } from '../Redux/Slicers/ChatSlicer';
+import { Status, dropCurrentChat, dropUpdateMessage, setState as setStateChat } from '../Redux/Slicers/ChatSlicer';
 import ChatHeader from './ChatHeader';
 import NotificationModalWindow, { MessageType } from './Service/NotificationModalWindow';
 import { setState as setStateGlobalNotification } from '../Redux/Slicers/GlobalNotification';
@@ -20,6 +20,7 @@ import LogOut from './LogOut';
 import MessageOptions, { MessageOptionType } from './MessageOperation/MessageOption';
 import { defaultState } from './ChatSelect';
 import { useImmer } from 'use-immer';
+import { MessageInput } from '../Features/Types';
 
 export const maxVisibleLength = 26;
 
@@ -38,6 +39,8 @@ function Chat() {
   let refToOpt = useRef<HTMLDivElement>(null);
 
   const [option, setOption] = useImmer<MessageOptionType>(defaultState)
+
+  const updatedMessage = useTypedSelector(store => store.chat.updatedMessage)
 
   useEffect(() => {
     lastMessage.current?.scrollIntoView()
@@ -78,6 +81,25 @@ function Chat() {
   }, [currentChat?.id])
 
   const SendMessage = (createdMessage: string, setCreatedMessage: React.Dispatch<string>) => {
+
+    if (updatedMessage) {
+      const connection = ConnectToChat()
+      const message: MessageInput = {
+        content: createdMessage,
+        sentAt:  updatedMessage.sentAt
+      }
+      connection.subscribe(sub => sub.next(RequestBuilder('start', {
+        query: updateMessageMutation,
+        variables: {
+          chatId: updatedMessage.chatId,
+          message
+        }
+      })))
+      dispatch(dropUpdateMessage())
+      return;
+    }
+
+
     if (user && currentChat) {
       const connection = ConnectToChat()
       connection.subscribe(sub => sub.next(RequestBuilder('start', {
@@ -100,7 +122,6 @@ function Chat() {
       refToOpt.current.style.top = event.clientY + "px"
       refToOpt.current.style.left = event.clientX + "px"
     }
-
     setOption(el => {
       el.chatId = chatId
       el.messageId = messageId
@@ -141,7 +162,7 @@ function Chat() {
             }
           </Col>
           <MessageOptions option={option} ref={refToOpt}></MessageOptions>
-          <MultiControl SendMessage={SendMessage} />
+          <MultiControl value={updatedMessage?.content} SendMessage={SendMessage} />
         </Col>
         : null}
     </Row>

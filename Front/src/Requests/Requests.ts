@@ -38,7 +38,7 @@ export type AllFieldsRequestType = {
 
 export type subscriptionDataType<T, K> = {
     data: T
-    error?: K[]
+    errors?: K[]
 }
 
 export type defaultSubscriptionResponse<T> = {

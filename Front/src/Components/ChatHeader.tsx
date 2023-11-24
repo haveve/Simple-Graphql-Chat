@@ -1,17 +1,17 @@
 import React, { useState, useEffect, useRef, JSX } from 'react';
-import { Container, Row, Col, Form } from 'react-bootstrap';
+import { Container, Row, Col, Form, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { GetAbbreviationFromPhrase, randomIntFromInterval } from '../Features/Functions';
 import { useTypedSelector } from '../Redux/store';
 import { ReduxChat, ReduxCurrentChat } from '../Redux/Slicers/ChatSlicer';
 import ChatInfo from './ChatInfo';
 import Icon from './Icon';
-import { SmilesList } from '../Features/Constants';
+import { SmilesList, SmilesWithComments, SmileListType } from '../Features/Constants';
 
 export default function ChatHeader(props: { currentChat: ReduxCurrentChat, withChatInfo?: boolean, onlyIco?: boolean, withoutParticipants?: boolean }) {
 
     const { currentChat, onlyIco, withoutParticipants, withChatInfo } = props
     const [showChatInfo, setShowChatInfo] = useState(false);
-    const [randomImg, setRandomImg] = useState<JSX.Element|null>(null)
+    const [randomImg, setRandomImg] = useState<SmileListType | null>(null)
     const participantText = 'participant'
 
     const handleChatInfo = () => {
@@ -19,8 +19,8 @@ export default function ChatHeader(props: { currentChat: ReduxCurrentChat, withC
     }
 
     useEffect(() => {
-        setRandomImg(SmilesList[randomIntFromInterval(0, SmilesList.length - 1)])
-    }, [SmilesList.length,currentChat.id])
+        setRandomImg(SmilesWithComments[randomIntFromInterval(0, SmilesList.length - 1)])
+    }, [SmilesList.length, currentChat.id])
 
     const participants = withoutParticipants ? null : <span className='participants'>
         {currentChat!.chatMembersCount === 0 ?
@@ -43,13 +43,26 @@ export default function ChatHeader(props: { currentChat: ReduxCurrentChat, withC
 
     const chatInfo = withChatInfo ? <ChatInfo children={ico} show={showChatInfo} handleClose={handleChatInfo} /> : null
 
+    const SmileTip = (props:React.ComponentProps<any>) => {
+        return <Tooltip  id="button-tooltip"{...props}>
+            {randomImg?.message}
+        </Tooltip>
+    }
+
+
     const returned = onlyIco ? ico : <><div className='chat-list p-2 d-flex justify-content-between'>
         <Icon color={currentChat!.color} name={currentChat!.name} withChatInfo={withChatInfo} handleChatInfo={handleChatInfo}>
             {participants}
         </Icon>
-        <div className='chat-header-emoji'>
-            {randomImg}
-        </div>
+        <OverlayTrigger
+            placement="bottom"
+            delay={{ show: 250, hide: 400 }}
+            overlay={SmileTip}
+        >
+            <div className='chat-header-emoji'>
+                {randomImg?.picture}
+            </div>
+        </OverlayTrigger>
     </div></>
 
     return <>
