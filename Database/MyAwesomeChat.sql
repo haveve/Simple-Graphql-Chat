@@ -1,7 +1,7 @@
 CREATE DATABASE MyAwesomeChat
 GO
 
-USE DATABASE MyAwesomeChat
+USE MyAwesomeChat
 GO
 
 CREATE TABLE Users(
@@ -10,9 +10,13 @@ nick_name NVARCHAR(75) NOT NULL,
 email NVARCHAR(500) NOT NULL,
 password NVARCHAR(50) NULL,
 activate_code NVARCHAR(500) NULL,
+salt nvarchar(24) NULL,
+online bit not null Default 0
 CONSTRAINT PK_Users_Id PRIMARY KEY(id)
 )
 GO
+
+INSERT INTO Users(nick_name,email) ('DELETED','-')
 
 CREATE TABLE Chat(
 id INT NOT NULL IDENTITY, 
@@ -21,7 +25,6 @@ creator INT NOT NULL,
 
 CONSTRAINT PK_Chat_Id PRIMARY KEY(id),
 CONSTRAINT FK_Chat_UserId FOREIGN KEY (creator) REFERENCES Users(id) ON DELETE NO ACTION,  
-CONSTRAINT UQ_Chat_creator UNIQUE(creator)
 )
 GO
 
@@ -99,3 +102,35 @@ BEGIN
 	DEALLOCATE crs_deleted_user
 END
 
+CREATE TABLE Message(
+from_id int not null DEFAULT 1,
+chat_id int not null,
+sent_at DATETIME2(3) not null,
+content nvarchar(200) not null
+
+CONSTRAINT FK_Message_user_id FOREIGN KEY(from_id) REFERENCES Users(id) ON DELETE SET DEFAULT,
+CONSTRAINT FK_Message_chat_id FOREIGN KEY(chat_id) REFERENCES Chat(id) ON DELETE CASCADE,
+
+CONSTRAINT PK_Message PRIMARY KEY(sent_at,from_id,chat_id)
+);
+
+CREATE TABLE TechMessage(
+chat_id int not null,
+sent_at DATETIME2(3) not null,
+content nvarchar(200) not null
+
+CONSTRAINT FK_TechMessage_chat_id FOREIGN KEY(chat_id) REFERENCES Chat(id) ON DELETE CASCADE,
+
+CONSTRAINT PK_TechMessage PRIMARY KEY(sent_at,chat_id)
+);
+
+
+CREATE TABLE UserRefreshes(
+user_Id int not null, 
+expiration_start datetime2(0) not null, 
+expiration_end datetime2(0) not null, 
+token nvarchar(300),
+
+CONSTRAINT FK_UserRefreshes_user_id FOREIGN KEY(user_Id) REFERENCES Users(id) ON DELETE CASCADE,
+CONSTRAINT PK_UserRefreshes PRIMARY KEY(token,user_Id)
+);

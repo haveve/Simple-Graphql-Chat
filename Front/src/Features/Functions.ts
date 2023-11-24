@@ -5,7 +5,7 @@ import { ChatParticipant } from "./Types";
 import { ReduxParticipant } from "../Redux/Slicers/ChatSlicer";
 
 export function SetMessageId(message: Message | ReduxMessage) {
-  message.id = typeof message.sentAt === 'string' ? message.sentAt : message.sentAt.toISOString() + message.fromId + message.chatId
+  message.id = `${typeof message.sentAt === 'string' ? message.sentAt : message.sentAt.toISOString()}.${message.fromId}.${message.chatId}`
 }
 
 export function GetStringFromDateTime(date: Date) {

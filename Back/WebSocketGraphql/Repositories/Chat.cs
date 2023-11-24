@@ -203,9 +203,11 @@ namespace WebSocketGraphql.Repositories
 
         public async ValueTask<bool> RemoveMessageAsync(Message message)
         {
-            string query = "DELETE Message WHERE from_id = @FromId AND sent_at = @SentAt AND chat_id = @ChatId";
+            string query = @"
+                DECLARE @CompareDelete DateTime2(3) = @SentAt
+                DELETE Message WHERE from_id = @FromId AND sent_at = @CompareDelete AND chat_id = @ChatId";
             using var connection = _dapperContext.CreateConnection();
-            bool result = await connection.ExecuteAsync(query, new { message }).ConfigureAwait(false) > 0;
+            bool result = await connection.ExecuteAsync(query, message).ConfigureAwait(false) > 0;
             if (result)
             {
                 var subject = GetOrCreateChat(message.ChatId);

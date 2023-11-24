@@ -16,7 +16,8 @@ export type sliceState = {
     status: Status,
     participants: ReduxParticipant[],
     chats: ReduxChat[],
-    error?: string
+    error?: string,
+    updatedMessage?: ReduxMessage
 }
 
 export type DeleteAll = {

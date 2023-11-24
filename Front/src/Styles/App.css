@@ -228,3 +228,7 @@
   .chat-header-emoji>svg:hover{
     fill:#5f2828;
   }
+
+  .custom-svg:hover{
+    fill:#4b4a4a
+  }

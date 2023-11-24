@@ -119,7 +119,7 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager
 
             int userId = int.Parse(objRefreshToken.Claims.First(c => c.Type == "UserId").Value);
             bool isRefresh = bool.Parse(objRefreshToken.Claims.First(c => c.Type == "isRefresh").Value);
-            var savedToken = _authRepo.GetRefreshToken(refreshToken);
+            var savedToken = _authRepo.GetRefreshToken(refreshToken,userId);
 
             if (savedToken == null)
             {

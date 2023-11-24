@@ -74,8 +74,8 @@ export const ChatSel = memo((props: { id: number, setOption: Updater<ChatOptionT
 })
 
 
-export const Options = forwardRef<HTMLDivElement, { drowDown?:boolean,option: ChatOptionType }>((props, ref) => {
-    const { option,drowDown } = props;
+export const Options = forwardRef<HTMLDivElement, {option: ChatOptionType }>((props, ref) => {
+    const { option} = props;
     const [showUpdate, setShowUpdate] = useState(false)
     const [showRemove, setShowRemove] = useState(false)
     const [showAddUser, setShowAddUser] = useState(false)

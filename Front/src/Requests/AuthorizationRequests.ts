@@ -2,7 +2,7 @@ import { backDomain } from '../Features/Constants';
 import { ajax } from 'rxjs/ajax';
 import { map, catchError, Observable, timer, mergeMap } from 'rxjs';
 import { LogoutDeleteCookie, setCookie, getCookie } from '../Features/Functions';
-import {redirect} from 'react-router'
+import { redirect } from 'react-router'
 
 export const url = `https://${backDomain}/graphql-auth`
 
@@ -30,6 +30,8 @@ export type DoRefreshType = {
     refresh_token: string,
     refreshStatus: RefreshStatus
 }
+
+
 
 export function DoRefresh(refresh: DoRefreshType) {
     switch (refresh.refreshStatus) {
@@ -60,11 +62,11 @@ export function DoRefresh(refresh: DoRefreshType) {
             next: () => {
                 let refreshSentString = getCookie("refresh_sent");
 
-                if(!refreshSentString){
+                if (!refreshSentString) {
                     sub.unsubscribe();
                     return;
                 }
-                
+
                 let isTokenSent: boolean = JSON.parse(refreshSentString)
                 if (!isTokenSent) {
                     subscriber.next()
@@ -75,6 +77,19 @@ export function DoRefresh(refresh: DoRefreshType) {
     })
 
 
+}
+
+export function GetRefresh() {
+    const refreshTokenJson = getCookie("refresh_token");
+
+    if (!refreshTokenJson) {
+        return ""
+    }
+    const refreshTokenObj: StoredTokenType = JSON.parse(refreshTokenJson);
+    if (!refreshTokenObj.token) {
+        return ""
+    }
+    return refreshTokenObj.token
 }
 
 export function WhetherDoRefresh(): DoRefreshType {
@@ -125,14 +140,14 @@ export function GetAjaxObservable<T, K>(query: string, variables: {}, url: strin
 
     if (tokenString) {
         const token: StoredTokenType = JSON.parse(tokenString)
-         tokenHeader = {
+        tokenHeader = {
             'Authorization': 'Bearer ' + token.token,
         }
     }
 
     if (refreshToken) {
         tokenHeader = {
-            refresh_token:refreshToken,
+            refresh_token: refreshToken,
         }
     }
 

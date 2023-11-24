@@ -8,6 +8,7 @@ using WebSocketGraphql.Services;
 using WebSocketGraphql.Models;
 using WebSocketGraphql.ViewModels;
 using System;
+using TimeTracker.GraphQL.Types.IdentityTipes.Models;
 
 namespace TimeTracker.Repositories
 {
@@ -25,6 +26,7 @@ namespace TimeTracker.Repositories
            Mapper.SetMapper(typeof(Message));
            Mapper.SetMapper(typeof(ChatResult));
            Mapper.SetMapper(typeof(ChatParticipant));
+           Mapper.SetMapper(typeof(RefreshToken));
            SqlMapper.AddTypeHandler(new DateTimeHandler());
 
         }

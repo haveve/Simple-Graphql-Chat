@@ -15,7 +15,11 @@ import { AddChat } from './ChatOperation/AddChat';
 import { Status, dropCurrentChat, setState as setStateChat } from '../Redux/Slicers/ChatSlicer';
 import ChatHeader from './ChatHeader';
 import NotificationModalWindow, { MessageType } from './Service/NotificationModalWindow';
-import { setState as setStateGlobalNotification  } from '../Redux/Slicers/GlobalNotification';
+import { setState as setStateGlobalNotification } from '../Redux/Slicers/GlobalNotification';
+import LogOut from './LogOut';
+import MessageOptions, { MessageOptionType } from './MessageOperation/MessageOption';
+import { defaultState } from './ChatSelect';
+import { useImmer } from 'use-immer';
 
 export const maxVisibleLength = 26;
 
@@ -31,6 +35,9 @@ function Chat() {
   const [chatNotifyId, setChatNorifyId] = useState<string>("")
   const [userNotifyId, setUserNotifyId] = useState<string>("")
   let lastMessage = useRef<HTMLDivElement>(null);
+  let refToOpt = useRef<HTMLDivElement>(null);
+
+  const [option, setOption] = useImmer<MessageOptionType>(defaultState)
 
   useEffect(() => {
     lastMessage.current?.scrollIntoView()
@@ -87,6 +94,24 @@ function Chat() {
     setCreatedMessage('')
   }
 
+  const HandleContextMenu = (chatId: number, messageId: string, event: React.MouseEvent<HTMLDivElement>) => {
+    event.preventDefault()
+    if (refToOpt.current) {
+      refToOpt.current.style.top = event.clientY + "px"
+      refToOpt.current.style.left = event.clientX + "px"
+    }
+
+    setOption(el => {
+      el.chatId = chatId
+      el.messageId = messageId
+      el.show = true
+    })
+  }
+
+  const handleHideOption = () => setOption(el => {
+    el.show = false
+  })
+
   const DropChat = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'Escape') {
       dispatch(dropCurrentChat())
@@ -96,19 +121,26 @@ function Chat() {
   return <><Container onKeyDown={DropChat} tabIndex={0} fluid={'fluid'} className='chat-bg p-0 h-100 m-0'>
     <Row className='m-0 flex-row p-0 h-100'>
       <Col sm={3} className='chat-list h-100 p-3 select-chat-scroll border-end border-warning'>
-        <AddChat />
+        <div className="d-flex chat-size-head align-items-center p-0 m-0">
+          <AddChat />
+          <LogOut />
+        </div>
         <ChatSelect />
       </Col>
       {currentChat?.id ?? -1 > 0 ?
-        <Col className='d-flex flex-column h-100 p-0 m-0'>
+        <Col className='d-flex flex-column h-100 p-0 m-0' onMouseLeave={handleHideOption} onClick={handleHideOption}>
           <ChatHeader currentChat={currentChat!} withChatInfo={true} />
           <Col className='p-4 m-0 h5 scroll'>
             {
               messages.map((el, key) => {
-                return <MessageComponent key={el.id} el={el} ref={key == messages.length - 1 ? lastMessage : undefined} />
+                return <MessageComponent onContextMenu={(event) => {
+                  event.preventDefault()
+                  HandleContextMenu(el.chatId, el.id!, event)
+                }} key={el.id} el={el} ref={key == messages.length - 1 ? lastMessage : undefined} />
               })
             }
           </Col>
+          <MessageOptions option={option} ref={refToOpt}></MessageOptions>
           <MultiControl SendMessage={SendMessage} />
         </Col>
         : null}

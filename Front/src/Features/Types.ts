@@ -5,6 +5,11 @@ export type MessageAdd = {
     sentAt:Date
 }
 
+export type MessageInput = {
+    content:string,
+    sentAt:string
+}
+
 export type ParticipantState = {
     online:boolean,
     id:number
