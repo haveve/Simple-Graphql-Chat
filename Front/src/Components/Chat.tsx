@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Container, Row, Col, Form } from 'react-bootstrap';
 import { ConnectToChat } from '../Requests/Requests';
 import '../Styles/App.css';
 import 'bootstrap/dist/css/bootstrap.min.css'
 import { addMessageMutation, queryGetAllChats, queryUser, subscriptionToChat, subscriptionToNotification } from '../Features/Queries';
 import Dispatch from '../SocketDispatcher';
-import { GetAbbreviationFromPhrase, setCookie } from '../Features/Functions';
+import {setCookie } from '../Features/Functions';
 import MessageComponent from '../Components/Message';
 import MultiControl from './MultiControl';
 import ChatSelect from './ChatSelect';
@@ -21,13 +21,15 @@ import MessageOptions, { MessageOptionType } from './MessageOperation/MessageOpt
 import { defaultState } from './ChatSelect';
 import { useImmer } from 'use-immer';
 import { MessageInput } from '../Features/Types';
+import UseEffectIf from './Hooks/useEffectIf';
+import { selectMessageIds } from '../Redux/reselect';
 
 export const maxVisibleLength = 26;
 
 function Chat() {
 
   const currentChat = useTypedSelector(store => store.chat.currentChat)
-  const messages = useTypedSelector(store => store.chat.messages)
+  const messageIds = useTypedSelector(selectMessageIds)
   const user = useTypedSelector(store => store.user.user)
   const chatState = useTypedSelector(store => store.chat.status)
   const erroMessage = useTypedSelector(store => store.chat.error)
@@ -42,9 +44,13 @@ function Chat() {
 
   const updatedMessage = useTypedSelector(store => store.chat.updatedMessage)
 
-  useEffect(() => {
+  UseEffectIf(() => {
     lastMessage.current?.scrollIntoView()
-  }, [messages.length])
+  },
+  [messageIds.length],[0],
+  ([prevLength]) => {
+      return prevLength < messageIds.length
+  })
 
   useEffect(() => {
     setCookie({ name: "refresh_sent", value: "false" })
@@ -57,6 +63,10 @@ function Chat() {
     connection.subscribe(sub => sub.next(subToNotify))
     connection.subscribe(sub => sub.next(RequestBuilder('start', { query: queryUser })))
     connection.subscribe(sub => sub.next(RequestBuilder('start', { query: queryGetAllChats })))
+
+    return () => {
+      connection.subscribe(sub => sub.next(RequestBuilder('stop', {}, userNotifyId)))
+    }
   }, [])
 
   useEffect(() => {
@@ -86,7 +96,7 @@ function Chat() {
       const connection = ConnectToChat()
       const message: MessageInput = {
         content: createdMessage,
-        sentAt:  updatedMessage.sentAt
+        sentAt: updatedMessage.sentAt
       }
       connection.subscribe(sub => sub.next(RequestBuilder('start', {
         query: updateMessageMutation,
@@ -116,7 +126,7 @@ function Chat() {
     setCreatedMessage('')
   }
 
-  const HandleContextMenu = (chatId: number, messageId: string, event: React.MouseEvent<HTMLDivElement>) => {
+  const HandleContextMenu = useCallback((chatId: number, messageId: string, event: React.MouseEvent<HTMLDivElement>) => {
     event.preventDefault()
     if (refToOpt.current) {
       refToOpt.current.style.top = event.clientY + "px"
@@ -127,7 +137,7 @@ function Chat() {
       el.messageId = messageId
       el.show = true
     })
-  }
+  }, [])
 
   const handleHideOption = () => setOption(el => {
     el.show = false
@@ -153,11 +163,8 @@ function Chat() {
           <ChatHeader currentChat={currentChat!} withChatInfo={true} />
           <Col className='p-4 m-0 h5 scroll'>
             {
-              messages.map((el, key) => {
-                return <MessageComponent onContextMenu={(event) => {
-                  event.preventDefault()
-                  HandleContextMenu(el.chatId, el.id!, event)
-                }} key={el.id} el={el} ref={key == messages.length - 1 ? lastMessage : undefined} />
+              messageIds.map((id, key) => {
+                return <MessageComponent HandleContext={HandleContextMenu} key={id} id={id!} ref={key == messageIds.length - 1 ? lastMessage : undefined} />
               })
             }
           </Col>

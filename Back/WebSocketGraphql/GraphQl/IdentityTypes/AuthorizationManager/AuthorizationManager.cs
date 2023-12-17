@@ -1,7 +1,6 @@
 ﻿using GraphQLParser;
 using GraphQLParser.AST;
 using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json.Linq;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Net.WebSockets;

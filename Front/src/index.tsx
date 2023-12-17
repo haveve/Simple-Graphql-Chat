@@ -13,12 +13,17 @@ import SetPassword from './Components/SetPassword';
 import { getTokenOrNavigate } from './Features/Functions';
 import store from './Redux/store';
 import { Provider } from 'react-redux'
+import NotFound from './Components/NotFoundPage';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
 
 const Router = createBrowserRouter([
+  {
+    path:"*",
+    element:<NotFound/>
+  },
   {
     path: '/main',
     element: <Chat />,

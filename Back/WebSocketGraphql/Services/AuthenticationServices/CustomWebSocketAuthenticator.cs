@@ -3,9 +3,6 @@ using GraphQL.Transport;
 using GraphQL;
 using System.Security.Claims;
 using TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager;
-using GraphQL.Validation;
-using System.Text.Json;
-using Newtonsoft.Json;
 using System.ComponentModel;
 
 namespace WebSocketGraphql.Services.AuthenticationServices
@@ -28,7 +25,6 @@ namespace WebSocketGraphql.Services.AuthenticationServices
         public async Task AuthenticateAsync(IWebSocketConnection connection, string subProtocol, OperationMessage operationMessage)
         {
             var payload = _serializer.ReadNode<Inputs>(operationMessage.Payload);
-            _logger.LogCritical(operationMessage.Type);
             if ((payload?.TryGetValue("authorization", out var token) ?? false) && token is string tokeString)
             {
                 if (await _authorizationManager.IsValidToken(tokeString, null))

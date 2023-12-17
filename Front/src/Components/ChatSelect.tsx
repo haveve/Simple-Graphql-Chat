@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo, memo, forwardRef } from 'react';
 import { GetAbbreviationFromPhrase, GetDisplayedName } from '../Features/Functions';
 import { useTypedSelector, useTypedDispatch } from '../Redux/store';
-import { setChat } from '../Redux/Slicers/ChatSlicer';
 import UpdateChat from './ChatOperation/UpdateChat';
 import RemoveChat from './ChatOperation/RemoveChat';
 import { Updater, useImmer } from "use-immer";
@@ -11,6 +10,7 @@ import RemoveFromChat from './ChatOperation/RemoveFromChat';
 import { ConnectToChat } from '../Requests/Requests';
 import { RequestBuilder } from '../Features/Queries';
 import { queryFullChatInfo } from '../Features/Queries';
+import { selectChatIds } from '../Redux/reselect';
 
 export type ChatOptionType = {
     show: boolean,
@@ -21,7 +21,7 @@ export const defaultState = { show: false }
 
 export default function ChatSelect() {
 
-    const userChatsId = useTypedSelector(store => store.chat.chats.map(el => el.id))
+    const userChatsId = useTypedSelector(selectChatIds)
     const [option, setOption] = useImmer<ChatOptionType>(defaultState)
     const refToOpt = useRef<HTMLDivElement>(null)
 
