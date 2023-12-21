@@ -59,8 +59,7 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
         private IObservable<object> SubscribeChatNotification(IResolveFieldContext context)
         {
             int chatId = context.GetArgument<int>("chatId");
-
-            return _chat.SubscribeMessages(chatId);
+            return new ChatObservable<object>(chatId, _chat, _chat.SubscribeMessages(chatId));
         }
 
 

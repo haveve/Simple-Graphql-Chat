@@ -14,12 +14,6 @@ using WebSocketGraphql.ViewModels;
 
 namespace WebSocketGraphql.Repositories
 {
-    public class UserNotificationNode 
-    { 
-       public int Count { get; set; }
-       public ISubject<UserNotification> Subject { get; set; }
-    }
-
 
 
     public class Chat : IChat
@@ -29,14 +23,14 @@ namespace WebSocketGraphql.Repositories
         private readonly int _userNumberInSubject;
 
         private ConcurrentDictionary<int, Subject<object>> _chats;
-        private ConcurrentDictionary<int, UserNotificationNode> _userChatNotifyer;
+        private ConcurrentDictionary<int, Subject<UserNotification>> _userChatNotifyer;
         private readonly DapperContext _dapperContext;
 
         public Chat(DapperContext dapperContext, IConfiguration configuration)
         {
             _dapperContext = dapperContext;
             _chats = new();
-            _userChatNotifyer = new ConcurrentDictionary<int, UserNotificationNode>();
+            _userChatNotifyer = new ConcurrentDictionary<int, Subject<UserNotification>>();
 
             if(!Int32.TryParse(configuration["ChatConfigData:UserSubNumber"], out _userNumberInSubject))
             {
@@ -55,7 +49,7 @@ namespace WebSocketGraphql.Repositories
             {
                 try
                 {
-                    _chats[i].OnNext(obj);
+                   _chats[i].OnNext(obj);
                 }
                 catch
                 {
@@ -71,19 +65,13 @@ namespace WebSocketGraphql.Repositories
 
             try
             {
-
                 var sub = _userChatNotifyer[maxUserId];
-                sub.Count++;
-                return sub.Subject.AsObservable();
+                return sub.AsObservable();
             }
             catch
             {
                 var newSub = new Subject<UserNotification>();
-                _userChatNotifyer[maxUserId] = new UserNotificationNode
-                {
-                    Subject = newSub,
-                    Count = 1
-                };
+                _userChatNotifyer[maxUserId] = newSub;
                 return newSub.AsObservable();
             }
 
@@ -96,7 +84,26 @@ namespace WebSocketGraphql.Repositories
             try
             {
                 var sub = _userChatNotifyer[maxUserId];
-                sub.Count--;
+                if (!sub.HasObservers)
+                {
+                    _userChatNotifyer.Remove(maxUserId, out _);
+                }
+            }
+            catch
+            {
+
+            }
+        }
+
+        public void UnSubscribeMessages(int chatId)
+        {
+            try
+            {
+                var chat = _chats[chatId];
+                if (!chat.HasObservers)
+                {
+                    _chats.Remove(chatId, out _);
+                }
             }
             catch
             {
@@ -175,7 +182,7 @@ namespace WebSocketGraphql.Repositories
 
             try
             {
-                _userChatNotifyer[maxId].Subject.OnNext(new UserNotification()
+                _userChatNotifyer[maxId].OnNext(new UserNotification()
                 {
                     UserId = user.UserId,
                     NotificationType = ChatNotificationType.ENROLL,
@@ -363,6 +370,11 @@ namespace WebSocketGraphql.Repositories
 			ELSE
             BEGIN
                 DELETE Users_Chat_Keys WHERE user_id = @userId AND chat_id = @chatId
+                IF(ROWCOUNT_BIG() = 0)
+			    BEGIN
+				    PRINT 'There is no user in chat with that id'
+				    ROLLBACK
+			    END
                 SELECT @userId as UserId, @nickName as NickName, name as ChatName FROM Chat WHERE id = @chatId
 				IF(@deleteAll = 1)
                 DELETE FROM Message
@@ -399,7 +411,7 @@ namespace WebSocketGraphql.Repositories
 
             try
             {
-                _userChatNotifyer[maxId].Subject.OnNext(new UserNotification()
+                _userChatNotifyer[maxId].OnNext(new UserNotification()
                 {
                     UserId = user.UserId,
                     NotificationType = ChatNotificationType.BANISH,

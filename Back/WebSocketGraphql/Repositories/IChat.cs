@@ -25,6 +25,8 @@ namespace WebSocketGraphql.Repositories
 
         Task<bool> SetOnile(int userId);
 
+        void UnSubscribeMessages(int chatId);
+
         Task<IEnumerable<int>> SetOffline(int userId);
 
         ValueTask<bool> RemoveMessageAsync(Message message);

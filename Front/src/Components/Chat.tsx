@@ -54,9 +54,8 @@ function Chat() {
     })
 
   useEffect(() => {
-    if (!wasInitialAuth) {
-      const connection = ConnectToChat(!wasInitialAuth)
-      connection.subscribe(sub => sub.subscribe({
+      const connection = ConnectToChat(false,!wasInitialAuth)
+      let sub = connection.subscribe(sub => sub.subscribe({
         next: (response) => Dispatch(response)
       }))
       const subToNotify = RequestBuilder('start', { query: subscriptionToNotification })
@@ -64,8 +63,10 @@ function Chat() {
       connection.subscribe(sub => sub.next(subToNotify))
       connection.subscribe(sub => sub.next(RequestBuilder('start', { query: queryUser })))
       connection.subscribe(sub => sub.next(RequestBuilder('start', { query: queryGetAllChats })))
-    }
+
     return () => {
+      connection.subscribe(sub => sub.next(RequestBuilder('stop', {}, subToNotify.id!)))
+      sub.unsubscribe();
       setInitialAuth(true);
     }
   }, [])
