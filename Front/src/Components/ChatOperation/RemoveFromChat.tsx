@@ -20,9 +20,17 @@ export default function RemoveFromChat(props: { chatId: number | null, show: boo
     useEffect(() => {
         if (chatId && show) {
             const connection = ConnectToChat();
+
+            const request = RequestBuilder('start', { query: queryParticipants, variables: { chatId: chatId } });
             connection.subscribe(sub => {
-                sub.next(RequestBuilder('start', { query: queryParticipants, variables: { chatId: chatId } }))
+                sub.next(request)
             })
+            
+            return () => {
+                connection.subscribe(sub => {
+                    sub.next(RequestBuilder('stop', {}, request.id!))
+                })
+            }
         }
     }, [chatId, show])
 

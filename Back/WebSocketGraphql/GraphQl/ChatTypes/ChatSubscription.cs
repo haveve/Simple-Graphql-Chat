@@ -70,7 +70,7 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
             var ids = _authHelper.GetChatParticipant(context.UserContext);
             var userId = _authHelper.GetUserId(context.User!);
 
-            var observable = new UserOnlineObservable<UserNotification>(userId, ids!, _chat, _chat.SubscribeUserNotification());
+            var observable = new UserOnlineObservable<UserNotification>(userId, ids!, _chat, _chat.SubscribeUserNotification(userId));
 
             return observable;
         }

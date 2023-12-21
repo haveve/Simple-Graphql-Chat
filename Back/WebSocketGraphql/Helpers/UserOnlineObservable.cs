@@ -29,6 +29,8 @@ namespace WebSocketGraphql.Helpers
             {
                 _chat.NotifyAllChats(x.Result, new ChatParticipant() { Id = _userId, Online = false });
             });
+
+            _chat.UnSubscribeUserNotification(_userId);
         }
 
         public IDisposable Subscribe(IObserver<T> observer)

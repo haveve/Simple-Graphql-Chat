@@ -49,9 +49,15 @@ export default function ChatInfo(props: { show: boolean, handleClose: () => void
     useEffect(() => {
         if (currentChatId && show) {
             const connection = ConnectToChat();
+            const request = RequestBuilder('start', { query: queryParticipants, variables: { chatId: currentChatId, search } });
             connection.subscribe(sub => {
-                sub.next(RequestBuilder('start', { query: queryParticipants, variables: { chatId: currentChatId, search } }))
+                sub.next(request)
             })
+            return () => {
+                connection.subscribe(sub => {
+                    sub.next(RequestBuilder('stop', {}, request.id!))
+                })
+            }
         }
     }, [currentChatId, show, search]);
 

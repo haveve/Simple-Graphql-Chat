@@ -5,7 +5,7 @@ import '../Styles/App.css';
 import 'bootstrap/dist/css/bootstrap.min.css'
 import { addMessageMutation, queryGetAllChats, queryUser, subscriptionToChat, subscriptionToNotification } from '../Features/Queries';
 import Dispatch from '../SocketDispatcher';
-import {setCookie } from '../Features/Functions';
+import { setCookie } from '../Features/Functions';
 import MessageComponent from '../Components/Message';
 import MultiControl from './MultiControl';
 import ChatSelect from './ChatSelect';
@@ -37,6 +37,7 @@ function Chat() {
   const dispatch = useTypedDispatch()
   const [chatNotifyId, setChatNorifyId] = useState<string>("")
   const [userNotifyId, setUserNotifyId] = useState<string>("")
+  const [wasInitialAuth, setInitialAuth] = useState<boolean>(false);
   let lastMessage = useRef<HTMLDivElement>(null);
   let refToOpt = useRef<HTMLDivElement>(null);
 
@@ -47,29 +48,25 @@ function Chat() {
   UseEffectIf(() => {
     lastMessage.current?.scrollIntoView()
   },
-  [messageIds.length],[0],
-  ([prevLength]) => {
+    [messageIds.length], [0],
+    ([prevLength]) => {
       return prevLength < messageIds.length
-  })
-
-  useEffect(()=>{
-    setCookie({ name: "refresh_sent", value: "false" })
-  },[])
+    })
 
   useEffect(() => {
-    const connection = ConnectToChat(true)
-    let sub = connection.subscribe(sub => sub.subscribe({
-      next: (response) => Dispatch(response)
-    }))
-    const subToNotify = RequestBuilder('start', { query: subscriptionToNotification })
-    setUserNotifyId(subToNotify.id!)
-    connection.subscribe(sub => sub.next(subToNotify))
-    connection.subscribe(sub => sub.next(RequestBuilder('start', { query: queryUser })))
-    connection.subscribe(sub => sub.next(RequestBuilder('start', { query: queryGetAllChats })))
-
+    if (!wasInitialAuth) {
+      const connection = ConnectToChat(!wasInitialAuth)
+      connection.subscribe(sub => sub.subscribe({
+        next: (response) => Dispatch(response)
+      }))
+      const subToNotify = RequestBuilder('start', { query: subscriptionToNotification })
+      setUserNotifyId(subToNotify.id!)
+      connection.subscribe(sub => sub.next(subToNotify))
+      connection.subscribe(sub => sub.next(RequestBuilder('start', { query: queryUser })))
+      connection.subscribe(sub => sub.next(RequestBuilder('start', { query: queryGetAllChats })))
+    }
     return () => {
-      connection.subscribe(sub => sub.next(RequestBuilder('stop', {}, userNotifyId)))
-      sub.unsubscribe();
+      setInitialAuth(true);
     }
   }, [])
 
@@ -87,7 +84,7 @@ function Chat() {
       connection.subscribe(sub => sub.next(subToChat))
 
       return () => {
-        connection.subscribe(sub => sub.next(RequestBuilder('stop', {}, chatNotifyId)))
+        connection.subscribe(sub => sub.next(RequestBuilder('stop', {}, subToChat.id!)))
       }
     }
   }, [currentChat?.id])

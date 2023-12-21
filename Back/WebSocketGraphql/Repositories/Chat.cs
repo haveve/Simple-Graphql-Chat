@@ -14,17 +14,39 @@ using WebSocketGraphql.ViewModels;
 
 namespace WebSocketGraphql.Repositories
 {
+    public class UserNotificationNode 
+    { 
+       public int Count { get; set; }
+       public ISubject<UserNotification> Subject { get; set; }
+    }
+
+
+
     public class Chat : IChat
     {
+        private const int _userInOneSubjectDefault = 1000;
+
+        private readonly int _userNumberInSubject;
+
         private ConcurrentDictionary<int, Subject<object>> _chats;
-        private ISubject<UserNotification> _userChatNotifyer;
+        private ConcurrentDictionary<int, UserNotificationNode> _userChatNotifyer;
         private readonly DapperContext _dapperContext;
 
-        public Chat(DapperContext dapperContext)
+        public Chat(DapperContext dapperContext, IConfiguration configuration)
         {
             _dapperContext = dapperContext;
             _chats = new();
-            _userChatNotifyer = new Subject<UserNotification>();
+            _userChatNotifyer = new ConcurrentDictionary<int, UserNotificationNode>();
+
+            if(!Int32.TryParse(configuration["ChatConfigData:UserSubNumber"], out _userNumberInSubject))
+            {
+                _userNumberInSubject = _userInOneSubjectDefault;
+            }
+        }
+
+        private int ComputeUserSubIndex(int userId)
+        {
+            return (int)Math.Ceiling((decimal)userId / _userNumberInSubject) * _userNumberInSubject;
         }
 
         public void NotifyAllChats(IEnumerable<int> chatIds,object obj)
@@ -42,9 +64,44 @@ namespace WebSocketGraphql.Repositories
             }
         }
 
-        public IObservable<UserNotification> SubscribeUserNotification()
+        public IObservable<UserNotification> SubscribeUserNotification(int userId)
         {
-            return _userChatNotifyer.AsObservable();
+
+            var maxUserId = ComputeUserSubIndex(userId);
+
+            try
+            {
+
+                var sub = _userChatNotifyer[maxUserId];
+                sub.Count++;
+                return sub.Subject.AsObservable();
+            }
+            catch
+            {
+                var newSub = new Subject<UserNotification>();
+                _userChatNotifyer[maxUserId] = new UserNotificationNode
+                {
+                    Subject = newSub,
+                    Count = 1
+                };
+                return newSub.AsObservable();
+            }
+
+        }
+
+        public void UnSubscribeUserNotification(int userId)
+        {
+            var maxUserId = ComputeUserSubIndex(userId);
+
+            try
+            {
+                var sub = _userChatNotifyer[maxUserId];
+                sub.Count--;
+            }
+            catch
+            {
+
+            }
         }
 
         public async ValueTask<bool> AddMessageAsync(Message message)
@@ -114,15 +171,24 @@ namespace WebSocketGraphql.Repositories
 
             subject.OnNext(message);
 
-            _userChatNotifyer.OnNext(new UserNotification()
+            var maxId = ComputeUserSubIndex(user.UserId);
+
+            try
             {
-                UserId = user.UserId,
-                NotificationType = ChatNotificationType.ENROLL,
-                Name = user.ChatName,
-                Id = chatId,
-                CreatorId = user.CreatorId,
-                ChatMembersCount = user.ChatMembersCount
-            });
+                _userChatNotifyer[maxId].Subject.OnNext(new UserNotification()
+                {
+                    UserId = user.UserId,
+                    NotificationType = ChatNotificationType.ENROLL,
+                    Name = user.ChatName,
+                    Id = chatId,
+                    CreatorId = user.CreatorId,
+                    ChatMembersCount = user.ChatMembersCount
+                });
+            }
+            catch
+            {
+
+            }
 
             return result;
 
@@ -329,15 +395,24 @@ namespace WebSocketGraphql.Repositories
             var result = await AddTechMessageAsync(chatId, message);
             subject.OnNext(message);
 
-            _userChatNotifyer.OnNext(new UserNotification()
+            var maxId = ComputeUserSubIndex(user.UserId);
+
+            try
             {
-                UserId = user.UserId,
-                NotificationType = ChatNotificationType.BANISH,
-                Name = user.ChatName,
-                Id = chatId,
-                CreatorId = user.CreatorId,
-                ChatMembersCount = user.ChatMembersCount
-            });
+                _userChatNotifyer[maxId].Subject.OnNext(new UserNotification()
+                {
+                    UserId = user.UserId,
+                    NotificationType = ChatNotificationType.BANISH,
+                    Name = user.ChatName,
+                    Id = chatId,
+                    CreatorId = user.CreatorId,
+                    ChatMembersCount = user.ChatMembersCount
+                });
+            }
+            catch
+            {
+
+            }
 
             return result;
         }
