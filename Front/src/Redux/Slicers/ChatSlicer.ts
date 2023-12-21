@@ -5,7 +5,7 @@ import randomColor from 'randomcolor'
 import { ParticipantState } from '../../Features/Types'
 import { act } from '@testing-library/react'
 
-export type Status = 'error' | 'idle' | 'padding' | 'success'
+export type Status = 'error' | 'idle' | 'pending' | 'success'
 
 export type ReduxCurrentChat = FullChat & { color: string };
 export type ReduxChat = Chat & { color: string };

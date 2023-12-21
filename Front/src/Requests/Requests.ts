@@ -113,7 +113,7 @@ class WebSocketProxy<T extends MinWebSocketType>{
     }
 
     public next(next: T) {
-        dispatch(setState('padding'))
+        dispatch(setState('pending'))
         GetTokenObservable().subscribe({
             next: () => {
                 const token: StoredTokenType = JSON.parse(getCookie("access_token")!)
@@ -143,12 +143,16 @@ function SendProxy(subscriber: Subscriber<WebSocketProxy<defaultSubscriptionResp
 
 let socket: WebSocketSubject<defaultSubscriptionResponse<any>>;
 
-export function ConnectToChat(reconnect: boolean = false): Observable<WebSocketProxy<defaultSubscriptionResponse<any>>> {
+export function GetNewToken(){
+    return GetTokenObservable(true);
+}
+
+export function ConnectToChat(reconnect: boolean = false, newToken:boolean = false): Observable<WebSocketProxy<defaultSubscriptionResponse<any>>> {
 
     return new Observable(subscribe => {
         if ((!SingletonContainer.GetInstance() || reconnect || socket.closed) && SingletonContainer.getDone()) {
             SingletonContainer.setDone(false);
-            GetTokenObservable().subscribe({
+            GetTokenObservable(newToken).subscribe({
                 next: () => {
                     socket = webSocket<defaultSubscriptionResponse<any>>({
                         url: `wss://${backDomain}/graphql`,

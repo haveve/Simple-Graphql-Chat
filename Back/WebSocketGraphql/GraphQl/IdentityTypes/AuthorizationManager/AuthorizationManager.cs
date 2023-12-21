@@ -96,11 +96,6 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager
                     return true;
                 }
 
-                if(await _chat.CheckPresentUserInChatAsync(userId, (int)chatId))
-                {
-                    return true;
-                }
-
                 return false;
             }
             catch

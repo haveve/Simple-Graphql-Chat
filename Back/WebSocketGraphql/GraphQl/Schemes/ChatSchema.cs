@@ -8,7 +8,7 @@ namespace WebSocketGraphql.GraphQl.Schemes
     {
         public ChatSchema(IServiceProvider service) : base(service)
         {
-            Metadata.Add(AuthorizationExtensions.AUTHORIZE_KEY, false);
+            Metadata.Add(AuthorizationExtensions.AUTHORIZE_KEY, true);
 
             Query = service.GetRequiredService<ChatQuery>();
             Mutation = service.GetRequiredService<ChatMutation>();

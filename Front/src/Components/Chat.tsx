@@ -52,10 +52,13 @@ function Chat() {
       return prevLength < messageIds.length
   })
 
-  useEffect(() => {
+  useEffect(()=>{
     setCookie({ name: "refresh_sent", value: "false" })
-    const connection = ConnectToChat()
-    connection.subscribe(sub => sub.subscribe({
+  },[])
+
+  useEffect(() => {
+    const connection = ConnectToChat(true)
+    let sub = connection.subscribe(sub => sub.subscribe({
       next: (response) => Dispatch(response)
     }))
     const subToNotify = RequestBuilder('start', { query: subscriptionToNotification })
@@ -66,6 +69,7 @@ function Chat() {
 
     return () => {
       connection.subscribe(sub => sub.next(RequestBuilder('stop', {}, userNotifyId)))
+      sub.unsubscribe();
     }
   }, [])
 
@@ -78,10 +82,8 @@ function Chat() {
       }
 
       connection.subscribe(sub => sub.next(RequestBuilder('start', { query: queryGetAllMessages, variables: chatIdVard })))
-
       const subToChat = RequestBuilder('start', { query: subscriptionToChat, variables: chatIdVard });
       setChatNorifyId(subToChat.id!)
-
       connection.subscribe(sub => sub.next(subToChat))
 
       return () => {
@@ -194,5 +196,5 @@ export function isError(state: Status) {
 }
 
 export function isPadding(state: Status) {
-  return state === 'padding'
+  return state === 'pending'
 }

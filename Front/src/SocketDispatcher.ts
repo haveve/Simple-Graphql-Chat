@@ -1,4 +1,4 @@
-import { defaultSubscriptionResponse, subscriptionDataType, AllFieldsRequestType } from './Requests/Requests';
+import { defaultSubscriptionResponse, subscriptionDataType, AllFieldsRequestType, GetNewToken } from './Requests/Requests';
 import { ChatNotificationType, ChatResultType, Message, MessageType } from './Features/Types';
 import store from './Redux/store';
 import { updateMessage, removeMessage, deleteAll, setParticipantState, changeChatParticipances, setChats, setMessages, addMessage, updateChat, setParticipants, addChat, removeChat, setError, setChat, ChangeParticipantsType } from './Redux/Slicers/ChatSlicer';
@@ -53,7 +53,9 @@ export default function Dispatch(response: defaultSubscriptionResponse<any>) {
                             dispatch(updateChat(chatNotification))
                             break;
                         case ChatResultType.DELETE:
-                            dispatch(removeChat(chatNotification.id))
+                            GetNewToken().subscribe(() => {
+                                dispatch(removeChat(chatNotification.id))
+                            })
                             break;
                     }
                 }
@@ -97,7 +99,9 @@ export default function Dispatch(response: defaultSubscriptionResponse<any>) {
                 dispatch(setChats(data.chats))
             }
             else if (data.createChat) {
-                dispatch(addChat(data.createChat))
+                GetNewToken().subscribe(() => {
+                    dispatch(addChat(data.createChat!))
+                });
             }
             else if (data.participants) {
                 dispatch(setParticipants(data.participants))
@@ -120,10 +124,14 @@ export default function Dispatch(response: defaultSubscriptionResponse<any>) {
             else if (data.userNotification) {
                 switch (data.userNotification.notificationType) {
                     case ChatNotificationType.ENROLL:
-                        dispatch(addChat(data.userNotification))
+                        GetNewToken().subscribe(() => {
+                            dispatch(addChat(data.userNotification!))
+                        })
                         break;
                     case ChatNotificationType.BANISH:
-                        dispatch(removeChat(data.userNotification.id))
+                        GetNewToken().subscribe(() => {
+                            dispatch(removeChat(data.userNotification!.id))
+                        })
                         break;
 
                 }

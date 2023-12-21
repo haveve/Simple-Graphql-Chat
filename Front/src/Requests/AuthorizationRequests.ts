@@ -22,8 +22,8 @@ export function TokenErrorHandler() {
     window.location.pathname = '/'
 }
 
-export function GetTokenObservable() {
-    return DoRefresh(WhetherDoRefresh())
+export function GetTokenObservable(forsed:boolean = false) {
+    return DoRefresh(WhetherDoRefresh(forsed))
 }
 
 export type DoRefreshType = {
@@ -92,19 +92,19 @@ export function GetRefresh() {
     return refreshTokenObj.token
 }
 
-export function WhetherDoRefresh(): DoRefreshType {
+export function WhetherDoRefresh( forced:boolean = false): DoRefreshType {
 
     const refreshTokenJson = getCookie("refresh_token");
     const accessTokenJson = getCookie("access_token");
 
     if (refreshTokenJson) {
         const refreshTokenObj: StoredTokenType = JSON.parse(refreshTokenJson);
-        if (accessTokenJson) {
+        if (accessTokenJson && !forced) {
 
             const accessTokenObj: StoredTokenType = JSON.parse(accessTokenJson)
             const nowInSeconds = new Date().getTime();
-            if (!accessTokenObj ||
-                accessTokenObj.expiredAt - nowInSeconds < 2000) {
+            if (!accessTokenObj 
+                || accessTokenObj.expiredAt - nowInSeconds < 2000) {
                 return {
                     refresh_token: refreshTokenObj.token,
                     refreshStatus: RefreshStatus.DoRefresh

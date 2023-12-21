@@ -43,10 +43,6 @@ namespace WebSocketGraphql.Repositories
 
         Task<IEnumerable<int>> GetUserCreationChatsAsync(int userId);
 
-        ValueTask<bool> CheckPresentUserInChatAsync(int userId, int chatId);
-
-        ValueTask<bool> CheckUserOwnChatAsync(int userId, int chatId);
-
         Task<IEnumerable<ChatModel>> GetUserChatsInstancesAsync(int userId);
 
         Task<ChatResult?> GetFullChatInfoAsync(int chatId, int userId);

@@ -357,32 +357,6 @@ namespace WebSocketGraphql.Repositories
             return await connection.QueryAsync<int>(query, new { userId }).ConfigureAwait(false);
         }
 
-        public async ValueTask<bool> CheckPresentUserInChatAsync(int userId, int chatId)
-        {
-            string query = @"IF(EXISTS( SELECT * FROM Chat as c 
-		  full join Users_Chat_Keys as u
-		  on c.id = u.chat_id where c.creator = @userId 
-		  OR (u.chat_id = @chatId AND u.user_id = @userId) ))
-            SELECT 1
-          ELSE
-            SELECT 0";
-
-            using var connection = _dapperContext.CreateConnection();
-            return await connection.QuerySingleAsync<bool>(query, new { userId, chatId }).ConfigureAwait(false);
-        }
-
-        public async ValueTask<bool> CheckUserOwnChatAsync(int userId, int chatId)
-        {
-            string query = @"IF(EXISTS( SELECT * FROM Chat WHERE creator = @userId AND id = @chatId))
-                    SELECT 1
-                    ELSE
-                    SELECT 0";
-
-            using var connection = _dapperContext.CreateConnection();
-            return await connection.QuerySingleAsync<bool>(query, new { userId, chatId }).ConfigureAwait(false);
-
-        }
-
         public Task<bool> SetOnile(int userId)
         {
             var task = Task.Run(() =>

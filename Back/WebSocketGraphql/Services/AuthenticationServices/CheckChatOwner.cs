@@ -28,12 +28,7 @@ namespace WebSocketGraphql.Services.AuthenticationServices
             {
                 return true;
             }
-
-            if (await _chat.CheckUserOwnChatAsync(userId, chatId))
-            {
-                return true;
-            }
-
+            
             return false;
         }
 
