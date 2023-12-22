@@ -9,12 +9,16 @@ import RemoveFromChatById from './ChatOperation/RemoveFromChatById';
 import { useImmer } from 'use-immer';
 import { defaultState, ChatOptionType } from './ChatSelect';
 import { ReduxParticipant } from '../Redux/Slicers/ChatSlicer';
+import { setState } from '../Redux/Slicers/ChatSlicer';
 
 export type ChatInfoOptionType = ChatOptionType & {
     userName?: string
 }
 
 export default function ChatInfo(props: { show: boolean, handleClose: () => void, children: JSX.Element }) {
+
+    const chatPending = setState('pending');
+
     const { show, handleClose, children } = props;
 
     const [option, setOption] = useImmer<ChatInfoOptionType>(defaultState)
@@ -51,11 +55,11 @@ export default function ChatInfo(props: { show: boolean, handleClose: () => void
             const connection = ConnectToChat();
             const request = RequestBuilder('start', { query: queryParticipants, variables: { chatId: currentChatId, search } });
             connection.subscribe(sub => {
-                sub.next(request)
+                sub.next(request,chatPending)
             })
             return () => {
                 connection.subscribe(sub => {
-                    sub.next(RequestBuilder('stop', {}, request.id!))
+                    sub.next(RequestBuilder('stop', {}, request.id!),chatPending)
                 })
             }
         }

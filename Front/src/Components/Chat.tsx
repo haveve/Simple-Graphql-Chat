@@ -12,7 +12,7 @@ import ChatSelect from './ChatSelect';
 import { useTypedSelector, useTypedDispatch } from '../Redux/store';
 import { queryGetAllMessages, RequestBuilder, updateMessageMutation } from '../Features/Queries';
 import { AddChat } from './ChatOperation/AddChat';
-import { Status, dropCurrentChat, dropUpdateMessage, setState as setStateChat } from '../Redux/Slicers/ChatSlicer';
+import { Status, dropCurrentChat, dropUpdateMessage, setState, setState as setStateChat } from '../Redux/Slicers/ChatSlicer';
 import ChatHeader from './ChatHeader';
 import NotificationModalWindow, { MessageType } from './Service/NotificationModalWindow';
 import { setState as setStateGlobalNotification } from '../Redux/Slicers/GlobalNotification';
@@ -27,6 +27,7 @@ import { selectMessageIds } from '../Redux/reselect';
 export const maxVisibleLength = 26;
 
 function Chat() {
+  const chatPending = setState('pending');
 
   const currentChat = useTypedSelector(store => store.chat.currentChat)
   const messageIds = useTypedSelector(selectMessageIds)
@@ -60,12 +61,12 @@ function Chat() {
       }))
       const subToNotify = RequestBuilder('start', { query: subscriptionToNotification })
       setUserNotifyId(subToNotify.id!)
-      connection.subscribe(sub => sub.next(subToNotify))
-      connection.subscribe(sub => sub.next(RequestBuilder('start', { query: queryUser })))
-      connection.subscribe(sub => sub.next(RequestBuilder('start', { query: queryGetAllChats })))
+      connection.subscribe(sub => sub.next(subToNotify,chatPending))
+      connection.subscribe(sub => sub.next(RequestBuilder('start', { query: queryUser }),chatPending))
+      connection.subscribe(sub => sub.next(RequestBuilder('start', { query: queryGetAllChats }),chatPending))
 
     return () => {
-      connection.subscribe(sub => sub.next(RequestBuilder('stop', {}, subToNotify.id!)))
+      connection.subscribe(sub => sub.next(RequestBuilder('stop', {}, subToNotify.id!),chatPending))
       sub.unsubscribe();
       setInitialAuth(true);
     }
@@ -79,13 +80,13 @@ function Chat() {
         chatId: currentChat.id
       }
 
-      connection.subscribe(sub => sub.next(RequestBuilder('start', { query: queryGetAllMessages, variables: chatIdVard })))
+      connection.subscribe(sub => sub.next(RequestBuilder('start', { query: queryGetAllMessages, variables: chatIdVard }),chatPending))
       const subToChat = RequestBuilder('start', { query: subscriptionToChat, variables: chatIdVard });
       setChatNorifyId(subToChat.id!)
-      connection.subscribe(sub => sub.next(subToChat))
+      connection.subscribe(sub => sub.next(subToChat,chatPending))
 
       return () => {
-        connection.subscribe(sub => sub.next(RequestBuilder('stop', {}, subToChat.id!)))
+        connection.subscribe(sub => sub.next(RequestBuilder('stop', {}, subToChat.id!),chatPending))
       }
     }
   }, [currentChat?.id])
@@ -104,7 +105,7 @@ function Chat() {
           chatId: updatedMessage.chatId,
           message
         }
-      })))
+      }),chatPending))
       dispatch(dropUpdateMessage())
       return;
     }
@@ -121,7 +122,7 @@ function Chat() {
             sentAt: new Date()
           }
         }
-      })));
+      }),chatPending));
     }
     setCreatedMessage('')
   }

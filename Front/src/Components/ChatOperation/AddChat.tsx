@@ -5,8 +5,11 @@ import { useTypedSelector } from '../../Redux/store';
 import { createChatMutation } from '../../Features/Queries';
 import { ConnectToChat } from '../../Requests/Requests';
 import { RequestBuilder } from '../../Features/Queries';
+import { setState } from '../../Redux/Slicers/ChatSlicer';
 
 export function AddChat() {
+
+    const chatPending = setState('pending');
 
     const user = useTypedSelector(store => store.user.user)
     const addChat = (chatName: string, setChatName: React.Dispatch<string>) => {
@@ -17,7 +20,7 @@ export function AddChat() {
             variables: {
                 name: chatName,
             }
-          })));
+          }),chatPending));
         }
         setChatName('')
       }

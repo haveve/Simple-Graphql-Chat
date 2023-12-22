@@ -8,8 +8,11 @@ import { ConnectToChat } from '../../Requests/Requests';
 import { RequestBuilder } from '../../Features/Queries';
 import ChatHeader from '../ChatHeader';
 import { IsWhiteSpaceOrEmpty } from '../../Features/Functions';
+import { setState } from '../../Redux/Slicers/ChatSlicer';
 
 export default function RemoveFromChat(props: { chatId: number | null, show: boolean, setShow: (value: boolean) => void }) {
+
+    const chatPending = setState('pending')
 
     const { show, setShow, chatId } = props;
     const [deleteAll, setDeleteAll] = useState(false)
@@ -23,12 +26,12 @@ export default function RemoveFromChat(props: { chatId: number | null, show: boo
 
             const request = RequestBuilder('start', { query: queryParticipants, variables: { chatId: chatId } });
             connection.subscribe(sub => {
-                sub.next(request)
+                sub.next(request,chatPending)
             })
             
             return () => {
                 connection.subscribe(sub => {
-                    sub.next(RequestBuilder('stop', {}, request.id!))
+                    sub.next(RequestBuilder('stop', {}, request.id!),chatPending)
                 })
             }
         }
@@ -45,7 +48,7 @@ export default function RemoveFromChat(props: { chatId: number | null, show: boo
             setShow(false)
             connection.subscribe((sub) => sub.next(
                 RequestBuilder('start',
-                    { query: removeUserFromChatMutation, variables: { chatId: chat.id, deleteAll, user: removeName } })))
+                    { query: removeUserFromChatMutation, variables: { chatId: chat.id, deleteAll, user: removeName } }),chatPending))
         }
     }
 

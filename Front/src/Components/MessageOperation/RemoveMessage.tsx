@@ -5,8 +5,11 @@ import { useTypedSelector } from '../../Redux/store';
 import { ConnectToChat } from '../../Requests/Requests';
 import { RequestBuilder } from '../../Features/Queries';
 import { MessageInput } from '../../Features/Types';
+import { setState } from '../../Redux/Slicers/ChatSlicer';
 
 export default function RemoveMessage(props: { chatId:number|null,messageId: string | null, show: boolean, setShow: (value: boolean) => void }) {
+
+    const chatIdle = setState('pending');
 
     const { show, setShow, messageId,chatId } = props;
     const message = useTypedSelector(store => store.chat.messages.find(el => el.id === messageId))
@@ -24,7 +27,7 @@ export default function RemoveMessage(props: { chatId:number|null,messageId: str
             }
             connection.subscribe((sub) => sub.next(
                 RequestBuilder('start',
-                    { query: removeMessageMutation, variables: {message:messageIn, chatId} })))
+                    { query: removeMessageMutation, variables: {message:messageIn, chatId} }),chatIdle))
         }
     }   
 

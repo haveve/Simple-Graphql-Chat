@@ -6,8 +6,11 @@ import type { ChatUpdate } from '../../Features/Types';
 import { ConnectToChat } from '../../Requests/Requests';
 import { RequestBuilder } from '../../Features/Queries';
 import ChatHeader from '../ChatHeader';
+import { setState } from '../../Redux/Slicers/ChatSlicer';
 
 export default function RemoveChat(props: { chatId: number | null, show: boolean, setShow: (value: boolean) => void }) {
+
+    const chatPending = setState('pending')
 
     const { show, setShow, chatId } = props;
     const chat = useTypedSelector(store => store.chat.chats.find(el => el.id === chatId))
@@ -21,7 +24,7 @@ export default function RemoveChat(props: { chatId: number | null, show: boolean
             setShow(false)
             connection.subscribe((sub) => sub.next(
                 RequestBuilder('start',
-                    { query: removeChatMutation, variables: { chatId: chat.id } })))
+                    { query: removeChatMutation, variables: { chatId: chat.id } }),chatPending))
         }
     }
 

@@ -2,13 +2,13 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Container, Row, Col, Form, Modal, Button } from 'react-bootstrap';
 import { addUserToChatMutation } from '../../Features/Queries';
 import { useTypedSelector } from '../../Redux/store';
-import type { ChatUpdate } from '../../Features/Types';
 import { ConnectToChat } from '../../Requests/Requests';
 import { RequestBuilder } from '../../Features/Queries';
 import ChatHeader from '../ChatHeader';
-import { shallowEqual } from 'react-redux';
+import { setState } from '../../Redux/Slicers/ChatSlicer';
 
 export default function AddUserToChat(props: { chatId: number | null, show: boolean, setShow: (value: boolean) => void }) {
+    const chatPending = setState('pending');
 
     const { show, setShow, chatId } = props;
     const [addedName, setAddedName] = useState("");
@@ -24,7 +24,7 @@ export default function AddUserToChat(props: { chatId: number | null, show: bool
             const connection = ConnectToChat()
             connection.subscribe((sub) => sub.next(
                 RequestBuilder('start',
-                    { query: addUserToChatMutation, variables: { chatId,user:addedName } })))
+                    { query: addUserToChatMutation, variables: { chatId,user:addedName } }),chatPending))
         }
     }
     const updateNameHandler: React.ChangeEventHandler<HTMLInputElement> = (event) => {

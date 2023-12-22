@@ -6,8 +6,10 @@ import type { ChatUpdate } from '../../Features/Types';
 import { ConnectToChat } from '../../Requests/Requests';
 import { RequestBuilder } from '../../Features/Queries';
 import ChatHeader from '../ChatHeader';
+import { setState } from '../../Redux/Slicers/ChatSlicer';
 
 export default function LeaveFromChat(props: { chatId: number | null, show: boolean, setShow: (value: boolean) => void }) {
+    const chatPending = setState('pending');
 
     const { show, setShow, chatId } = props;
     const [deleteAll, setDeleteAll] = useState(false)
@@ -23,7 +25,7 @@ export default function LeaveFromChat(props: { chatId: number | null, show: bool
             setShow(false)
             connection.subscribe((sub) => sub.next(
                 RequestBuilder('start',
-                    { query: leaveFromChatMutation, variables: { chatId: chat.id, deleteAll } })))
+                    { query: leaveFromChatMutation, variables: { chatId: chat.id, deleteAll } }),chatPending))
         }
     }
 

@@ -7,12 +7,15 @@ GO
 CREATE TABLE Users(
 id INT NOT NULL IDENTITY, 
 nick_name NVARCHAR(75) NOT NULL,
-email NVARCHAR(500) NOT NULL,
+email NVARCHAR(100) NOT NULL,
 password NVARCHAR(50) NULL,
 activate_code NVARCHAR(500) NULL,
 salt nvarchar(24) NULL,
 online bit not null Default 0
-CONSTRAINT PK_Users_Id PRIMARY KEY(id)
+
+CONSTRAINT PK_Users_Id PRIMARY KEY(id),
+CONSTRAINT UQ_Users_NickName Unique(nick_name),
+CONSTRAINT UQ_Users_Email Unique(email)
 )
 GO
 
@@ -20,7 +23,7 @@ INSERT INTO Users(nick_name,email) ('DELETED','-')
 
 CREATE TABLE Chat(
 id INT NOT NULL IDENTITY, 
-name NVARCHAR(200) NOT NULL,
+name NVARCHAR(100) NOT NULL,
 creator INT NOT NULL,
 
 CONSTRAINT PK_Chat_Id PRIMARY KEY(id),

@@ -10,6 +10,8 @@ using TimeTracker.Repositories;
 using TimeTracker.Services;
 using WebSocketGraphql.Services.AuthenticationServices;
 using GraphQL.Server.Transports.AspNetCore;
+using GraphQL.Validation.Rules;
+using WebSocketGraphql.GraphQl.ValidationRules;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -50,6 +52,8 @@ builder.Services.AddGraphQL(c =>
     .AddGraphTypes(typeof(ChatSchema).Assembly)
     .AddGraphTypes(typeof(IdentitySchema).Assembly)
     .AddValidationRule<CustomAuthorizationValidationRule>()
+    .AddValidationRule<InputFieldsAndArgumentsOfCorrectLength>()
+    .AddValidationRule<InputAndArgumentEmailValidationRule>()
     .AddWebSocketAuthentication<CustomWebSocketAuthenticator>()
     .AddErrorInfoProvider(opt => opt.ExposeExceptionDetails = true);
 });

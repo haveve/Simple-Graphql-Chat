@@ -1,6 +1,7 @@
 ﻿using GraphQL;
 using GraphQL.Types;
 using WebSocketGraphql.GraphQl.ChatTypes.Types;
+using WebSocketGraphql.GraphQl.IdentityTypes;
 using WebSocketGraphql.Models;
 using WebSocketGraphql.Repositories;
 using WebSocketGraphql.Services.AuthenticationServices;
@@ -10,10 +11,12 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
 {
     public class ChatMutation : ObjectGraphType
     {
+
         public ChatMutation(IChat chat, AuthHelper helper)
         {
             Field<NonNullGraphType<MessageGraphType>>("addMessage")
-                .Argument<NonNullGraphType<MessageInputGraphType>>("message")
+                .Argument<NonNullGraphType<MessageInputGraphType>>("message", el => el.ApplyDirective(
+                   "length", "min", MessageInputGraphType.minLength, "max", MessageInputGraphType.maxLength))
                 .Argument<NonNullGraphType<IntGraphType>>("chatId")
                 .ResolveAsync(async context =>
                 {
@@ -67,7 +70,9 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
                 });
 
             Field<NonNullGraphType<ExtendedChatGraphType>>("createChat")
-                .Argument<NonNullGraphType<StringGraphType>>("name")
+                .Argument<NonNullGraphType<StringGraphType>>("name",
+                data => data.ApplyDirective("length", "min", ChatInputGraphType.minChatNameLength, 
+                "max", ChatInputGraphType.maxChatNameLength))
                 .ResolveAsync(async (context) =>
                 {
                     var chatData = new ChatResult()
@@ -120,7 +125,8 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
 
             Field<NonNullGraphType<StringGraphType>>("addUserToChat")
                 .Argument<NonNullGraphType<IntGraphType>>("chatId")
-                .Argument<NonNullGraphType<StringGraphType>>("user")
+                .Argument<NonNullGraphType<StringGraphType>>("user", el => el.ApplyDirective(
+                   "length", "max", RegistrationInputGraphType.maxNickNameLength))
                 .ResolveAsync(async (context) =>
                 {
                     var chatId = context.GetArgument<int>("chatId");
@@ -141,7 +147,8 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
 
             Field<NonNullGraphType<StringGraphType>>("removeUserFromChat")
                 .Argument<NonNullGraphType<IntGraphType>>("chatId")
-                .Argument<NonNullGraphType<StringGraphType>>("user")
+                .Argument<NonNullGraphType<StringGraphType>>("user", el => el.ApplyDirective(
+                   "length", "max", RegistrationInputGraphType.maxNickNameLength))
                 .Argument<BooleanGraphType>("deleteAll")
                 .ResolveAsync(async (context) =>
                 {

@@ -235,7 +235,7 @@ export type SetPasswordByCodeType = {
 }
 
 export function ajaxSetPasswordByCode(variables: SetPasswordByCodeType) {
-    return GetAjaxObservable<string, any>(`query($code:String!,$password:String!,$email:String!){
+    return GetAjaxObservable<string, any>(`mutation($code:String!,$password:String!,$email:String!){
         resetUserPasswordByCode(code:$code,password:$password,email:$email)
       }`, variables, url).pipe(map(response => {
         alert(JSON.stringify(response))
@@ -243,7 +243,7 @@ export function ajaxSetPasswordByCode(variables: SetPasswordByCodeType) {
 }
 
 export function ajaxForRegistration(variables: RegistrationType) {
-    return GetAjaxObservable<string, any>(`query($registration:RegistrationInput!){
+    return GetAjaxObservable<string, any>(`mutation($registration:RegistrationInput!){
         registration(registration:$registration)
       }`, variables, url).pipe(map(response => {
         alert(JSON.stringify(response))

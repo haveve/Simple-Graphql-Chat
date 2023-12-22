@@ -10,7 +10,7 @@ import store from '../Redux/store';
 import { dropCurrentChat, setError } from '../Redux/Slicers/ChatSlicer';
 import { setState } from '../Redux/Slicers/ChatSlicer';
 import { defaultErrorMessage } from '../Features/Constants';
-
+import { PayloadAction } from '@reduxjs/toolkit';
 const dispatch = store.dispatch
 
 const keepAliveInterval = 60;
@@ -80,8 +80,10 @@ class WebSocketProxy<T extends MinWebSocketType>{
 
     private webSocket: WebSocketSubject<T>
     private keepAlive: Subscription
+    private skipPinging:boolean
 
     public constructor(webSocket: WebSocketSubject<T>, keepAliveMessage: T) {
+        this.skipPinging = false;
         this.webSocket = webSocket
         this.webSocket.subscribe({
             error: (error) => {
@@ -95,10 +97,10 @@ class WebSocketProxy<T extends MinWebSocketType>{
         })
         this.keepAlive = interval(keepAliveInterval * 1000).subscribe({
             next: () => {
-                if (!this.webSocket.closed) {
-                    this.next(keepAliveMessage)
-                    return;
+                if (!this.webSocket.closed && !this.skipPinging) {
+                    this.next(keepAliveMessage,null)
                 }
+                this.skipPinging = false;
             }
         })
     }
@@ -112,8 +114,10 @@ class WebSocketProxy<T extends MinWebSocketType>{
         this.keepAlive.unsubscribe()
     }
 
-    public next(next: T) {
-        dispatch(setState('pending'))
+    public next(next: T, paddingAction:PayloadAction<any>|null) {
+        this.skipPinging = true;
+        if(paddingAction)
+             dispatch(paddingAction)
         GetTokenObservable().subscribe({
             next: () => {
                 const token: StoredTokenType = JSON.parse(getCookie("access_token")!)

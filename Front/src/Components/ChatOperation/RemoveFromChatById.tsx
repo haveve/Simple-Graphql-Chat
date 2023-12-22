@@ -5,8 +5,11 @@ import { useTypedSelector } from '../../Redux/store';
 import { ConnectToChat } from '../../Requests/Requests';
 import { RequestBuilder } from '../../Features/Queries';
 import ChatHeader from '../ChatHeader';
+import { setState } from '../../Redux/Slicers/ChatSlicer';
 
 export default function RemoveFromChatById(props: { chatId:number|null,userName: string | null, show: boolean, setShow: (value: boolean) => void }) {
+
+    const chatPending = setState('pending')
 
     const { show, setShow, userName,chatId } = props;
     const [deleteAll, setDeleteAll] = useState(false)
@@ -22,7 +25,7 @@ export default function RemoveFromChatById(props: { chatId:number|null,userName:
             setShow(false)
             connection.subscribe((sub) => sub.next(
                 RequestBuilder('start',
-                    { query: removeUserFromChatMutation, variables: { chatId: chatId, deleteAll, user: userName } })))
+                    { query: removeUserFromChatMutation, variables: { chatId: chatId, deleteAll, user: userName } }),chatPending))
     }
 
     const deleteAllHandler: React.ChangeEventHandler<HTMLInputElement> = (event) => {

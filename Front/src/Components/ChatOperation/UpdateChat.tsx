@@ -6,8 +6,11 @@ import type { ChatUpdate } from '../../Features/Types';
 import { ConnectToChat } from '../../Requests/Requests';
 import { RequestBuilder } from '../../Features/Queries';
 import ChatHeader from '../ChatHeader';
+import { setState } from '../../Redux/Slicers/ChatSlicer';
 
 export default function UpdateChat(props: { chatId: number | null, show: boolean, setShow: (value: boolean) => void }) {
+
+    const chatPending = setState('pending')
 
     const { show, setShow, chatId } = props;
     const [updatedName, setUpdatedName] = useState("");
@@ -24,7 +27,7 @@ export default function UpdateChat(props: { chatId: number | null, show: boolean
             const connection = ConnectToChat()
             connection.subscribe((sub) => sub.next(
                 RequestBuilder('start',
-                    { query: updateChatMutation, variables: { chat: updatedChat } })))
+                    { query: updateChatMutation, variables: { chat: updatedChat } }),chatPending))
         }
     }
     const updateNameHandler: React.ChangeEventHandler<HTMLInputElement> = (event) => {

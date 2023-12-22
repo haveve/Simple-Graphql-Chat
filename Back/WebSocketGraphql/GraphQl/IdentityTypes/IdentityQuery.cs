@@ -29,21 +29,6 @@ namespace TimeTracker.GraphQL.Queries
             _userRepository = userRepository;
             _emailSender = emailSender;
 
-            Field<string>("registration")
-                .Argument<NonNullGraphType<RegistrationInputGraphType>>("registration")
-                .ResolveAsync( async context =>
-                {
-                    Registration UserData = context.GetArgument<Registration>("registration");
-                    User user = new();
-                    user.NickName = UserData.NickName;
-                    user.Email = UserData.Email;
-                    string code = await _userRepository.CreateUserAsync(user);
-
-                    _emailSender.SendRegistrationEmail(code, UserData.Email);
-
-                    return "Ok";
-                });
-
             Field<IdentityOutPutGraphType>("login")
                 .Argument<NonNullGraphType<LoginInputGraphType>>("login")
             .ResolveAsync(async context =>
@@ -122,42 +107,6 @@ namespace TimeTracker.GraphQL.Queries
 
                   return "Successfully";
               });
-
-            Field<StringGraphType>("sentResetPasswordEmail")
-                .Argument<StringGraphType>("nickNameOrEmail")
-                .ResolveAsync(async context =>
-                {
-                    string LoginOrEmail = context.GetArgument<string>("nickNameOrEmail");
-                    User? user = await _userRepository.GetUserByNickNameOrEmailAsync(LoginOrEmail);
-                    if (user == null)
-                        return "User was not found!";
-
-                    string code = EmailSendHelper.GetUniqueCode();
-
-                    await _userRepository.UpdateUserResetCodeByIdAsync(user.Id, code);
-
-                    _emailSender.SendResetPassEmail(code, user.Email);
-
-                    return "Email has sent!";
-                });
-            Field<StringGraphType>("resetUserPasswordByCode")
-               .Argument<NonNullGraphType<StringGraphType>>("code")
-               .Argument<NonNullGraphType<StringGraphType>>("password")
-               .Argument<NonNullGraphType<StringGraphType>>("email")
-               .ResolveAsync(async context =>
-               {
-                   string code = context.GetArgument<string>("code");
-                   string password = context.GetArgument<string>("password");
-                   string email = context.GetArgument<string>("email");
-                   User? user = await _userRepository.GetUserByNickNameOrEmailAsync(email);
-                   if (user == null) return "User not found";
-                   if (user.ActivateCode == null) return "User was not requesting password change";
-                   if (user.ActivateCode != code) return "Reset code not match";
-
-                   await _userRepository.UpdateUserPasswordAndCodeAsync(user.Id, password);
-
-                   return "Password reseted successfully";
-               });
         }
 
         public LoginOutput ExpiredSessionError(IResolveFieldContext<object?> context)
