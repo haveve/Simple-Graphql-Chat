@@ -1,7 +1,11 @@
   :root{
     --warning-color:rgb(240, 213, 10);
   }
-  
+
+  *{
+    word-break:break-all
+  }
+
   .scroll {
     max-height: 90%;
     overflow-y: scroll;
@@ -27,15 +31,6 @@
   .select-chat-scroll:focus {
     border: 0;
     outline: 0;
-  }
-
-  .form-control.is-invalid,
-  .was-validated .form-control:invalid {
-    border-color: #ffbe0b !important;
-  }
-
-  .invalid-feedback {
-    color: #ffbe0b !important;
   }
 
   body {

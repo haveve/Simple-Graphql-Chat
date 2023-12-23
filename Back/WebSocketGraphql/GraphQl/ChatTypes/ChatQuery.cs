@@ -39,14 +39,14 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
                 });
 
             Field<ExtendedChatGraphType>("chatFullInfo")
-    .Argument<NonNullGraphType<IntGraphType>>("chatId")
-    .ResolveAsync(async context =>
-    {
-        int chatId = context.GetArgument<int>("chatId");
-        int userId = helper.GetUserId(context.User!);
+                .Argument<NonNullGraphType<IntGraphType>>("chatId")
+                .ResolveAsync(async context =>
+                {
+                    int chatId = context.GetArgument<int>("chatId");
+                    int userId = helper.GetUserId(context.User!);
 
-        return await chat.GetFullChatInfoAsync(chatId,userId);
-    });
+                    return await chat.GetFullChatInfoAsync(chatId,userId);
+                });
 
             Field<NonNullGraphType<UserGraphType>>("user")
                 .ResolveAsync(async context =>
@@ -54,6 +54,7 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
                     var id = helper.GetUserId(context.User!);
                     return await user.GetUserAsync(id);
                 });
+
             Field<NonNullGraphType<StringGraphType>>("ping")
                 .Resolve(_ => "pong");
         }

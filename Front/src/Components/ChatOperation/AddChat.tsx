@@ -25,6 +25,6 @@ export function AddChat() {
         setChatName('')
       }
 
-    return <MultiControl size='w-100' className='border-primary mb-2' placeHolder='Add chat' SendMessage={addChat} />
+    return <MultiControl maxSymbols={100} size='w-100' className='border-primary mb-2' placeHolder='Add chat' SendMessage={addChat} />
 
 }

@@ -115,9 +115,10 @@ class WebSocketProxy<T extends MinWebSocketType>{
     }
 
     public next(next: T, paddingAction:PayloadAction<any>|null) {
-        this.skipPinging = true;
-        if(paddingAction)
+        if(paddingAction){
              dispatch(paddingAction)
+             this.skipPinging = true;
+        }
         GetTokenObservable().subscribe({
             next: () => {
                 const token: StoredTokenType = JSON.parse(getCookie("access_token")!)

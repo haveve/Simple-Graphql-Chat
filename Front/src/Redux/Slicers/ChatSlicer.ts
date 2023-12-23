@@ -3,7 +3,6 @@ import { FullChat, Chat, ReduxMessage, Message, ChatParticipant } from '../../Fe
 import { GetStringFromDateTime, SetMessageId, SortByOnline } from '../../Features/Functions'
 import randomColor from 'randomcolor'
 import { ParticipantState } from '../../Features/Types'
-import { act } from '@testing-library/react'
 
 export type Status = 'error' | 'idle' | 'pending' | 'success'
 

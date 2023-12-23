@@ -238,15 +238,35 @@ export function ajaxSetPasswordByCode(variables: SetPasswordByCodeType) {
     return GetAjaxObservable<string, any>(`mutation($code:String!,$password:String!,$email:String!){
         resetUserPasswordByCode(code:$code,password:$password,email:$email)
       }`, variables, url).pipe(map(response => {
-        alert(JSON.stringify(response))
+        let fullResponse = response.response;
+
+        if (fullResponse.errors)
+            throw fullResponse.errors[0].message;
     }))
 }
+
+export function RequestPasswordReset(user: String) {
+    return GetAjaxObservable<string,any>(`mutation sentResetPasswordEmail($user: String!){
+        sentResetPasswordEmail(nickNameOrEmail: $user)
+  }`,{user},url,).pipe(
+        map(response => {
+            let fullResponse = response.response;
+
+            if (fullResponse.errors)
+                throw fullResponse.errors[0].message;
+        })
+    );
+}
+
 
 export function ajaxForRegistration(variables: RegistrationType) {
     return GetAjaxObservable<string, any>(`mutation($registration:RegistrationInput!){
         registration(registration:$registration)
       }`, variables, url).pipe(map(response => {
-        alert(JSON.stringify(response))
+        let fullResponse = response.response;
+
+        if (fullResponse.errors)
+            throw fullResponse.errors[0].message;
     }))
 }
 

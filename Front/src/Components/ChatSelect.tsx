@@ -12,6 +12,7 @@ import { RequestBuilder } from '../Features/Queries';
 import { queryFullChatInfo } from '../Features/Queries';
 import { selectChatIds } from '../Redux/reselect';
 import { setState } from '../Redux/Slicers/ChatSlicer';
+import '../Styles/App.css'
 
 export type ChatOptionType = {
     show: boolean,
@@ -110,7 +111,7 @@ export const Options = forwardRef<HTMLDivElement, {option: ChatOptionType }>((pr
 
 
 
-    return <div className={`${option.show ? '' : 'd-none'} option d-flex flex-column py-3 position-absolute`} ref={ref}>
+    return <div className={`${option.show ? '' : 'd-none'} break-word-child option d-flex flex-column py-3 position-absolute`} ref={ref}>
 
         {owner ? <>
             <div className='text-success' onClick={() => setShowUpdate(true)} >{updateChatIcon} Update</div>

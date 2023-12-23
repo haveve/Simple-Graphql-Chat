@@ -9,7 +9,7 @@ using WebSocketGraphql.Services;
 
 namespace WebSocketGraphql.GraphQl.IdentityTypes
 {
-    public class IdentityMutation:ObjectGraphType
+    public class IdentityMutation : ObjectGraphType
     {
         public const int minPasswordLength = 8;
         public const int maxPasswordLength = 24;
@@ -41,13 +41,16 @@ namespace WebSocketGraphql.GraphQl.IdentityTypes
 
             Field<StringGraphType>("sentResetPasswordEmail")
                 .Argument<StringGraphType>("nickNameOrEmail", el => el.ApplyDirective(
-                   "length","max", RegistrationInputGraphType.maxEmailLength))
+                   "length","min", RegistrationInputGraphType.minNickNameLength, "max", RegistrationInputGraphType.maxEmailLength))
                 .ResolveAsync(async context =>
                 {
                     string LoginOrEmail = context.GetArgument<string>("nickNameOrEmail");
                     User? user = await _userRepository.GetUserByNickNameOrEmailAsync(LoginOrEmail);
                     if (user == null)
-                        return "User was not found!";
+                    {
+                        context.Errors.Add(new ExecutionError("User was not found!"));
+                        return null;
+                    }
 
                     string code = EmailSendHelper.GetUniqueCode();
 
@@ -59,19 +62,33 @@ namespace WebSocketGraphql.GraphQl.IdentityTypes
                 });
             Field<StringGraphType>("resetUserPasswordByCode")
                .Argument<NonNullGraphType<StringGraphType>>("code")
-               .Argument<NonNullGraphType<StringGraphType>>("password",
-               el => el.ApplyDirective("length","min",minPasswordLength,"max",maxPasswordLength))
+               .Argument<NonNullGraphType<StringGraphType>>("password",el => el.ApplyDirective(
+                "length", "min", minPasswordLength, "max", maxPasswordLength))
                .Argument<NonNullGraphType<StringGraphType>>("email", el => el.ApplyDirective(
-                   "length", "min", RegistrationInputGraphType.minEmailLength, "max", RegistrationInputGraphType.maxEmailLength))
+                "length", "min", RegistrationInputGraphType.minEmailLength, "max", RegistrationInputGraphType.maxEmailLength))
                .ResolveAsync(async context =>
                {
                    string code = context.GetArgument<string>("code");
                    string password = context.GetArgument<string>("password");
                    string email = context.GetArgument<string>("email");
                    User? user = await _userRepository.GetUserByNickNameOrEmailAsync(email);
-                   if (user == null) return "User not found";
-                   if (user.ActivateCode == null) return "User was not requesting password change";
-                   if (user.ActivateCode != code) return "Reset code not match";
+                   if (user == null)
+                   {
+                       context.Errors.Add(new ExecutionError("User not found"));
+                       return null;
+                   }
+
+                   if (user.ActivateCode == null)
+                   {
+                       context.Errors.Add(new ExecutionError("User was not requesting password change"));
+                       return null;
+                   }
+
+                   if (user.ActivateCode != code)
+                   {
+                       context.Errors.Add(new ExecutionError("Reset code not match"));
+                       return null;
+                   }
 
                    await _userRepository.UpdateUserPasswordAndCodeAsync(user.Id, password);
 

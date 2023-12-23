@@ -58,11 +58,11 @@ namespace WebSocketGraphql.GraphQl.ValidationRules
             {
                 return;
             }
-            if (value is GraphQLStringValue strLiteral && IsValidEmail(strLiteral.Value.ToString())) //for field
+            if (value is GraphQLStringValue strLiteral && IsValidEmail(strLiteral.Value.ToString()))
             {
                 context.ReportError(new ExtendedInvalidVariableError(context, node, nameWithDefinition, error));
             }
-            else if (value is GraphQLVariable vRef && context.Variables != null && context.Variables.TryGetValue(vRef.Name.StringValue, out object? val)) //for argument
+            else if (value is GraphQLVariable vRef && context.Variables != null && context.Variables.TryGetValue(vRef.Name.StringValue, out object? val))
             {
                 if (val is string strVariable && !IsValidEmail(strVariable))
                   context.ReportError(new ExtendedInvalidVariableError(context,node, nameWithDefinition, error));

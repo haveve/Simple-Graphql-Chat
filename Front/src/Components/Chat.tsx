@@ -16,7 +16,7 @@ import { Status, dropCurrentChat, dropUpdateMessage, setState, setState as setSt
 import ChatHeader from './ChatHeader';
 import NotificationModalWindow, { MessageType } from './Service/NotificationModalWindow';
 import { setState as setStateGlobalNotification } from '../Redux/Slicers/GlobalNotification';
-import LogOut from './LogOut';
+import LogOut from './AuthRegReset/LogOut';
 import MessageOptions, { MessageOptionType } from './MessageOperation/MessageOption';
 import { defaultState } from './ChatSelect';
 import { useImmer } from 'use-immer';
@@ -36,8 +36,6 @@ function Chat() {
   const erroMessage = useTypedSelector(store => store.chat.error)
   const globalNotification = useTypedSelector(store => store.global_notification)
   const dispatch = useTypedDispatch()
-  const [chatNotifyId, setChatNorifyId] = useState<string>("")
-  const [userNotifyId, setUserNotifyId] = useState<string>("")
   const [wasInitialAuth, setInitialAuth] = useState<boolean>(false);
   let lastMessage = useRef<HTMLDivElement>(null);
   let refToOpt = useRef<HTMLDivElement>(null);
@@ -60,7 +58,7 @@ function Chat() {
         next: (response) => Dispatch(response)
       }))
       const subToNotify = RequestBuilder('start', { query: subscriptionToNotification })
-      setUserNotifyId(subToNotify.id!)
+
       connection.subscribe(sub => sub.next(subToNotify,chatPending))
       connection.subscribe(sub => sub.next(RequestBuilder('start', { query: queryUser }),chatPending))
       connection.subscribe(sub => sub.next(RequestBuilder('start', { query: queryGetAllChats }),chatPending))
@@ -82,7 +80,6 @@ function Chat() {
 
       connection.subscribe(sub => sub.next(RequestBuilder('start', { query: queryGetAllMessages, variables: chatIdVard }),chatPending))
       const subToChat = RequestBuilder('start', { query: subscriptionToChat, variables: chatIdVard });
-      setChatNorifyId(subToChat.id!)
       connection.subscribe(sub => sub.next(subToChat,chatPending))
 
       return () => {
@@ -170,7 +167,7 @@ function Chat() {
             }
           </Col>
           <MessageOptions option={option} ref={refToOpt}></MessageOptions>
-          <MultiControl value={updatedMessage?.content} SendMessage={SendMessage} />
+          <MultiControl maxSymbols={200} value={updatedMessage?.content} SendMessage={SendMessage} />
         </Col>
         : null}
     </Row>

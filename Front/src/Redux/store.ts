@@ -2,13 +2,15 @@ import { configureStore} from "@reduxjs/toolkit";
 import { TypedUseSelectorHook,useDispatch,useSelector } from "react-redux";
 import chat from './Slicers/ChatSlicer'
 import user from './Slicers/UserSlicer'
-import GlobalNotification from "./Slicers/GlobalNotification";
+import global_notification from "./Slicers/GlobalNotification";
+import auth_reg from "./Slicers/AuthRegSlicer";
 
 const store = configureStore({
     reducer:{
         chat,
         user,
-        global_notification:GlobalNotification
+        global_notification,
+        auth_reg
     }
 })
 

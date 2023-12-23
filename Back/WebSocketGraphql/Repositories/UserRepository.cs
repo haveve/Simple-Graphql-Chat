@@ -111,7 +111,7 @@ namespace TimeTracker.Repositories
 
         public async Task UpdateUserResetCodeByIdAsync(int id, string code)
         {
-            string query = "UPDATE Users SET acrivate_code = @code WHERE id = @id";
+            string query = "UPDATE Users SET activate_code = @code WHERE id = @id";
             using var connection = _dapperContext.CreateConnection();
             await connection.ExecuteAsync(query, param: new { id, code }).ConfigureAwait(false);
         }

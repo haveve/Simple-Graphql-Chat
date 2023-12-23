@@ -26,14 +26,6 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
                 ),
                 Resolver = new FuncFieldResolver<object>(context =>
                 {
-                    if (context.Source is MessageSubscription data)
-                    { 
-                        if (data!.NickName == authHelper.GetUserNickName(context.User!))
-                        {
-                            return null;
-                        }
-                    }
-
                     return context.Source;
                 }),
                 StreamResolver = new SourceStreamResolver<object>(SubscribeChatNotification),

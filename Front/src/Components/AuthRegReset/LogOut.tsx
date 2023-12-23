@@ -1,7 +1,6 @@
 import React, { useState, forwardRef } from 'react'
 import { Container, Row, Col, Form, Button, Dropdown } from 'react-bootstrap';
-import { getCookie } from '../Features/Functions';
-import { ajaxForLogout,GetRefresh,TokenErrorHandler } from '../Requests/AuthorizationRequests';
+import { ajaxForLogout,GetRefresh,TokenErrorHandler } from '../../Requests/AuthorizationRequests';
 export default function LogOut() {
 
 

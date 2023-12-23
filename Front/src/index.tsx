@@ -2,18 +2,17 @@ import React, { StrictMode } from 'react';
 import ReactDOM from 'react-dom/client';
 import './Styles/index.css';
 import Chat from './Components/Chat';
-import Auth from './Components/Auth';
-import StartMenu from './Components/StartMenu';
-import SignUp from './Components/SignUp';
 import {
   createBrowserRouter,
   RouterProvider
 } from "react-router-dom";
-import SetPassword from './Components/SetPassword';
+import SetPassword from './Components/AuthRegReset/SetPassword';
 import { getTokenOrNavigate } from './Features/Functions';
 import store from './Redux/store';
 import { Provider } from 'react-redux'
 import NotFound from './Components/NotFoundPage';
+import AuthReg from './Components/AuthRegReset/AuthRegist';
+import ResetPassword from './Components/AuthRegReset/ResetPassword';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -31,22 +30,16 @@ const Router = createBrowserRouter([
   },
   {
     path: '/',
-    element: <StartMenu />,
-    loader: async () => getTokenOrNavigate(true),
-    children: [
-      {
-        path: '/',
-        element: <Auth />
-      },
-      {
-        path: 'sign-up',
-        element: <SignUp />
-      },
-      {
-        path: '/set-password',
-        element: <SetPassword />
-      }
-    ]
+    element: <AuthReg />,
+    loader: async () => getTokenOrNavigate(true)
+  },
+  {
+    path: '/set-password',
+    element: <SetPassword/>
+  },
+  {
+    path: '/reset-password',
+    element:<ResetPassword/>
   }
 ])
 

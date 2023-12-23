@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, JSX } from 'react';
 import { Container, Row, Col, Form, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { GetAbbreviationFromPhrase, randomIntFromInterval } from '../Features/Functions';
-import { useTypedSelector } from '../Redux/store';
 import { ReduxChat, ReduxCurrentChat } from '../Redux/Slicers/ChatSlicer';
 import ChatInfo from './ChatInfo';
 import Icon from './Icon';
@@ -28,14 +27,13 @@ export default function ChatHeader(props: { currentChat: ReduxCurrentChat, withC
             currentChat!.chatMembersCount + 1 + ' ' + participantText + 's'}
     </span>
 
-
     const ico = <div className='d-flex' role={withChatInfo ? "button" : "img"} onClick={handleChatInfo}>
-        <div className='chat-title-icon-size h5 ms-2' style={{
+        <div className='chat-title-icon-size  h5 ms-2' style={{
             backgroundColor: currentChat!.color
         }}>
             {GetAbbreviationFromPhrase(currentChat!.name)}
         </div>
-        <div className='h5 pt-1 ms-3 d-flex flex-column justify-content-center align-items-start'>
+        <div className='h5 col-7 col-sm-9 pt-1 ms-3 d-flex flex-column justify-content-center align-items-start'>
             {currentChat!.name}
             {participants}
         </div>

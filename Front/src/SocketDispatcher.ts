@@ -32,8 +32,6 @@ export default function Dispatch(response: defaultSubscriptionResponse<any>) {
                 return;
             }
             if (data.addMessage) {
-                let message: Message = data.addMessage;
-                dispatch(addMessage(message))
             }
             else if (data.messages) {
                 let messages = data.messages
@@ -110,16 +108,11 @@ export default function Dispatch(response: defaultSubscriptionResponse<any>) {
                 dispatch(removeChat(data.removeChat))
             }
             else if (data.removeMessage) {
-                SetMessageId(data.removeMessage)
-                dispatch(removeMessage(data.removeMessage.id!))
             }
             else if (data.updateChat) {
                 dispatch(updateChat(data.updateChat))
             }
             else if (data.updateMessage) {
-                const message: Message = data.updateMessage
-                SetMessageId(message)
-                dispatch(updateMessage(message))
             }
             else if (data.userNotification) {
                 switch (data.userNotification.notificationType) {
