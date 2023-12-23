@@ -62,11 +62,12 @@ namespace WebSocketGraphql.GraphQl.ValidationRules
             {
                 context.ReportError(new ExtendedInvalidVariableError(context, node, nameWithDefinition, error));
             }
-            else if (value is GraphQLVariable vRef && context.Variables != null && context.Variables.TryGetValue(vRef.Name.StringValue, out object? val))
-            {
-                if (val is string strVariable && !IsValidEmail(strVariable))
-                  context.ReportError(new ExtendedInvalidVariableError(context,node, nameWithDefinition, error));
-            }
+            //When we cannot parse to string but value cannot we treat through string
+            //else if (value is GraphQLVariable vRef && context.Variables != null && context.Variables.TryGetValue(vRef.Name.StringValue, out object? val))
+            //{
+            //    if (val is string strVariable && !IsValidEmail(strVariable))
+            //      context.ReportError(new ExtendedInvalidVariableError(context,node, nameWithDefinition, error));
+            //}
         }
 
         public ValueTask<INodeVisitor?> ValidateAsync(ValidationContext context)
