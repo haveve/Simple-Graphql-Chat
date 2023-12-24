@@ -20,5 +20,10 @@ namespace TimeTracker.Models
         public string ActivateCode { get; set; } = null;
         [Description("salt")]
         public string Salt { get; set; } = null;
+        [Description("key_2auth")]
+        public string? Key2Auth {  get; set; }
+        [Description("reset_key_2auth")]
+        public string? ResetCode { get; set; }
+
     }
 }

@@ -1,0 +1,118 @@
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Google.Authenticator;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
+using TimeTracker.Repositories;
+using System.Net;
+using Microsoft.AspNetCore.WebUtilities;
+using TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager;
+using System.Text.Json;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using WebSocketGraphql.Services.AuthenticationServices;
+using TimeTracker.Helpers;
+using System.Text;
+
+namespace TimeTracker.Controllers
+{
+    [Authorize]
+    public class _2fAuth : Controller
+    {
+        [Route("2f-auth")]
+        public async Task<IActionResult> Get2fData([FromServices] AuthHelper helper, [FromServices] IUserRepository userRepository)
+        {
+            string key = helper.GetRandomString();
+
+            var id = helper.GetUserId(HttpContext.User);
+
+            var user = await userRepository.GetUserAsync(id);
+
+            TwoFactorAuthenticator tfa = new TwoFactorAuthenticator();
+            SetupCode setupInfo = tfa.GenerateSetupCode(HttpContext.Request.Host.Host, user.Email, key, false, 3);
+
+            string qrCodeImageUrl = setupInfo.QrCodeSetupImageUrl;
+            string manualEntrySetupCode = setupInfo.ManualEntryKey;
+
+            return Json(new { qrUrl = qrCodeImageUrl, manualEntry = manualEntrySetupCode,key });
+        }
+
+
+        [Route("set-2f-auth")]
+        public IActionResult SetUser2fAuth([FromServices] AuthHelper helper, [FromServices] IAuthorizationRepository authorizationRepository, string key, string code)
+        {
+            var id = helper.GetUserId(HttpContext.User);
+            TwoFactorAuthenticator tfa = new TwoFactorAuthenticator();
+            var resetCode = helper.GetRandomString();
+
+            if (tfa.ValidateTwoFactorPIN(key, code) && authorizationRepository.Add2factorKey(id, key, resetCode))
+            {
+                return File(Encoding.UTF8.GetBytes(code),"text/plain","2f_drop_code");
+            }
+
+            return BadRequest("Uncorrect Code");
+        }
+
+        [AllowAnonymous]
+        [Route("verify-2f-auth")]
+        public async Task<IActionResult> Verify2fAuth([FromServices] IUserRepository userRepository, [FromServices] IAuthorizationManager authorizationManager, [FromServices] IAuthorizationRepository _authorizationRepository, [FromQuery] string token, [FromQuery] string code)
+        {
+            if (!await authorizationManager.IsValidToken(token))
+            {
+                return BadRequest("Invalid temporary token");
+            }
+
+            var tokenData = authorizationManager.ReadJwtToken(token);
+            try
+            {
+                int userId = int.Parse(tokenData.Claims.First(c => c.Type == "UserId").Value);
+                string refreshToken = tokenData.Claims.First(c => c.Type == "RefreshToken").Value;
+                DateTime issuedAt = JsonSerializer.Deserialize<DateTime>(tokenData.Claims.First(c => c.Type == "IssuedAtRefresh").Value);
+                DateTime expiredAt = JsonSerializer.Deserialize<DateTime>(tokenData.Claims.First(c => c.Type == "ExpiredAtRefresh").Value);
+
+                var user = await userRepository.GetUserAsync(userId);
+
+                if (user is null ||_2fAuthHelper.Has2fAuth(user)|| !_2fAuthHelper.Check2fAuth(user.Key2Auth, code))
+                {
+                    return BadRequest("Invalid one-time code or you does not turn on 2f auth");
+                }
+
+                _authorizationRepository.CreateRefreshToken(new(refreshToken,expiredAt,issuedAt), user.Id);
+
+                Dictionary<string, string?> queryParams = new Dictionary<string, string?>
+            {
+                { "expiredAt", JsonSerializer.Serialize(expiredAt)},
+                { "issuedAt", JsonSerializer.Serialize(issuedAt) },
+                { "token", refreshToken }
+            };
+
+                var url = QueryHelpers.AddQueryString("/Login", queryParams);
+
+                return Json(url);
+            }
+            catch
+            {
+                return BadRequest("Invalid temporary token");
+            }
+
+        }
+
+
+        [Route("drop-2f-auth")]
+        public IActionResult Drop2fAuth([FromServices] AuthHelper helper,[FromServices] IConfiguration config, [FromServices] IAuthorizationRepository authorizationRepository, [BindRequired][FromQuery] string code)
+        {
+            if (!ModelState.IsValid )
+            {
+                return BadRequest("Invalid parameters");
+            }
+
+            var id = helper.GetUserId(HttpContext.User);
+            string? key = authorizationRepository.Get2factorKey(id);
+
+            if (key != null && (!_2fAuthHelper.Check2fAuth(key, code) || authorizationRepository.Drop2factorKey(id, code)))
+            {
+                return Ok("2f auth was droped");
+            }
+
+            return BadRequest("Invalid one-time code or you does not turn on 2f auth");
+        }
+    }
+}

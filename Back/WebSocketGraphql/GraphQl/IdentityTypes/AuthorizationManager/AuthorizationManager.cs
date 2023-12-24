@@ -153,7 +153,8 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager
             new Claim(JwtRegisteredClaimNames.Iat, issuedAtOffset.ToUnixTimeSeconds().ToString()),
             new Claim("UserOwn",JsonSerializer.Serialize(ownChats)),
             new Claim("UserParticipated",JsonSerializer.Serialize(participatedChats)),
-            new Claim("UserNickName",user!.NickName)
+            new Claim("UserNickName",user!.NickName),
+            new Claim("isAccess",true.ToString())
     },
     expires: expiredAt,
     signingCredentials: new SigningCredentials(AuthOptions.GetSymmetricSecurityKey(_configuration.GetKey()), SecurityAlgorithms.HmacSha256));

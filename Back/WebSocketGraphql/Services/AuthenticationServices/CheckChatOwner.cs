@@ -2,6 +2,8 @@
 using System.Text.Json;
 using TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager;
 using TimeTracker.Repositories;
+using TimeTracker.Services;
+using WebSocketGraphql.Helpers;
 using WebSocketGraphql.Repositories;
 
 namespace WebSocketGraphql.Services.AuthenticationServices
@@ -9,10 +11,12 @@ namespace WebSocketGraphql.Services.AuthenticationServices
     public class AuthHelper
     {
         private readonly IChat _chat;
+        private readonly IConfiguration _configuration;
 
-        public AuthHelper(IChat chat)
+        public AuthHelper(IChat chat,IConfiguration configuration)
         {
             _chat = chat;
+            _configuration = configuration;
         }
 
         public async Task<bool> CheckChatOwner(int userId, int chatId, IDictionary<string, object?> authUser)
@@ -42,6 +46,18 @@ namespace WebSocketGraphql.Services.AuthenticationServices
             return authUser.Claims.First(c => c.Type == "UserNickName").Value;
         }
 
+        public bool IsAccess(IEnumerable<Claim> data)
+        {
+            try
+            {
+                return Convert.ToBoolean(data.First(el => el.Type.Equals("isAccess")));
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         public IEnumerable<Claim> GetImmutableClaims(IEnumerable<Claim> data)
         {
             return data.Where(el => el.Type == "UserNickName" || el.Type == "UserId");
@@ -55,6 +71,12 @@ namespace WebSocketGraphql.Services.AuthenticationServices
             var result = participants is null ? owns : owns?.Union(participants);
 
             return result;
+        }
+
+        public string GetRandomString()
+        {
+            var guid = Guid.NewGuid().ToString();
+            return guid.ComputeHash(guid, _configuration.GetIteration());
         }
     }
 }

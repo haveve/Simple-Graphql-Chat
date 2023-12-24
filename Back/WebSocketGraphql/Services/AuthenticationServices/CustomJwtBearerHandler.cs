@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager;
+using Microsoft.Extensions.Configuration.UserSecrets;
 
 namespace WebSocketGraphql.Services.AuthenticationServices
 {
@@ -11,12 +12,14 @@ namespace WebSocketGraphql.Services.AuthenticationServices
     {
         private readonly IConfiguration _configuration;
         private readonly IAuthorizationManager _authorizationManager;
+        private readonly AuthHelper _helper;
 
-        public CustomJwtBearerHandler(IAuthorizationManager authorizationManager, IConfiguration configuration, IOptionsMonitor<JwtBearerOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock)
+        public CustomJwtBearerHandler(AuthHelper helper,IAuthorizationManager authorizationManager, IConfiguration configuration, IOptionsMonitor<JwtBearerOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock)
             : base(options, logger, encoder, clock)
         {
             _configuration = configuration;
             _authorizationManager = authorizationManager;
+            _helper = helper;
         }
 
         protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
@@ -37,8 +40,11 @@ namespace WebSocketGraphql.Services.AuthenticationServices
             if (await _authorizationManager.IsValidToken(token))
             {
                 var user = _authorizationManager.ReadJwtToken(token);
-                var principal = new ClaimsPrincipal(new ClaimsIdentity(user.Claims.Where(el => el.Type == "UserId"), "Token"));
-                return AuthenticateResult.Success(new AuthenticationTicket(principal, "CustomJwtBearer"));
+                if (_helper.IsAccess(user.Claims))
+                {
+                    var principal = new ClaimsPrincipal(new ClaimsIdentity(_helper.GetImmutableClaims(user.Claims), "Token"));
+                    return AuthenticateResult.Success(new AuthenticationTicket(principal, "CustomJwtBearer"));
+                }
             }
 
             return AuthenticateResult.Fail("Token validation failed.");

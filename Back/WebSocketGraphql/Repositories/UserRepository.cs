@@ -5,6 +5,7 @@ using System.Data;
 using TimeTracker.Models;
 using TimeTracker.Services;
 using WebSocketGraphql.Services;
+using WebSocketGraphql.Helpers;
 
 namespace TimeTracker.Repositories
 {
@@ -20,14 +21,7 @@ namespace TimeTracker.Repositories
             _configuration = configuration;
             _authorizationRepository = authorizationRepository;
             _dapperContext = context;
-            try
-            {
-                _iteration = Convert.ToInt32(configuration["PasswordHashing:Iteration"]);
-            }
-            catch
-            {
-                _iteration = 0;
-            }
+            _iteration = configuration.GetIteration();
         }
 
         public async Task<string> CreateUserAsync(User user)
@@ -49,7 +43,7 @@ namespace TimeTracker.Repositories
 
         public async Task<User?> GetUserAsync(int id)
         {
-            string query = "SELECT id,nick_name,email FROM Users WHERE id = @id";
+            string query = "SELECT id,nick_name,email,reset_key_2auth,key_2auth FROM Users WHERE id = @id";
             using var connection = _dapperContext.CreateConnection();
             return await connection.QuerySingleOrDefaultAsync<User>(query, param: new { id }).ConfigureAwait(false);
         }

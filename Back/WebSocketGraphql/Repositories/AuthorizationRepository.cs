@@ -48,5 +48,33 @@ namespace TimeTracker.Repositories
             using var connection = _dapperContext.CreateConnection();
             return connection.QuerySingleOrDefault<RefreshToken?>(query, new {refreshToken, userId });
         }
+
+
+        public bool Add2factorKey(int userId, string key, string resetCode)
+        {
+            using var connection = _dapperContext.CreateConnection();
+            var sqlQuery = @"IF(EXISTS(select * from users where id = @userId and key_2auth is not distinct from null))
+                            Update Users SET key_2auth = @key, reset_key_2auth = @resetCode WHERE Id = @userId";
+            return connection.Execute(sqlQuery, new { key, userId, resetCode }) > 0;
+        }
+
+        public bool Drop2factorKey(int userId,string? resetCode)
+        {
+            using var connection = _dapperContext.CreateConnection();
+            string sqlQuery = "Update Users SET key_2auth = @key WHERE id = @userId";
+            if(resetCode is not null)
+            {
+                sqlQuery += "AND reset_key_2auth = @resetCode";
+            }
+
+            return connection.Execute(sqlQuery, new { key = (string?)null, userId, resetCode }) > 0;
+        }
+
+        public string? Get2factorKey(int userId)
+        {
+            using var connection = _dapperContext.CreateConnection();
+            var sqlQuery = "SELECT key_2auth FROM Users WHERE Id = @userId";
+            return connection.QuerySingle<string?>(sqlQuery, new { userId });
+        }
     }
 }

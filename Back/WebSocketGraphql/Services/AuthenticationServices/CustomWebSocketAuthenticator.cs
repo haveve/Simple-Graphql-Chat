@@ -4,6 +4,7 @@ using GraphQL;
 using System.Security.Claims;
 using TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager;
 using System.ComponentModel;
+using TimeTracker.Models;
 
 namespace WebSocketGraphql.Services.AuthenticationServices
 {
@@ -12,14 +13,12 @@ namespace WebSocketGraphql.Services.AuthenticationServices
         private readonly IGraphQLSerializer _serializer;
         private readonly IAuthorizationManager _authorizationManager;
         private readonly AuthHelper _authHelper;
-        private readonly ILogger<CustomWebSocketAuthenticator> _logger;
 
         public CustomWebSocketAuthenticator(ILogger<CustomWebSocketAuthenticator> logger,AuthHelper authHelper,IGraphQLSerializer serializer, IAuthorizationManager authorizationManager)
         {
             _serializer = serializer;
             _authorizationManager = authorizationManager;
             _authHelper = authHelper;
-            _logger = logger;
         }
         
         public async Task AuthenticateAsync(IWebSocketConnection connection, string subProtocol, OperationMessage operationMessage)
@@ -30,8 +29,11 @@ namespace WebSocketGraphql.Services.AuthenticationServices
                 if (await _authorizationManager.IsValidToken(tokeString, null))
                 {
                     var tokenData = _authorizationManager.ReadJwtToken(tokeString);
-                    var principal = new ClaimsPrincipal(new ClaimsIdentity(_authHelper.GetImmutableClaims(tokenData.Claims), "Token"));
-                    connection.HttpContext.User = principal;
+                    if (_authHelper.IsAccess(tokenData.Claims))
+                    {
+                        var principal = new ClaimsPrincipal(new ClaimsIdentity(_authHelper.GetImmutableClaims(tokenData.Claims), "Token"));
+                        connection.HttpContext.User = principal;
+                    }
                 }
             }
         }

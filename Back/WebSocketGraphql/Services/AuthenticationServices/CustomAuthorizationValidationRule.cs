@@ -16,11 +16,11 @@ namespace WebSocketGraphql.Services.AuthenticationServices
             var variables = context.Variables;
             var provider = context.RequestServices;
             var authService = provider!.GetService<IAuthorizationService>();
-            var _authorizationManager = provider.GetService<IAuthorizationManager>();
+            var helper = provider!.GetService<AuthHelper>();
+            var _authorizationManager = provider!.GetService<IAuthorizationManager>();
 
             if ((variables?.TryGetValue("authorization", out var token) ?? false) && token is string tokeString)
             {
-
                 int? chatId = null;
                 if ((variables?.TryGetValue("chatId", out var id) ?? false) && id is int intChatId)
                 {
@@ -30,14 +30,17 @@ namespace WebSocketGraphql.Services.AuthenticationServices
                 if (await _authorizationManager!.IsValidToken(tokeString, chatId))
                 {
                     var tokenData = _authorizationManager.ReadJwtToken(tokeString);
-                    var identity = new ClaimsIdentity(tokenData.Claims, "Token");
-                    var principal = new ClaimsPrincipal(identity);
-                    var visitor = new AuthorizationVisitor(context, principal, authService);
-                    foreach (var el in tokenData.Claims)
+                    if (helper.IsAccess(tokenData.Claims))
                     {
-                        context.UserContext[el.Type] = el.Value;
+                        var identity = new ClaimsIdentity(tokenData.Claims, "Token");
+                        var principal = new ClaimsPrincipal(identity);
+                        var visitor = new AuthorizationVisitor(context, principal, authService);
+                        foreach (var el in tokenData.Claims)
+                        {
+                            context.UserContext[el.Type] = el.Value;
+                        }
+                        return visitor;
                     }
-                    return visitor;
                 }
             }
 
