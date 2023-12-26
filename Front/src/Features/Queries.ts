@@ -88,7 +88,8 @@ export const queryUser = `query{
   user{
     id,
     email,
-    nickName
+    nickName,
+    key2Auth
   }
 }`
 

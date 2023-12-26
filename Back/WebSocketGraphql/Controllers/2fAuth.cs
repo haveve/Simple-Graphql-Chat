@@ -32,20 +32,33 @@ namespace TimeTracker.Controllers
             string qrCodeImageUrl = setupInfo.QrCodeSetupImageUrl;
             string manualEntrySetupCode = setupInfo.ManualEntryKey;
 
-            return Json(new { qrUrl = qrCodeImageUrl, manualEntry = manualEntrySetupCode,key });
+            return Json(new { qrUrl = qrCodeImageUrl, manualEntry = manualEntrySetupCode, key });
         }
 
 
-        [Route("set-2f-auth")]
-        public IActionResult SetUser2fAuth([FromServices] AuthHelper helper, [FromServices] IAuthorizationRepository authorizationRepository, string key, string code)
+        public class RequestData
         {
+            public string Key { get; set; }
+            public string Code { get; set; }
+        }
+
+        [HttpPost("set-2f-auth")]
+        public IActionResult SetUser2fAuth([FromServices] AuthHelper helper, [FromServices] IAuthorizationRepository authorizationRepository, [BindRequired][FromBody] RequestData reqData)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest("Uncorrect Code");
+            }
+
             var id = helper.GetUserId(HttpContext.User);
             TwoFactorAuthenticator tfa = new TwoFactorAuthenticator();
             var resetCode = helper.GetRandomString();
 
-            if (tfa.ValidateTwoFactorPIN(key, code) && authorizationRepository.Add2factorKey(id, key, resetCode))
+            var data = tfa.ValidateTwoFactorPIN(reqData.Key, reqData.Code);
+
+            if (data && authorizationRepository.Add2factorKey(id, reqData.Key, resetCode))
             {
-                return File(Encoding.UTF8.GetBytes(code),"text/plain","2f_drop_code");
+                return Json(resetCode);
             }
 
             return BadRequest("Uncorrect Code");
@@ -55,7 +68,7 @@ namespace TimeTracker.Controllers
         [Route("verify-2f-auth")]
         public async Task<IActionResult> Verify2fAuth([FromServices] IUserRepository userRepository, [FromServices] IAuthorizationManager authorizationManager, [FromServices] IAuthorizationRepository _authorizationRepository, [FromQuery] string token, [FromQuery] string code)
         {
-            if (!await authorizationManager.IsValidToken(token))
+            if (!await authorizationManager.IsValidToken(token,refresh:true))
             {
                 return BadRequest("Invalid temporary token");
             }
@@ -70,12 +83,12 @@ namespace TimeTracker.Controllers
 
                 var user = await userRepository.GetUserAsync(userId);
 
-                if (user is null ||_2fAuthHelper.Has2fAuth(user)|| !_2fAuthHelper.Check2fAuth(user.Key2Auth, code))
+                if (user is null || (!_2fAuthHelper.Has2fAuth(user) && !_2fAuthHelper.Check2fAuth(user.Key2Auth, code)))
                 {
                     return BadRequest("Invalid one-time code or you does not turn on 2f auth");
                 }
 
-                _authorizationRepository.CreateRefreshToken(new(refreshToken,expiredAt,issuedAt), user.Id);
+                _authorizationRepository.CreateRefreshToken(new(refreshToken, expiredAt, issuedAt), user.Id);
 
                 Dictionary<string, string?> queryParams = new Dictionary<string, string?>
             {
@@ -84,7 +97,7 @@ namespace TimeTracker.Controllers
                 { "token", refreshToken }
             };
 
-                var url = QueryHelpers.AddQueryString("/Login", queryParams);
+                var url = QueryHelpers.AddQueryString("/", queryParams);
 
                 return Json(url);
             }
@@ -97,9 +110,9 @@ namespace TimeTracker.Controllers
 
 
         [Route("drop-2f-auth")]
-        public IActionResult Drop2fAuth([FromServices] AuthHelper helper,[FromServices] IConfiguration config, [FromServices] IAuthorizationRepository authorizationRepository, [BindRequired][FromQuery] string code)
+        public IActionResult Drop2fAuth([FromServices] AuthHelper helper, [FromServices] IConfiguration config, [FromServices] IAuthorizationRepository authorizationRepository, [BindRequired][FromQuery] string code)
         {
-            if (!ModelState.IsValid )
+            if (!ModelState.IsValid)
             {
                 return BadRequest("Invalid parameters");
             }
@@ -107,7 +120,11 @@ namespace TimeTracker.Controllers
             var id = helper.GetUserId(HttpContext.User);
             string? key = authorizationRepository.Get2factorKey(id);
 
-            if (key != null && (!_2fAuthHelper.Check2fAuth(key, code) || authorizationRepository.Drop2factorKey(id, code)))
+            if (key != null && _2fAuthHelper.Check2fAuth(key, code) && authorizationRepository.Drop2factorKey(id, null))
+            {
+                return Ok("2f auth was droped");
+            }
+            else if (authorizationRepository.Drop2factorKey(id, code))
             {
                 return Ok("2f auth was droped");
             }

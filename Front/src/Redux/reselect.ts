@@ -1,5 +1,6 @@
 import { createSelector } from "reselect";
 import { RootState } from "./store";
+import { DateFromString } from "../Features/Functions";
 
 export const selectChatIds = createSelector(
     [(state:RootState) => state.chat.chats],
@@ -8,9 +9,15 @@ export const selectChatIds = createSelector(
     }
 )
 
-export const selectMessageIds = createSelector(
+export type MessageIdDate = {
+    sentAt:string,
+    id:string
+}
+
+export const selectMessageIdsWithDate = createSelector(
     [(state:RootState) => state.chat.messages],
     (data)=>{
-       return data.map(el => el.id);
+        const result = data.map<MessageIdDate>(el => ({id:el.id!,sentAt:el.sentAt}));
+       return result;
     }
 )

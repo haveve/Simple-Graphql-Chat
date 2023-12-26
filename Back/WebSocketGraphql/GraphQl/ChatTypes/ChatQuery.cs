@@ -52,7 +52,9 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
                 .ResolveAsync(async context =>
                 {
                     var id = helper.GetUserId(context.User!);
-                    return await user.GetUserAsync(id);
+                    var userData = await user.GetUserAsync(id);
+                    userData!.Key2Auth = userData.Key2Auth is not null ? "key" : null;
+                    return userData;
                 });
 
             Field<NonNullGraphType<StringGraphType>>("ping")

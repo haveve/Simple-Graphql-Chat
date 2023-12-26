@@ -22,7 +22,7 @@ export function TokenErrorHandler() {
     window.location.pathname = '/'
 }
 
-export function GetTokenObservable(forsed:boolean = false) {
+export function GetTokenObservable(forsed: boolean = false) {
     return DoRefresh(WhetherDoRefresh(forsed))
 }
 
@@ -92,7 +92,7 @@ export function GetRefresh() {
     return refreshTokenObj.token
 }
 
-export function WhetherDoRefresh( forced:boolean = false): DoRefreshType {
+export function WhetherDoRefresh(forced: boolean = false): DoRefreshType {
 
     const refreshTokenJson = getCookie("refresh_token");
     const accessTokenJson = getCookie("access_token");
@@ -103,7 +103,7 @@ export function WhetherDoRefresh( forced:boolean = false): DoRefreshType {
 
             const accessTokenObj: StoredTokenType = JSON.parse(accessTokenJson)
             const nowInSeconds = new Date().getTime();
-            if (!accessTokenObj 
+            if (!accessTokenObj
                 || accessTokenObj.expiredAt - nowInSeconds < 2000) {
                 return {
                     refresh_token: refreshTokenObj.token,
@@ -208,8 +208,8 @@ export type LoginType = {
     login: {
         access_token: RequestTokenType,
         user_id: string,
-        is_fulltimer: string,
-        refresh_token: RequestTokenType
+        refresh_token: RequestTokenType,
+        redirect_url: string | null,
     }
 }
 
@@ -246,9 +246,9 @@ export function ajaxSetPasswordByCode(variables: SetPasswordByCodeType) {
 }
 
 export function RequestPasswordReset(user: String) {
-    return GetAjaxObservable<string,any>(`mutation sentResetPasswordEmail($user: String!){
+    return GetAjaxObservable<string, any>(`mutation sentResetPasswordEmail($user: String!){
         sentResetPasswordEmail(nickNameOrEmail: $user)
-  }`,{user},url,).pipe(
+  }`, { user }, url,).pipe(
         map(response => {
             let fullResponse = response.response;
 
@@ -284,9 +284,10 @@ export function ajaxForLogin(variables: {}) {
             token
             expiredAt
           }
+          redirect_url
         }
       }`, variables, url).pipe(
-        map((value): void => {
+        map((value): string => {
 
 
             let fullResponse = value.response;
@@ -295,6 +296,10 @@ export function ajaxForLogin(variables: {}) {
 
             if (fullResponse.errors)
                 throw fullResponse.errors[0].message;
+
+            if (response.redirect_url) {
+                return response.redirect_url;
+            }
 
 
             const access_token_to_save: StoredTokenType = {
@@ -327,6 +332,8 @@ export function ajaxForLogin(variables: {}) {
                 expires_second: refresh_token_to_save.expiredAt / 1000,
                 path: "/"
             });
+
+            return "/main";
         }),
         catchError((error) => {
             throw error
@@ -447,4 +454,85 @@ export function ajaxForLogout(token: string) {
             throw error
         })
     );
+}
+
+const _2fAuthUrl = "https://" + backDomain + "/2f-auth"
+
+export interface _2fAuthResult {
+    qrUrl: string,
+    manualEntry: string,
+    key: string
+}
+
+export function ajaxFor2fAuth() {
+    return GetTokenObservable().pipe(mergeMap(() => {
+        const token: StoredTokenType = JSON.parse(getCookie("access_token")!)
+        return ajax<_2fAuthResult>({
+            url: _2fAuthUrl,
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token.token,
+            }
+        });
+    }))
+}
+
+const _2fSetUrl = "https://" + backDomain + "/set-2f-auth";
+
+export function axajSetUser2fAuth(key: string, code: string) {
+    return GetTokenObservable().pipe(mergeMap(() => {
+        const token: StoredTokenType = JSON.parse(getCookie("access_token")!)
+        return ajax<string>({
+            url: _2fSetUrl,
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token.token
+            },
+            body: JSON.stringify({
+                key,
+                code
+            })
+        }).pipe(map(response => {
+            const data = response.response
+            if (data) {
+                const toBlob = `Reset token = ${data}`
+                const blob = new Blob([toBlob], { type: 'text/plain' });
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = '_2f_code_reset.txt';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        }))
+
+    }))
+}
+
+const _2fVerifyServiceUrl = "https://" + backDomain + "/verify-2f-auth";
+
+export function ajaxVerifyUserCode(token: string, code: string) {
+    return ajax<string>({
+        url: _2fVerifyServiceUrl + `?token=${token}&code=${code}`
+    })
+}
+
+const _2fDropUrl = "https://" + backDomain + "/drop-2f-auth"
+
+export function ajaxFor2fDrop(code: string) {
+
+    return GetTokenObservable().pipe(mergeMap(() => {
+        const token: StoredTokenType = JSON.parse(getCookie("access_token")!)
+        return ajax<string>({
+            url: _2fDropUrl + `?code=${code}`,
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token.token,
+            }
+        })
+    }))
 }

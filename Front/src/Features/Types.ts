@@ -62,7 +62,8 @@ export type UserNotification = {
 export type User = {
     id:number,
     nickName:string,
-    email:string
+    email:string,
+    key2Auth:string|null
 }
 
 export enum MessageType 

@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { IsWhiteSpaceOrEmpty } from '../Features/Functions';
 import TextareaAutosize from 'react-textarea-autosize';
-import '../Styles/App.css'
 
 export default function MultiControl(props: { value?: string, size?: 'w-25' | 'w-50' | 'w-100', placeHolder?: string, maxSymbols?: number, className?: string, SendMessage: (createdMessage: string, setCreatedMessage: React.Dispatch<string>) => void }) {
     const { SendMessage, size, placeHolder, className, value, maxSymbols } = props;

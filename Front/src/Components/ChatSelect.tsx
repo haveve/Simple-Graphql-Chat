@@ -12,7 +12,6 @@ import { RequestBuilder } from '../Features/Queries';
 import { queryFullChatInfo } from '../Features/Queries';
 import { selectChatIds } from '../Redux/reselect';
 import { setState } from '../Redux/Slicers/ChatSlicer';
-import '../Styles/App.css'
 
 export type ChatOptionType = {
     show: boolean,

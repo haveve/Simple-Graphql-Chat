@@ -61,13 +61,13 @@ namespace TimeTracker.Repositories
         public bool Drop2factorKey(int userId,string? resetCode)
         {
             using var connection = _dapperContext.CreateConnection();
-            string sqlQuery = "Update Users SET key_2auth = @key WHERE id = @userId";
+            string sqlQuery = "Update Users SET key_2auth = @key, reset_key_2auth = @code WHERE id = @userId";
             if(resetCode is not null)
             {
-                sqlQuery += "AND reset_key_2auth = @resetCode";
+                sqlQuery += " AND reset_key_2auth = @resetCode";
             }
 
-            return connection.Execute(sqlQuery, new { key = (string?)null, userId, resetCode }) > 0;
+            return connection.Execute(sqlQuery, new { key = (string?)null, code = (string?)null, userId, resetCode }) > 0;
         }
 
         public string? Get2factorKey(int userId)

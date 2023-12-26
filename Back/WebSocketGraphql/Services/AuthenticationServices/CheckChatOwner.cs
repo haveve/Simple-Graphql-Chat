@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using System.Text;
 using System.Text.Json;
 using TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager;
 using TimeTracker.Repositories;
@@ -50,7 +51,8 @@ namespace WebSocketGraphql.Services.AuthenticationServices
         {
             try
             {
-                return Convert.ToBoolean(data.First(el => el.Type.Equals("isAccess")));
+                var claimAccess = data.First(el => el.Type.Equals("IsAccess"));
+                return Convert.ToBoolean(claimAccess.Value);
             }
             catch
             {
@@ -76,7 +78,7 @@ namespace WebSocketGraphql.Services.AuthenticationServices
         public string GetRandomString()
         {
             var guid = Guid.NewGuid().ToString();
-            return guid.ComputeHash(guid, _configuration.GetIteration());
+            return guid.ComputeHash(guid, _configuration.GetIteration()).Replace('/', '_').Replace('+', '-');
         }
     }
 }

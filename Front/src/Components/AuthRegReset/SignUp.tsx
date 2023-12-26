@@ -48,7 +48,7 @@ export default function SignUp() {
     return <Form noValidate onSubmit={handleSubmit} validated={validated} className='d-flex flex-column gap-4'>
         <h1>Sign Up</h1>
         <Form.Group controlId="validationCustom01" className='w-100'>
-            <Form.Control size='lg' required value={nickName} onChange={nickNameOnChange} className='m-0 mt-3 w-100' placeholder='Nickname'></Form.Control>
+            <Form.Control size='lg' required value={nickName} onChange={nickNameOnChange} className='m-0 mt-3 w-100' placeholder='Nickname' type='text'></Form.Control>
             <Form.Control.Feedback type="invalid">
                 Please provide a valid nickname
             </Form.Control.Feedback>

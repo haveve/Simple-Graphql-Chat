@@ -11,6 +11,7 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes
             Field(l => l.access_token, nullable: false, type: typeof(TokenResultGraphType));
             Field(l => l.user_id, nullable: false);
             Field(l => l.refresh_token, nullable: false, type: typeof(TokenResultGraphType));
+            Field(l => l.redirect_url, nullable: true);
         }
     }
 }

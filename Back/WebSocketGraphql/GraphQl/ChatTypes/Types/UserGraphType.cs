@@ -10,6 +10,7 @@ namespace WebSocketGraphql.GraphQl.ChatTypes.Types
             Field(el => el.Id);
             Field(el => el.NickName);
             Field(el => el.Email);
+            Field(el => el.Key2Auth,nullable:true);
         }
     }
 }

@@ -2,7 +2,7 @@ import { defaultSubscriptionResponse, subscriptionDataType, AllFieldsRequestType
 import { ChatNotificationType, ChatResultType, Message, MessageType } from './Features/Types';
 import store from './Redux/store';
 import { updateMessage, removeMessage, deleteAll, setParticipantState, changeChatParticipances, setChats, setMessages, addMessage, updateChat, setParticipants, addChat, removeChat, setError, setChat, ChangeParticipantsType } from './Redux/Slicers/ChatSlicer';
-import { SetMessageId, ToNormalDate } from './Features/Functions';
+import { SetMessageId } from './Features/Functions';
 import { batch } from 'react-redux'
 import { addUser } from './Redux/Slicers/UserSlicer';
 import { setError as setErrorGlobal } from './Redux/Slicers/GlobalNotification';

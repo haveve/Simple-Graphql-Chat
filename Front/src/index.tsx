@@ -1,6 +1,7 @@
 import React, { StrictMode } from 'react';
 import ReactDOM from 'react-dom/client';
 import './Styles/index.css';
+import './Styles/Custom.scss'
 import Chat from './Components/Chat';
 import {
   createBrowserRouter,
@@ -13,6 +14,7 @@ import { Provider } from 'react-redux'
 import NotFound from './Components/NotFoundPage';
 import AuthReg from './Components/AuthRegReset/AuthRegist';
 import ResetPassword from './Components/AuthRegReset/ResetPassword';
+import Auth2f from './Components/AuthRegReset/Auth2f';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -40,6 +42,10 @@ const Router = createBrowserRouter([
   {
     path: '/reset-password',
     element:<ResetPassword/>
+  },
+  {
+    path:'/2f-auth',
+    element:<Auth2f/>
   }
 ])
 

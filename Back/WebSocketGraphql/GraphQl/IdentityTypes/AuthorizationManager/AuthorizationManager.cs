@@ -86,7 +86,7 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager
                 var participatedChats = JsonSerializer.Deserialize<IEnumerable<int>>(tokenData.Claims.First(c => c.Type == "UserParticipated").Value);
                 var ownChats = JsonSerializer.Deserialize<IEnumerable<int>>(tokenData.Claims.First(c => c.Type == "UserOwn").Value);
 
-                if(chatId is null)
+                if (chatId is null)
                 {
                     return true;
                 }
@@ -154,7 +154,7 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager
             new Claim("UserOwn",JsonSerializer.Serialize(ownChats)),
             new Claim("UserParticipated",JsonSerializer.Serialize(participatedChats)),
             new Claim("UserNickName",user!.NickName),
-            new Claim("isAccess",true.ToString())
+            new Claim("IsAccess",true.ToString())
     },
     expires: expiredAt,
     signingCredentials: new SigningCredentials(AuthOptions.GetSymmetricSecurityKey(_configuration.GetKey()), SecurityAlgorithms.HmacSha256));

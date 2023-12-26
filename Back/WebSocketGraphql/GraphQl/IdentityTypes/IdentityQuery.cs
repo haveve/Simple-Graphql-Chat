@@ -1,8 +1,10 @@
 ﻿using GraphQL;
 using GraphQL.Types;
+using Microsoft.AspNetCore.WebUtilities;
 using TimeTracker.GraphQL.Types.IdentityTipes;
 using TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager;
 using TimeTracker.GraphQL.Types.IdentityTipes.Models;
+using TimeTracker.Helpers;
 using TimeTracker.Models;
 using TimeTracker.Repositories;
 using TimeTracker.Services;
@@ -46,6 +48,26 @@ namespace TimeTracker.GraphQL.Queries
                 if(user.ActivateCode != null)
                 {
                     throw new Exception("User has not setted password");
+                }
+
+                if (user.Key2Auth != null)
+                {
+                    var refresh_2f_tokens = authorizationManager.GetRefreshToken(user.Id);
+
+                    var tempToken = _2fAuthHelper.GetTemporaty2fAuthToken(user, refresh_2f_tokens, _configuration["Authorization:Issuer"], _configuration["Authorization:Audience"], _configuration["Authorization:Key"]);
+
+                    Dictionary<string, string?> tempQueryParams = new Dictionary<string, string?>
+            {
+                { "tempToken", tempToken }
+            };
+                    return new LoginOutput()
+                    {
+                        access_token = new(string.Empty, DateTime.MinValue, DateTime.MinValue),
+                        user_id = -1,
+                        refresh_token = new(string.Empty,DateTime.MinValue, DateTime.MinValue),
+                        redirect_url = QueryHelpers.AddQueryString("/2f-auth", tempQueryParams)
+                    };
+
                 }
 
                 var encodedJwt =  await _authorizationManager.GetAccessToken(user.Id);

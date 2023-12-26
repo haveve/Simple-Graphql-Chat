@@ -30,7 +30,7 @@ export default function RemoveChat(props: { chatId: number | null, show: boolean
 
     const textElement = <div className='ps-3 h4 py-3'>Are you sure that you wanna <span className='text-danger'>remove </span> <span className='text-primary'>{chat?.name}</span> chat ?</div>
 
-    return chat ? <Modal centered show={show}>
+    return chat ? <Modal  centered show={show}>
         < Modal.Body >
             <ChatHeader currentChat={{...chat!,chatMembersCount:0}} withoutParticipants={true} onlyIco={true} />
             {textElement}

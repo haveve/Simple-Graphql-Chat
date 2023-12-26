@@ -24,6 +24,8 @@ builder.Services.AddSingleton<IEmailSender, EmailSender>();
 builder.Services.AddSingleton<AuthHelper>();
 builder.Services.AddHttpContextAccessor();
 
+builder.Services.AddControllers();
+
 builder.Services.AddSingleton<ISchema, ChatSchema>(service =>
 {
     var schema = new ChatSchema(new SelfActivatingServiceProvider(service));
@@ -80,5 +82,7 @@ app.UseGraphQL<ChatSchema>("/graphql");
 app.UseGraphQL<IdentitySchema>("/graphql-auth");
 
 app.UseGraphQLAltair();
+
+app.MapControllers();
 
 app.Run();

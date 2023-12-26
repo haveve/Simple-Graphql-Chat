@@ -1,6 +1,5 @@
 import React from "react";
 import {Alert, Modal, Col, Row} from "react-bootstrap";
-import '../../Styles/App.css'
 
 
 export default function NotificationModalWindow(props: {

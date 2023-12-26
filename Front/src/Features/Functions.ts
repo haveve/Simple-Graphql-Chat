@@ -46,10 +46,14 @@ export function GetDisplayedName(str: string) {
   return str
 }
 
-export function GetFullDateTime(currentdate: Date) {
+export function GetDate(currentdate: Date){
   return currentdate.getDate() + "/"
-    + (currentdate.getMonth() + 1) + "/"
-    + currentdate.getFullYear() + ' '
+  + (currentdate.getMonth() + 1) + "/"
+  + currentdate.getFullYear() + ' '
+}
+
+export function GetFullDateTime(currentdate: Date) {
+  return GetDate(currentdate)
     + TimeStringFromDate(currentdate)
 }
 
@@ -70,7 +74,7 @@ export function SortMessageByTime(messages: Message[], reverse: boolean = false)
   })
 }
 
-export function ToNormalDate(str: string | Date) {
+export function DateFromString(str: string) {
   return new Date(str)
 }
 

@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Container, Row, Col, Form } from 'react-bootstrap';
 import { ConnectToChat } from '../Requests/Requests';
-import '../Styles/App.css';
-import 'bootstrap/dist/css/bootstrap.min.css'
 import { addMessageMutation, queryGetAllChats, queryUser, subscriptionToChat, subscriptionToNotification } from '../Features/Queries';
 import Dispatch from '../SocketDispatcher';
 import { setCookie } from '../Features/Functions';
@@ -16,21 +14,27 @@ import { Status, dropCurrentChat, dropUpdateMessage, setState, setState as setSt
 import ChatHeader from './ChatHeader';
 import NotificationModalWindow, { MessageType } from './Service/NotificationModalWindow';
 import { setState as setStateGlobalNotification } from '../Redux/Slicers/GlobalNotification';
-import LogOut from './AuthRegReset/LogOut';
+import AdditionalInfo from './AuthRegReset/AdditionalInfo';
 import MessageOptions, { MessageOptionType } from './MessageOperation/MessageOption';
 import { defaultState } from './ChatSelect';
 import { useImmer } from 'use-immer';
 import { MessageInput } from '../Features/Types';
 import UseEffectIf from './Hooks/useEffectIf';
-import { selectMessageIds } from '../Redux/reselect';
+import { selectMessageIdsWithDate } from '../Redux/reselect';
+import { DateFromString } from '../Features/Functions';
 
 export const maxVisibleLength = 26;
+
+enum themes{
+  light = "light",
+  dark = "dark"
+}
 
 function Chat() {
   const chatPending = setState('pending');
 
   const currentChat = useTypedSelector(store => store.chat.currentChat)
-  const messageIds = useTypedSelector(selectMessageIds)
+  const messageIdsWithDate = useTypedSelector(selectMessageIdsWithDate)
   const user = useTypedSelector(store => store.user.user)
   const chatState = useTypedSelector(store => store.chat.status)
   const erroMessage = useTypedSelector(store => store.chat.error)
@@ -40,31 +44,45 @@ function Chat() {
   let lastMessage = useRef<HTMLDivElement>(null);
   let refToOpt = useRef<HTMLDivElement>(null);
 
+  const prevDate = useRef<string | null>(null)
+
+  const [theme,setTheme] = useState<themes>(themes.light)
+
   const [option, setOption] = useImmer<MessageOptionType>(defaultState)
 
   const updatedMessage = useTypedSelector(store => store.chat.updatedMessage)
 
+  useEffect(()=>{
+    const className = `root-${theme}`;
+
+    document.body.classList.add(className)
+
+    return ()=>{
+      document.body.classList.remove(className)
+    }
+  },[theme])
+
   UseEffectIf(() => {
     lastMessage.current?.scrollIntoView()
   },
-    [messageIds.length], [0],
+    [messageIdsWithDate.length], [0],
     ([prevLength]) => {
-      return prevLength < messageIds.length
+      return prevLength < messageIdsWithDate.length
     })
 
   useEffect(() => {
-      const connection = ConnectToChat(false,!wasInitialAuth)
-      let sub = connection.subscribe(sub => sub.subscribe({
-        next: (response) => Dispatch(response)
-      }))
-      const subToNotify = RequestBuilder('start', { query: subscriptionToNotification })
+    const connection = ConnectToChat(false, !wasInitialAuth)
+    let sub = connection.subscribe(sub => sub.subscribe({
+      next: (response) => Dispatch(response)
+    }))
+    const subToNotify = RequestBuilder('start', { query: subscriptionToNotification })
 
-      connection.subscribe(sub => sub.next(subToNotify,chatPending))
-      connection.subscribe(sub => sub.next(RequestBuilder('start', { query: queryUser }),chatPending))
-      connection.subscribe(sub => sub.next(RequestBuilder('start', { query: queryGetAllChats }),chatPending))
+    connection.subscribe(sub => sub.next(subToNotify, chatPending))
+    connection.subscribe(sub => sub.next(RequestBuilder('start', { query: queryUser }), chatPending))
+    connection.subscribe(sub => sub.next(RequestBuilder('start', { query: queryGetAllChats }), chatPending))
 
     return () => {
-      connection.subscribe(sub => sub.next(RequestBuilder('stop', {}, subToNotify.id!),chatPending))
+      connection.subscribe(sub => sub.next(RequestBuilder('stop', {}, subToNotify.id!), chatPending))
       sub.unsubscribe();
       setInitialAuth(true);
     }
@@ -78,12 +96,12 @@ function Chat() {
         chatId: currentChat.id
       }
 
-      connection.subscribe(sub => sub.next(RequestBuilder('start', { query: queryGetAllMessages, variables: chatIdVard }),chatPending))
+      connection.subscribe(sub => sub.next(RequestBuilder('start', { query: queryGetAllMessages, variables: chatIdVard }), chatPending))
       const subToChat = RequestBuilder('start', { query: subscriptionToChat, variables: chatIdVard });
-      connection.subscribe(sub => sub.next(subToChat,chatPending))
+      connection.subscribe(sub => sub.next(subToChat, chatPending))
 
       return () => {
-        connection.subscribe(sub => sub.next(RequestBuilder('stop', {}, subToChat.id!),chatPending))
+        connection.subscribe(sub => sub.next(RequestBuilder('stop', {}, subToChat.id!), chatPending))
       }
     }
   }, [currentChat?.id])
@@ -102,7 +120,7 @@ function Chat() {
           chatId: updatedMessage.chatId,
           message
         }
-      }),chatPending))
+      }), chatPending))
       dispatch(dropUpdateMessage())
       return;
     }
@@ -119,7 +137,7 @@ function Chat() {
             sentAt: new Date()
           }
         }
-      }),chatPending));
+      }), chatPending));
     }
     setCreatedMessage('')
   }
@@ -147,23 +165,37 @@ function Chat() {
     }
   }
 
-  return <><Container onKeyDown={DropChat} tabIndex={0} fluid={'fluid'} className='chat-bg p-0 h-100 m-0'>
+  const GetMessages = () => {
+    prevDate.current = null;
+    return messageIdsWithDate.map((data, key) => {
+
+      const setDate = prevDate.current ? DateFromString(prevDate.current).getDate() !== DateFromString(data.sentAt).getDate() : true;
+
+      if (setDate) {
+        prevDate.current = data.sentAt
+      }
+
+      return <MessageComponent setDate={setDate} HandleContext={HandleContextMenu} key={data.id} id={data.id!} ref={key == messageIdsWithDate.length - 1 ? lastMessage : undefined} />
+    })
+  }
+
+  return <><Container onKeyDown={DropChat} tabIndex={0} fluid={'fluid'} className='root-dark chat-bg p-0 h-100 m-0'>
     <Row className='m-0 flex-row p-0 h-100'>
-      <Col sm={3} className='chat-list h-100 p-3 select-chat-scroll border-end border-warning'>
+      <Col sm={3} className='chat-list h-100 p-3 select-chat-scroll'>
         <div className="d-flex chat-size-head align-items-center p-0 m-0">
           <AddChat />
-          <LogOut />
+          <AdditionalInfo />
         </div>
         <ChatSelect />
       </Col>
       {currentChat?.id ?? -1 > 0 ?
         <Col className='d-flex flex-column h-100 p-0 m-0' onMouseLeave={handleHideOption} onClick={handleHideOption}>
-          <ChatHeader currentChat={currentChat!} withChatInfo={true} />
+          <ChatHeader onSmileClick = {()=>{
+            setTheme(theme => theme == themes.dark?themes.light:themes.dark)
+          }} currentChat={currentChat!} withChatInfo={true} />
           <Col className='p-4 m-0 h5 scroll'>
             {
-              messageIds.map((id, key) => {
-                return <MessageComponent HandleContext={HandleContextMenu} key={id} id={id!} ref={key == messageIds.length - 1 ? lastMessage : undefined} />
-              })
+              GetMessages()
             }
           </Col>
           <MessageOptions option={option} ref={refToOpt}></MessageOptions>

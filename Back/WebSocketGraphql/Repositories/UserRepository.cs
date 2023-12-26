@@ -67,7 +67,7 @@ namespace TimeTracker.Repositories
 
         public async Task<User?> GetUserByNickNameOrEmailAsync(string nickNameOrEmail)
         {
-            string query = "SELECT id,nick_name,email,password,activate_code,salt FROM Users WHERE nick_name = @nickNameOrEmail OR email = @nickNameOrEmail";
+            string query = "SELECT id,nick_name,email,password,activate_code,salt, key_2auth, reset_key_2auth  FROM Users WHERE nick_name = @nickNameOrEmail OR email = @nickNameOrEmail";
             using var connection = _dapperContext.CreateConnection();
             return await connection.QuerySingleOrDefaultAsync<User>(query, param: new { nickNameOrEmail }).ConfigureAwait(false);
         }
