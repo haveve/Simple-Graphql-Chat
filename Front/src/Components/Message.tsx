@@ -19,9 +19,9 @@ const MessageComponent = memo(forwardRef<HTMLDivElement,{HandleContext:(chatId:n
 
     const currentId = useTypedSelector(store => store.user.user?.id)
     return<>{dateIndicator} {el.fromId?<div ref={ref} className={currentId === el.fromId ? 'd-flex mb-3 justify-content-end' : 'mb-3'} >
-      <div onContextMenu = {onContextMenu} className={`max-width-50per text-${currentId === el.fromId ?'success':'info'} d-inline-block message-style`}>
+      <div onContextMenu = {onContextMenu} className={`max-width-50per d-inline-block message-style`}>
         <div className='d-flex justify-content-between gap-5 mb-2 '>
-          <span>
+          <span className={`text-${currentId === el.fromId ?'success':'info'}`}>
             {currentId === el.fromId ? 'You' : el.nickName}
           </span>
           <span className='text-end pt-2 text-primary time-font'>

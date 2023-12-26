@@ -55,11 +55,10 @@ export default function RemoveFromChat(props: { chatId: number | null, show: boo
     const deleteAllHandler: React.ChangeEventHandler<HTMLInputElement> = (event) => {
         setDeleteAll(Boolean(event.target.checked))
     }
-    const textElement = <div className='h4 pt-3'>Are you sure that you wanna <span className='text-danger'>leave </span> <span className='text-primary'>{chat?.name}</span> chat ?</div>
+
     return chat ? <Modal centered show={show}>
         < Modal.Body className='ps-3'>
             <ChatHeader currentChat={{ ...chat!, chatMembersCount: 0 }} withoutParticipants={true} onlyIco={true} />
-            {textElement}
             <Form.Select size='lg' className='mt-3' onChange={(event) => {
                 setRemoveName(event.target.value)
             }}>
@@ -68,7 +67,6 @@ export default function RemoveFromChat(props: { chatId: number | null, show: boo
                     if(el.id === chat.creatorId){
                         return <option value={""} className='text-danger'>{el.nickName}</option>
                     }
-
                     return <option value={el.nickName}>{el.nickName}</option>
                 })}
             </Form.Select>

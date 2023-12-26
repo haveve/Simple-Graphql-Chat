@@ -35,6 +35,7 @@ export default function ChatInfo(props: { show: boolean, handleClose: () => void
     const HandleContextMenu = (data: ReduxParticipant, event: React.MouseEvent<HTMLDivElement>) => {
         event.preventDefault()
         if (refToOpt.current) {
+
             refToOpt.current.style.top = event.clientY + "px"
             refToOpt.current.style.left = event.clientX + "px"
         }
@@ -55,11 +56,11 @@ export default function ChatInfo(props: { show: boolean, handleClose: () => void
             const connection = ConnectToChat();
             const request = RequestBuilder('start', { query: queryParticipants, variables: { chatId: currentChatId, search } });
             connection.subscribe(sub => {
-                sub.next(request,chatPending)
+                sub.next(request, chatPending)
             })
             return () => {
                 connection.subscribe(sub => {
-                    sub.next(RequestBuilder('stop', {}, request.id!),chatPending)
+                    sub.next(RequestBuilder('stop', {}, request.id!), chatPending)
                 })
             }
         }
@@ -81,9 +82,12 @@ export default function ChatInfo(props: { show: boolean, handleClose: () => void
         </div>
         <div className='pt-2 ps-2 h5 h-100 select-chat-scroll'>
             {participants.map(el => {
-                return <div key = {el.nickName} onContextMenu={(event) => HandleContextMenu(el, event)}><Icon color={el.color} name={el.nickName}>
-                    <div className={`d-flex align-items-center small ${el.online ? 'text-success' : 'text-danger'} `}>{el.online ? "online" : "offline"}</div>
-                </Icon></div>
+                return <div key={el.nickName} onContextMenu={(event) => HandleContextMenu(el, event)}>
+                    <Icon color={el.color} name={el.nickName}>
+                        <div className={`d-flex align-items-center small ${el.online ? 'text-success' : 'text-danger'} `}>{el.online ? "online" : "offline"}</div>
+                    </Icon>
+                </div>
+
             })}
         </div>
         <Options ref={refToOpt} option={option} />

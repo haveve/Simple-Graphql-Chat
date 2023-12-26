@@ -45,12 +45,12 @@ export default function AdditionalInfo() {
 
     const _2fHandler = key2Auth ? drop2fHandler: set2fHandler
 
-    return <Dropdown>
+    return <Dropdown className='additional-info'>
         <Dropdown.Toggle as={CustomToggle} id="dropdown-basic">
         </Dropdown.Toggle>
         <Dropdown.Menu>
-            <Dropdown.Item onClick={_2fHandler}>{_2fText}</Dropdown.Item>
-            <Dropdown.Item onClick={logOutHandler}>Log out</Dropdown.Item>
+            <Dropdown.Item className='additional-info-node' onClick={_2fHandler}>{_2fText}</Dropdown.Item>
+            <Dropdown.Item className='additional-info-node' onClick={logOutHandler}>Log out</Dropdown.Item>
         </Dropdown.Menu>
         <Drop2factorAuht isVisibleDrop2fa={isVisibleDrop} setVisibleDrop2fa={setVisibleDrop} />
         <Set2factorAuth _2fAuthData={_2fAuthCode} isVisibleSet2fa={isVisibleSet} setVisibleSet2fa={setVisibleSet} />

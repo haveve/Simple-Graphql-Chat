@@ -6,9 +6,9 @@ import ChatInfo from './ChatInfo';
 import Icon from './Icon';
 import { SmilesList, SmilesWithComments, SmileListType } from '../Features/Constants';
 
-export default function ChatHeader(props: { currentChat: ReduxCurrentChat,onSmileClick?:()=>void, withChatInfo?: boolean, onlyIco?: boolean, withoutParticipants?: boolean }) {
+export default function ChatHeader(props: { currentChat: ReduxCurrentChat, onSmileClick?: () => void, withChatInfo?: boolean, onlyIco?: boolean, withoutParticipants?: boolean }) {
 
-    const { currentChat,onSmileClick, onlyIco, withoutParticipants, withChatInfo } = props
+    const { currentChat, onSmileClick, onlyIco, withoutParticipants, withChatInfo } = props
     const [showChatInfo, setShowChatInfo] = useState(false);
     const [randomImg, setRandomImg] = useState<SmileListType | null>(null)
     const participantText = 'participant'
@@ -36,14 +36,16 @@ export default function ChatHeader(props: { currentChat: ReduxCurrentChat,onSmil
             {GetAbbreviationFromPhrase(currentChat!.name)}
         </div>
         <div className='h5 pt-1 ms-3 flex-grow-0 flex-shrink-1 flex-basis-1 d-flex flex-column justify-content-center align-items-start'>
-            {chatName}
+            <span className='chat-text-color'>
+                {chatName}
+            </span>
             {participants}
         </div>
     </div>
 
     const chatInfo = withChatInfo ? <ChatInfo children={ico} show={showChatInfo} handleClose={handleChatInfo} /> : null
 
-    const SmileTip = (props:React.ComponentProps<any>) => {
+    const SmileTip = (props: React.ComponentProps<any>) => {
         return <Tooltip id="button-tooltip"{...props}>
             {randomImg?.message}
         </Tooltip>

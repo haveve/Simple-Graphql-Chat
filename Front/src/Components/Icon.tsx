@@ -13,7 +13,7 @@ export default function Icon(props:{color:string,name:string,children?:JSX.Eleme
         {GetAbbreviationFromPhrase(name)}
     </div>
     <div className='h5 pt-1 ms-3 d-flex flex-grow-0 flex-shrink-1 flex-basis-1 flex-column justify-content-center align-items-start'>
-        {name}
+        <span className='chat-text-color'>{name}</span>
         {children}
     </div>
 </div>
