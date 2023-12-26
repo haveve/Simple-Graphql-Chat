@@ -43,7 +43,7 @@ namespace TimeTracker.Controllers
         }
 
         [HttpPost("set-2f-auth")]
-        public IActionResult SetUser2fAuth([FromServices] AuthHelper helper, [FromServices] IAuthorizationRepository authorizationRepository, [BindRequired][FromBody] RequestData reqData)
+        public async Task<IActionResult> SetUser2fAuth([FromServices] AuthHelper helper, [FromServices] IAuthorizationRepository authorizationRepository, [BindRequired][FromBody] RequestData reqData)
         {
             if (!ModelState.IsValid)
             {
@@ -56,7 +56,7 @@ namespace TimeTracker.Controllers
 
             var data = tfa.ValidateTwoFactorPIN(reqData.Key, reqData.Code);
 
-            if (data && authorizationRepository.Add2factorKey(id, reqData.Key, resetCode))
+            if (data && await authorizationRepository.Add2factorKeyAsync(id, reqData.Key, resetCode))
             {
                 return Json(resetCode);
             }
@@ -88,7 +88,7 @@ namespace TimeTracker.Controllers
                     return BadRequest("Invalid one-time code or you does not turn on 2f auth");
                 }
 
-                _authorizationRepository.CreateRefreshToken(new(refreshToken, expiredAt, issuedAt), user.Id);
+               await _authorizationRepository.CreateRefreshTokenAsync(new(refreshToken, expiredAt, issuedAt), user.Id);
 
                 Dictionary<string, string?> queryParams = new Dictionary<string, string?>
             {
@@ -110,7 +110,7 @@ namespace TimeTracker.Controllers
 
 
         [Route("drop-2f-auth")]
-        public IActionResult Drop2fAuth([FromServices] AuthHelper helper, [FromServices] IConfiguration config, [FromServices] IAuthorizationRepository authorizationRepository, [BindRequired][FromQuery] string code)
+        public async Task<IActionResult> Drop2fAuth([FromServices] AuthHelper helper, [FromServices] IConfiguration config, [FromServices] IAuthorizationRepository authorizationRepository, [BindRequired][FromQuery] string code)
         {
             if (!ModelState.IsValid)
             {
@@ -118,13 +118,13 @@ namespace TimeTracker.Controllers
             }
 
             var id = helper.GetUserId(HttpContext.User);
-            string? key = authorizationRepository.Get2factorKey(id);
+            string? key = await authorizationRepository.Get2factorKeyAsync(id);
 
-            if (key != null && _2fAuthHelper.Check2fAuth(key, code) && authorizationRepository.Drop2factorKey(id, null))
+            if (key != null && _2fAuthHelper.Check2fAuth(key, code) && await authorizationRepository.Drop2factorKeyAsync(id, null))
             {
                 return Ok("2f auth was droped");
             }
-            else if (authorizationRepository.Drop2factorKey(id, code))
+            else if (await authorizationRepository.Drop2factorKeyAsync(id, code))
             {
                 return Ok("2f auth was droped");
             }

@@ -34,7 +34,7 @@ namespace WebSocketGraphql.GraphQl.IdentityTypes
                     user.Email = UserData.Email;
                     string code = await _userRepository.CreateUserAsync(user);
 
-                    _emailSender.SendRegistrationEmail(code, UserData.Email);
+                    await _emailSender.SendRegistrationEmailAsync(code, UserData.Email);
 
                     return "Ok";
                 });
@@ -56,7 +56,7 @@ namespace WebSocketGraphql.GraphQl.IdentityTypes
 
                     await _userRepository.UpdateUserResetCodeByIdAsync(user.Id, code);
 
-                    _emailSender.SendResetPassEmail(code, user.Email);
+                    await _emailSender.SendResetPassEmailAsync(code, user.Email);
 
                     return "Email has sent!";
                 });

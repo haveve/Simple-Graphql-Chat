@@ -21,7 +21,7 @@ namespace TimeTracker.Services
             _emailPassword = configuration["EmailSender:Password"];
         }
 
-        public void SendResetPassEmail(string code, string email)
+        public async Task SendResetPassEmailAsync(string code, string email)
         {
             var client = new SmtpClient(_serverUrl, _port)
             {
@@ -37,9 +37,9 @@ namespace TimeTracker.Services
             mail.Subject = "Password recovery MyAwesomeChat";
             mail.Body = $"To reset your password, follow the following link = {url}";
 
-            client.Send(mail);
+            await client.SendMailAsync(mail);
         }
-        public void SendRegistrationEmail(string code, string email)
+        public async Task SendRegistrationEmailAsync(string code, string email)
         {
             var client = new SmtpClient(_serverUrl, _port)
             {
@@ -55,7 +55,7 @@ namespace TimeTracker.Services
             mail.Subject = "MyAwesomeChat Registration";
             mail.Body = $"To register, follow the link = {url}";
 
-            client.Send(mail);
+            await client.SendMailAsync(mail);
         }
     }
 }

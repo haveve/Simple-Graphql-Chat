@@ -73,7 +73,7 @@ namespace TimeTracker.GraphQL.Queries
                 var encodedJwt =  await _authorizationManager.GetAccessToken(user.Id);
 
                 var refreshToken = _authorizationManager.GetRefreshToken(user.Id);
-                _authorizationRepository.CreateRefreshToken(refreshToken, user.Id);
+                await _authorizationRepository.CreateRefreshTokenAsync(refreshToken, user.Id);
 
                 var response = new LoginOutput()
                 {
@@ -101,14 +101,14 @@ namespace TimeTracker.GraphQL.Queries
 
                     if (!whetherValid.isValid)
                     {
-                        _authorizationRepository.DeleteRefreshToken(refreshToken);
+                        await _authorizationRepository.DeleteRefreshTokenAsync(refreshToken);
                         return ExpiredSessionError(context);
                     }
 
                     int userId = int.Parse(_authorizationManager.ReadJwtToken(refreshToken).Claims.First(c => c.Type == "UserId").Value);
                     var newRefreshToken = _authorizationManager.GetRefreshToken(userId);
 
-                    _authorizationRepository.UpdateRefreshToken(refreshToken, newRefreshToken, userId);
+                    await  _authorizationRepository.UpdateRefreshTokenAsync(refreshToken, newRefreshToken, userId);
 
                     return new LoginOutput()
                     {
@@ -120,12 +120,12 @@ namespace TimeTracker.GraphQL.Queries
                 });
 
             Field<StringGraphType>("logout").
-              Resolve((context) =>
+              ResolveAsync(async(context) =>
               {
                   HttpContext httpContext = context.RequestServices!.GetService<IHttpContextAccessor>()!.HttpContext!;
                   var refreshToken = httpContext.Request.Headers.First(at => at.Key == "refresh_token").Value[0]!;
 
-                  _authorizationRepository.DeleteRefreshToken(refreshToken);
+                  await _authorizationRepository.DeleteRefreshTokenAsync(refreshToken);
 
                   return "Successfully";
               });
