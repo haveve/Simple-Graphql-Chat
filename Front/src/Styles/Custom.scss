@@ -5,7 +5,7 @@ $info: #19b5e0;
 $warning: #fec311;
 $danger: #bf211e;
 $light: #f8f9fa;
-$dark: #212529;
+$dark: #313132;
 
 @import '~bootstrap/scss/bootstrap.scss';
 
@@ -336,10 +336,14 @@ body {
 }
 
 .custom-svg:hover {
-    fill: #4b4a4a
+    fill: var(--selected-element);
 }
 
 .warning-sign {
     width: 110px;
     height: 110px;
+}
+
+.smile-text-color{
+    color: var(--tech-color);
 }

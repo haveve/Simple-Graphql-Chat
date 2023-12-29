@@ -10,7 +10,6 @@ namespace WebSocketGraphql.GraphQl.Schemes
         public ChatSchema(IServiceProvider service) : base(service)
         {
             Metadata.Add(AuthorizationExtensions.AUTHORIZE_KEY, true);
-
             Directives.Register(new LengthDirective());
 
             Query = service.GetRequiredService<ChatQuery>();

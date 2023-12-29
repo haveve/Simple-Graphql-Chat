@@ -46,8 +46,10 @@ export default function ChatHeader(props: { currentChat: ReduxCurrentChat, onSmi
     const chatInfo = withChatInfo ? <ChatInfo children={ico} show={showChatInfo} handleClose={handleChatInfo} /> : null
 
     const SmileTip = (props: React.ComponentProps<any>) => {
-        return <Tooltip id="button-tooltip"{...props}>
-            {randomImg?.message}
+        return <Tooltip id="button-tooltip" {...props}>
+            <span className='smile-text-color'>
+                {randomImg?.message}
+            </span>
         </Tooltip>
     }
 
