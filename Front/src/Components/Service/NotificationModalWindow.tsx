@@ -56,7 +56,7 @@ export default function NotificationModalWindow(props: {
                 <Col xs='auto'>
                     {pict}
                 </Col>
-                <Col>
+                <Col className="text-dark"> 
                     {props.innerText}
                 </Col>
             </Row>
