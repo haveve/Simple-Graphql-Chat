@@ -3,6 +3,7 @@ import { ajax } from 'rxjs/ajax';
 import { map, catchError, Observable, timer, mergeMap } from 'rxjs';
 import { LogoutDeleteCookie, setCookie, getCookie } from '../Features/Functions';
 import { redirect } from 'react-router'
+import path from 'path';
 
 export const url = `https://${backDomain}/graphql-auth`
 
@@ -514,10 +515,12 @@ export function axajSetUser2fAuth(key: string, code: string) {
 
 const _2fVerifyServiceUrl = "https://" + backDomain + "/verify-2f-auth";
 
-export function ajaxVerifyUserCode(token: string, code: string) {
+export function ajaxVerifyUserCode(token: string, code: string, loginPath:string) {
     return ajax<string>({
         url: _2fVerifyServiceUrl + `?token=${token}&code=${code}`
-    })
+    }).pipe(map((response)=>{
+       return loginPath+response.response 
+    }))
 }
 
 const _2fDropUrl = "https://" + backDomain + "/drop-2f-auth"

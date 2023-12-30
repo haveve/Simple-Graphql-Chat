@@ -97,7 +97,7 @@ namespace TimeTracker.Controllers
                 { "token", refreshToken }
             };
 
-                var url = QueryHelpers.AddQueryString("/", queryParams);
+                var url = QueryHelpers.AddQueryString("", queryParams);
 
                 return Json(url);
             }
