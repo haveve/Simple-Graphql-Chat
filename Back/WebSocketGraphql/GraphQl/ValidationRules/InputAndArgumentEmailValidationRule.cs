@@ -2,7 +2,6 @@
 using GraphQL;
 using GraphQL.Validation;
 using GraphQLParser.AST;
-using GraphQL.Validation.Errors;
 using WebSocketGraphql.GraphQl.IdentityTypes.Errors;
 
 namespace WebSocketGraphql.GraphQl.ValidationRules
@@ -29,7 +28,7 @@ namespace WebSocketGraphql.GraphQl.ValidationRules
                 }
                 else if (parsedValue is string str && !IsValidEmail(str))
                 {
-                    context.ReportError(new InvalidVariableError(context, variable, variableName, error));
+                    context.ReportError(new InputAndArgumentEmailValidationError(context, variable, variableName, error));
                 }
 
                 return default;
@@ -51,7 +50,11 @@ namespace WebSocketGraphql.GraphQl.ValidationRules
 
         private static void CheckEmail(ASTNode node, GraphQLValue value, IProvideMetadata? provider, ValidationContext context, string nameWithDefinition)
         {
-            var lengthDirective = provider?.FindAppliedDirective("email");
+            var directive = provider?.FindAppliedDirective("email");
+
+            if(directive is null){
+                return;
+            }
 
             if (value is GraphQLNullValue)
             {
@@ -59,13 +62,13 @@ namespace WebSocketGraphql.GraphQl.ValidationRules
             }
             if (value is GraphQLStringValue strLiteral && !IsValidEmail(strLiteral.Value.ToString()))
             {
-                context.ReportError(new ExtendedInvalidVariableError(context, node, nameWithDefinition, error));
+                context.ReportError(new InputAndArgumentEmailValidationError(context, node, nameWithDefinition, error));
             }
             
             else if (value is GraphQLVariable vRef && context.Variables != null && context.Variables.TryGetValue(vRef.Name.StringValue, out object? val)) //ISSUE:allocation
             {
                 if (val is string strVariable && !IsValidEmail(strVariable))
-                  context.ReportError(new ExtendedInvalidVariableError(context,node, nameWithDefinition, error));
+                  context.ReportError(new InputAndArgumentEmailValidationError(context,node, nameWithDefinition, error));
             }
         }
 
