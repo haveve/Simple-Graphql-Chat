@@ -12,7 +12,7 @@ namespace WebSocketGraphql.GraphQl.ValidationRules
 
         private const string error = "Email format is invalid";
 
-        //For nested fields
+        //For variables data validation. For example - variables{ someVariable:12 }
         private sealed class FieldVisitor : BaseVariableVisitor
         {
             public static readonly FieldVisitor Instance = new();
@@ -38,6 +38,8 @@ namespace WebSocketGraphql.GraphQl.ValidationRules
 
         public IVariableVisitor GetVisitor(ValidationContext _) => FieldVisitor.Instance;
 
+		//for validation directly assigned values. For example - someInputFieldOrArgument:12
+
         private static readonly INodeVisitor _nodeVisitor = new NodeVisitors(
         new MatchingNodeVisitor<GraphQLArgument>((arg, context) => CheckEmail(arg, arg.Value, context.TypeInfo.GetArgument(), context, $"Argument {arg}")),
         new MatchingNodeVisitor<GraphQLObjectField>((field, context) =>
@@ -51,23 +53,20 @@ namespace WebSocketGraphql.GraphQl.ValidationRules
         {
             var lengthDirective = provider?.FindAppliedDirective("email");
 
-            if (lengthDirective == null)
-                return;
-
             if (value is GraphQLNullValue)
             {
                 return;
             }
-            if (value is GraphQLStringValue strLiteral && IsValidEmail(strLiteral.Value.ToString()))
+            if (value is GraphQLStringValue strLiteral && !IsValidEmail(strLiteral.Value.ToString()))
             {
                 context.ReportError(new ExtendedInvalidVariableError(context, node, nameWithDefinition, error));
             }
-            //When we cannot parse to string but we can treat value through string
-            //else if (value is GraphQLVariable vRef && context.Variables != null && context.Variables.TryGetValue(vRef.Name.StringValue, out object? val))
-            //{
-            //    if (val is string strVariable && !IsValidEmail(strVariable))
-            //      context.ReportError(new ExtendedInvalidVariableError(context,node, nameWithDefinition, error));
-            //}
+            
+            else if (value is GraphQLVariable vRef && context.Variables != null && context.Variables.TryGetValue(vRef.Name.StringValue, out object? val)) //ISSUE:allocation
+            {
+                if (val is string strVariable && !IsValidEmail(strVariable))
+                  context.ReportError(new ExtendedInvalidVariableError(context,node, nameWithDefinition, error));
+            }
         }
 
         public ValueTask<INodeVisitor?> ValidateAsync(ValidationContext context)
