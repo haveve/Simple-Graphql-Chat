@@ -38,8 +38,8 @@ namespace TimeTracker.Controllers
 
         public class RequestData
         {
-            public string Key { get; set; }
-            public string Code { get; set; }
+            public string Key { get; set; } = null!;
+            public string Code { get; set; } = null!;
         }
 
         [HttpPost("set-2f-auth")]

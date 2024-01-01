@@ -9,7 +9,6 @@ using TimeTracker.GraphQL.Schemas;
 using TimeTracker.Repositories;
 using TimeTracker.Services;
 using WebSocketGraphql.Services.AuthenticationServices;
-using GraphQL.Server.Transports.AspNetCore;
 using GraphQL.Validation.Rules;
 using WebSocketGraphql.GraphQl.ValidationRules;
 
@@ -42,7 +41,10 @@ builder.Services.AddAuthentication(opt =>
     opt.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
 }).AddScheme<JwtBearerOptions, CustomJwtBearerHandler>(JwtBearerDefaults.AuthenticationScheme, options => { });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(setting =>
+{
+    setting.AddPolicy("Authorized", p => p.RequireAuthenticatedUser());
+});
 
 builder.Services.AddCors();
 

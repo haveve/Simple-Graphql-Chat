@@ -14,7 +14,7 @@ namespace WebSocketGraphql.Services.AuthenticationServices
         private readonly IChat _chat;
         private readonly IConfiguration _configuration;
 
-        public AuthHelper(IChat chat,IConfiguration configuration)
+        public AuthHelper(IChat chat, IConfiguration configuration)
         {
             _chat = chat;
             _configuration = configuration;
@@ -33,7 +33,7 @@ namespace WebSocketGraphql.Services.AuthenticationServices
             {
                 return true;
             }
-            
+
             return false;
         }
 
@@ -42,9 +42,9 @@ namespace WebSocketGraphql.Services.AuthenticationServices
             return JsonSerializer.Deserialize<int>(authUser.Claims.First(c => c.Type == "UserId").Value);
         }
 
-        public string GetUserNickName(ClaimsPrincipal authUser)
+        public string GetUserNickName(IDictionary<string, object?> data)
         {
-            return authUser.Claims.First(c => c.Type == "UserNickName").Value;
+            return data.First(c => c.Key == "UserNickName").Value as string ?? throw new InvalidCastException("Nick was not found");
         }
 
         public bool IsAccess(IEnumerable<Claim> data)
@@ -62,7 +62,7 @@ namespace WebSocketGraphql.Services.AuthenticationServices
 
         public IEnumerable<Claim> GetImmutableClaims(IEnumerable<Claim> data)
         {
-            return data.Where(el => el.Type == "UserNickName" || el.Type == "UserId");
+            return data.Where(el => el.Type == "UserId");
         }
 
         public IEnumerable<int>? GetChatParticipant(IDictionary<string, object?> data)

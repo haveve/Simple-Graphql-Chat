@@ -12,6 +12,7 @@ export type MessageInput = {
 
 export type ParticipantState = {
     online:boolean,
+    nickName:string|null,
     id:number
 }
 

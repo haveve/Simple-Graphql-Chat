@@ -1,14 +1,34 @@
 import { defaultSubscriptionResponse, subscriptionDataType, AllFieldsRequestType, GetNewToken } from './Requests/Requests';
 import { ChatNotificationType, ChatResultType, Message, MessageType } from './Features/Types';
 import store from './Redux/store';
-import { updateMessage, removeMessage, deleteAll, setParticipantState, changeChatParticipances, setChats, setMessages, addMessage, updateChat, setParticipants, addChat, removeChat, setError, setChat, ChangeParticipantsType } from './Redux/Slicers/ChatSlicer';
+import { updateMessage, removeMessage, deleteAll, setParticipantState, changeChatParticipants, setChats, setMessages, addMessage, updateChat, setParticipants, addChat, removeChat, setError, setChat, ChangeParticipantsType } from './Redux/Slicers/ChatSlicer';
 import { SetMessageId } from './Features/Functions';
 import { batch } from 'react-redux'
 import { addUser } from './Redux/Slicers/UserSlicer';
 import { setError as setErrorGlobal } from './Redux/Slicers/GlobalNotification';
 import { defaultErrorMessage } from './Features/Constants';
+import { TokenErrorHandler } from './Requests/AuthorizationRequests';
+import { updateUserData } from './Redux/Slicers/UserSlicer';
 
 const dispatch = store.dispatch
+
+const deletedNickName = "DELETED";
+
+export class SetErrorHandler {
+
+    private static Handlers: Map<string, Function> = new Map<string, Function>();
+
+    public static SetHandler(id: string, handler: Function) {
+        this.Handlers.set(id, handler);
+    }
+
+    public static GetHandler(id: string) {
+        const data = this.Handlers.get(id);
+        this.Handlers.delete(id)
+        return data;
+    }
+
+}
 
 export type DispatchReturnType<T> = {
     dataType: string | null
@@ -27,6 +47,12 @@ export default function Dispatch(response: defaultSubscriptionResponse<any>) {
             const responseWithData: defaultSubscriptionResponse<subscriptionDataType<AllFieldsRequestType, any>> = response;
             const data = responseWithData.payload.data;
             if (responseWithData.payload.errors) {
+                const handler = SetErrorHandler.GetHandler(response.id!)
+                if (handler) {
+                    handler();
+                    return;
+                }
+
                 dispatch(setErrorGlobal(defaultErrorMessage))
                 console.log(JSON.stringify(response));
                 return;
@@ -75,14 +101,14 @@ export default function Dispatch(response: defaultSubscriptionResponse<any>) {
                             SetMessageId(messageNotification)
                             batch(() => {
                                 dispatch(addMessage({ ...messageNotification, fromId: null }))
-                                dispatch(changeChatParticipances({ type: ChangeParticipantsType.ADD, chatId: messageNotification.chatId }))
+                                dispatch(changeChatParticipants(ChangeParticipantsType.ADD))
                             })
                             break;
                         case MessageType.USER_REMOVED:
                             SetMessageId(messageNotification)
                             batch(() => {
                                 dispatch(addMessage({ ...messageNotification, fromId: null }))
-                                dispatch(changeChatParticipances({ type: ChangeParticipantsType.DELETE, chatId: messageNotification.chatId }))
+                                dispatch(changeChatParticipants(ChangeParticipantsType.DELETE))
                                 if (messageNotification.deleteAll)
                                     dispatch(deleteAll({ chatId: messageNotification.chatId, fromId: messageNotification.fromId! }))
                             })
@@ -135,11 +161,29 @@ export default function Dispatch(response: defaultSubscriptionResponse<any>) {
             else if (data.chatFullInfo) {
                 dispatch(setChat(data.chatFullInfo))
             }
+            else if (data.deleteUser) {
+                TokenErrorHandler()
+            }
+            else if (data.updateUser) {
+                GetNewToken().subscribe(_ => {
+                    batch(() => {
+                        dispatch(updateUserData(data.updateUser!))
+                        if (data.updateUser!.nickName === deletedNickName) {
+                            dispatch(changeChatParticipants(ChangeParticipantsType.DELETE))
+                        }
+                    })
+                })
+            }
             else {
                 console.log(`unknown data type:${JSON.stringify(responseWithData)}`)
             }
             break;
         case 'error':
+            const handler = SetErrorHandler.GetHandler(response.id!)
+            if (handler) {
+                handler();
+                return;
+            }
             dispatch(setErrorGlobal(defaultErrorMessage))
             console.log(JSON.stringify(response));
             break;

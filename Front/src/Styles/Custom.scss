@@ -3,7 +3,7 @@ $secondary: #886d0b;
 $success: #7fa931;
 $info: #19b5e0;
 $warning: #fec311;
-$danger: #bf211e;
+$danger: hsl(0, 100%, 30%);
 $light: #f8f9fa;
 $dark: #313132;
 
@@ -346,4 +346,12 @@ body {
 
 .smile-text-color{
     color: var(--tech-color);
+}
+.d-message-none{
+    opacity: 0;
+    z-index: -10;
+}
+
+.d-message-none>div:hover{
+    cursor: default !important;
 }

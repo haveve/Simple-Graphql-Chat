@@ -7,10 +7,10 @@ import { setState } from '../../Redux/Slicers/AuthRegSlicer';
 import { useTypedDispatch, useTypedSelector } from '../../Redux/store';
 import { useNavigate } from 'react-router';
 
-export default function SetPassword() {
+export const maxPasswordLength = 24;
+export const minPasswordLength = 8
 
-    const maxPasswordLength = 16;
-    const minPasswordLength = 8
+export default function SetPassword() {
 
     const navigate = useNavigate();
 
@@ -75,7 +75,7 @@ export default function SetPassword() {
             <Form.Group controlId="validationCustom01">
                 <Form.Control size='lg' value={repeatedPassword} isInvalid={!repeatedPasswordValidation()} type='password' onChange={repeatedPasswordOnChange} placeholder='Repeated password'></Form.Control>
                 <Form.Control.Feedback type="invalid">
-                    Repeated password must be equealed to password
+                    Repeated password must be equaled to password
                 </Form.Control.Feedback>
             </Form.Group>
             <Button type="submit" variant='outline-warning' size='lg'  className='m-0'>

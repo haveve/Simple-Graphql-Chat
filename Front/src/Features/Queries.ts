@@ -1,22 +1,22 @@
 import { nanoid } from "nanoid"
 import { defaultSubscriptionResponse } from "../Requests/Requests"
 
-export interface OperationMessage{
-  payload?:any,
-  id:string,
-  type:string
+export interface OperationMessage {
+  payload?: any,
+  id: string,
+  type: string
 }
 
 export type PayloadType = {
-  query?:string,
-  variables?:any,
-  [name:string]:any
+  query?: string,
+  variables?: any,
+  [name: string]: any
 }
-export type ConnectionType = 'connection_init'|'start'|'stop'|'connection_terminate'
+export type ConnectionType = 'connection_init' | 'start' | 'stop' | 'connection_terminate'
 
-export function RequestBuilder(type:ConnectionType,payload:PayloadType = {},id:string|null = null):defaultSubscriptionResponse<any>{
+export function RequestBuilder(type: ConnectionType, payload: PayloadType = {}, id: string | null = null): defaultSubscriptionResponse<any> {
   id ??= nanoid()
-  return {payload,id,type}
+  return { payload, id, type }
 }
 
 //Subscription
@@ -51,7 +51,8 @@ export const subscriptionToChat = `subscription($chatId:Int!){
     },
     ... on ChatParticipantSubscription{
       id,
-      online
+      online,
+      nickName
     }
   }
 }`
@@ -134,7 +135,7 @@ export const updateMessageMutation = `mutation($message:MessageInput!,$chatId:In
   }  
   }`
 
-  export const createChatMutation = `mutation($name:String!){
+export const createChatMutation = `mutation($name:String!){
     createChat(name:$name){
       id,
       creatorId,
@@ -143,7 +144,7 @@ export const updateMessageMutation = `mutation($message:MessageInput!,$chatId:In
     }
   }`
 
-  export const updateChatMutation = `mutation($chat:ChatInput!){
+export const updateChatMutation = `mutation($chat:ChatInput!){
     updateChat(chat:$chat){
       name,
       id,
@@ -151,18 +152,30 @@ export const updateMessageMutation = `mutation($message:MessageInput!,$chatId:In
     }
   }`
 
-  export const removeChatMutation = `mutation($chatId:Int!){
+export const removeChatMutation = `mutation($chatId:Int!){
     removeChat(chatId:$chatId)
   }`
 
-  export const addUserToChatMutation = `mutation($chatId:Int!,$user:String!){
+export const addUserToChatMutation = `mutation($chatId:Int!,$user:String!){
     addUserToChat(chatId:$chatId,user:$user)
   }`
 
-  export const removeUserFromChatMutation = `mutation($chatId:Int!,$user:String!,$deleteAll:Boolean){
+export const removeUserFromChatMutation = `mutation($chatId:Int!,$user:String!,$deleteAll:Boolean){
     removeUserFromChat(chatId:$chatId,user:$user,deleteAll:$deleteAll)
   }`
 
-  export const leaveFromChatMutation = `mutation($chatId:Int!,$deleteAll:Boolean){
+export const leaveFromChatMutation = `mutation($chatId:Int!,$deleteAll:Boolean){
     leaveFromChat(chatId:$chatId,deleteAll:$deleteAll)
+  }`
+
+export const updateUserDataMutaion = `mutation update($data:UserUpdateInput!){
+  updateUser(data:$data){
+      email,
+      nickName,
+      id
+    }
+  }`
+
+export const deleteUserMutation = `mutation remove($data:UserRemoveInput!){
+    deleteUser(data:$data)
   }`

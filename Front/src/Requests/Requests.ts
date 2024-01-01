@@ -8,9 +8,10 @@ import { getCookie } from '../Features/Functions';
 import { nanoid } from 'nanoid';
 import store from '../Redux/store';
 import { dropCurrentChat, setError } from '../Redux/Slicers/ChatSlicer';
-import { setState } from '../Redux/Slicers/ChatSlicer';
 import { defaultErrorMessage } from '../Features/Constants';
 import { PayloadAction } from '@reduxjs/toolkit';
+import { UpdateUserResult } from '../Redux/Slicers/UserSlicer';
+
 const dispatch = store.dispatch
 
 const keepAliveInterval = 60;
@@ -21,7 +22,7 @@ export type AllFieldsRequestType = {
     chats?: Chat[],
     participants?: ChatParticipant[],
     user?: User,
-    chatFullInfo?:FullChat
+    chatFullInfo?: FullChat
     //subscription
     chatNotification?: DerivedMessageOrChatInfo,
     userNotification?: UserNotification,
@@ -33,7 +34,9 @@ export type AllFieldsRequestType = {
     removeChat?: number,
     updateChat?: FullChat,
     addUserToChat?: string,
-    removeUserFromChat?: string
+    removeUserFromChat?: string,
+    updateUser?: UpdateUserResult,
+    deleteUser?: number
 }
 
 export type subscriptionDataType<T, K> = {
@@ -80,13 +83,14 @@ class WebSocketProxy<T extends MinWebSocketType>{
 
     private webSocket: WebSocketSubject<T>
     private keepAlive: Subscription
-    private skipPinging:boolean
+    private skipPinging: boolean
 
     public constructor(webSocket: WebSocketSubject<T>, keepAliveMessage: T) {
         this.skipPinging = false;
         this.webSocket = webSocket
         this.webSocket.subscribe({
             error: (error) => {
+
                 console.log(JSON.stringify(error))
                 if (this.webSocket.closed) {
                     this.keepAlive.unsubscribe();
@@ -98,7 +102,7 @@ class WebSocketProxy<T extends MinWebSocketType>{
         this.keepAlive = interval(keepAliveInterval * 1000).subscribe({
             next: () => {
                 if (!this.webSocket.closed && !this.skipPinging) {
-                    this.next(keepAliveMessage,null)
+                    this.next(keepAliveMessage, null)
                 }
                 this.skipPinging = false;
             }
@@ -106,7 +110,7 @@ class WebSocketProxy<T extends MinWebSocketType>{
     }
 
     public subscribe(subscriber: NextObserver<any>) {
-        this.webSocket.subscribe(subscriber)
+        return this.webSocket.subscribe(subscriber)
     }
 
     public complete() {
@@ -114,10 +118,10 @@ class WebSocketProxy<T extends MinWebSocketType>{
         this.keepAlive.unsubscribe()
     }
 
-    public next(next: T, paddingAction:PayloadAction<any>|null) {
-        if(paddingAction){
-             dispatch(paddingAction)
-             this.skipPinging = true;
+    public next(next: T, paddingAction: PayloadAction<any> | null) {
+        if (paddingAction) {
+            dispatch(paddingAction)
+            this.skipPinging = true;
         }
         GetTokenObservable().subscribe({
             next: () => {
@@ -148,11 +152,11 @@ function SendProxy(subscriber: Subscriber<WebSocketProxy<defaultSubscriptionResp
 
 let socket: WebSocketSubject<defaultSubscriptionResponse<any>>;
 
-export function GetNewToken(){
+export function GetNewToken() {
     return GetTokenObservable(true);
 }
 
-export function ConnectToChat(reconnect: boolean = false, newToken:boolean = false): Observable<WebSocketProxy<defaultSubscriptionResponse<any>>> {
+export function ConnectToChat(reconnect: boolean = false, newToken: boolean = false): Observable<WebSocketProxy<defaultSubscriptionResponse<any>>> {
 
     return new Observable(subscribe => {
         if ((!SingletonContainer.GetInstance() || reconnect || socket.closed) && SingletonContainer.getDone()) {

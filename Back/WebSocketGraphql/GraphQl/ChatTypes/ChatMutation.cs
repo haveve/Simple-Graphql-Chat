@@ -1,5 +1,6 @@
 ﻿using GraphQL;
 using GraphQL.Types;
+using TimeTracker.Repositories;
 using WebSocketGraphql.GraphQl.ChatTypes.Types;
 using WebSocketGraphql.GraphQl.IdentityTypes;
 using WebSocketGraphql.Models;
@@ -12,7 +13,7 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
     public class ChatMutation : ObjectGraphType
     {
 
-        public ChatMutation(IChat chat, AuthHelper helper)
+        public ChatMutation(IChat chat, AuthHelper helper, IUserRepository userRepository)
         {
             Field<NonNullGraphType<MessageGraphType>>("addMessage")
                 .Argument<NonNullGraphType<MessageInputGraphType>>("message", el => el.ApplyDirective(
@@ -23,7 +24,7 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
                     var receivedMessage = context.GetArgument<Message>("message");
                     receivedMessage.ChatId = context.GetArgument<int>("chatId");
                     receivedMessage.FromId = helper.GetUserId(context.User!);
-                    receivedMessage.NickName = helper.GetUserNickName(context.User!);
+                    receivedMessage.NickName = helper.GetUserNickName(context.UserContext);
 
                     if (!await chat.AddMessageAsync(receivedMessage))
                     {
@@ -40,7 +41,7 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
                     var receivedMessage = context.GetArgument<Message>("message");
                     receivedMessage.ChatId = context.GetArgument<int>("chatId");
                     receivedMessage.FromId = helper.GetUserId(context.User!);
-                    receivedMessage.NickName = helper.GetUserNickName(context.User!);
+                    receivedMessage.NickName = helper.GetUserNickName(context.UserContext);
 
 
                     if (!await chat.RemoveMessageAsync(receivedMessage))
@@ -58,7 +59,7 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
                     var receivedMessage = context.GetArgument<Message>("message");
                     receivedMessage.ChatId = context.GetArgument<int>("chatId");
                     receivedMessage.FromId = helper.GetUserId(context.User!);
-                    receivedMessage.NickName = helper.GetUserNickName(context.User!);
+                    receivedMessage.NickName = helper.GetUserNickName(context.UserContext);
 
 
                     if (!await chat.UpdateMessageAsync(receivedMessage))
@@ -71,7 +72,7 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
 
             Field<NonNullGraphType<ExtendedChatGraphType>>("createChat")
                 .Argument<NonNullGraphType<StringGraphType>>("name",
-                data => data.ApplyDirective("length", "min", ChatInputGraphType.minChatNameLength, 
+                data => data.ApplyDirective("length", "min", ChatInputGraphType.minChatNameLength,
                 "max", ChatInputGraphType.maxChatNameLength))
                 .ResolveAsync(async (context) =>
                 {
@@ -96,7 +97,7 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
                         ThrowError("You does not have anough rights");
                     }
 
-                    if(!await chat.UpdateChatAsync(chatUpdate.Id, chatUpdate.Name))
+                    if (!await chat.UpdateChatAsync(chatUpdate.Id, chatUpdate.Name))
                     {
                         ThrowError("Chat cannot be updated because of some reasons");
                     }
@@ -137,7 +138,7 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
                         ThrowError("You does not have anough rights");
                     }
 
-                    if (!await chat.AddUserToChatAsync(chatId, user, helper.GetUserNickName(context.User!)))
+                    if (!await chat.AddUserToChatAsync(chatId, user, helper.GetUserNickName(context.UserContext)))
                     {
                         ThrowError("User cannot be added to chat because of some reasons");
                     }
@@ -161,7 +162,7 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
                         ThrowError("You does not have anough rights");
                     }
 
-                    if (!await chat.RemoveUserFromChatAsync(chatId, user, deleteAll??false,helper.GetUserNickName(context.User!)))
+                    if (!await chat.RemoveUserFromChatAsync(chatId, user, deleteAll ?? false, helper.GetUserNickName(context.UserContext)))
                     {
                         ThrowError("User cannot be removed from chat because of some reasons");
                     }
@@ -175,16 +176,54 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
     .ResolveAsync(async (context) =>
     {
         var chatId = context.GetArgument<int>("chatId");
-        var user = helper.GetUserNickName(context.User!);
+        var user = helper.GetUserNickName(context.UserContext);
         var deleteAll = context.GetArgument<bool?>("deleteAll");
 
-        if (!await chat.LeaveFromChatAsync(user,chatId,deleteAll??false))
+        if (!await chat.LeaveFromChatAsync(user, chatId, deleteAll ?? false))
         {
             ThrowError("User cannot be removed from chat because of some reasons");
         }
 
         return "Ok";
     });
+
+            Field<NonNullGraphType<UserUpdateOutPutGraphType>>("updateUser")
+        .Argument<NonNullGraphType<UserUpdateInputGraphType>>("data")
+        .ResolveAsync(async context =>
+        {
+            var data = context.GetArgument<UpdateUser>("data");
+            data.Id = helper.GetUserId(context.User!);
+
+            var result = await userRepository.UpdateUserAsync(data);
+
+            var participants = helper.GetChatParticipant(context.UserContext);
+
+            if (participants is not null)
+            {
+                chat.NotifyAllChats(participants, new ChatParticipant()
+                { Id = data.Id, NickName = data.NickName, Online = true });
+            }
+            return result;
+        });
+
+            Field<NonNullGraphType<IntGraphType>>("deleteUser")
+            .Argument<NonNullGraphType<UserRemoveInputGraphType>>("data")
+            .ResolveAsync(async context =>
+            {
+                var data = context.GetArgument<RemoveUser>("data");
+                data.Id = helper.GetUserId(context.User!);
+                var result = await userRepository.DeleteUserAsync(data);
+
+                var participants = helper.GetChatParticipant(context.UserContext);
+
+                if (participants is not null)
+                {
+                    chat.NotifyAllChats(participants, new ChatParticipant()
+                    { Id = data.Id, NickName = "DELETED", Online = false });
+                }
+
+                return result;
+            });
 
         }
 

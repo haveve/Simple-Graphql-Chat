@@ -6,6 +6,7 @@ using TimeTracker.Repositories;
 using TimeTracker.Services;
 using WebSocketGraphql.GraphQl.IdentityTypes.Models;
 using WebSocketGraphql.Services;
+using WebSocketGraphql.Services.AuthenticationServices;
 
 namespace WebSocketGraphql.GraphQl.IdentityTypes
 {
@@ -16,15 +17,16 @@ namespace WebSocketGraphql.GraphQl.IdentityTypes
 
         private readonly IUserRepository _userRepository;
         private readonly IEmailSender _emailSender;
+        private readonly AuthHelper _helper;
 
-
-        public IdentityMutation(IUserRepository userRepository, IEmailSender emailSender)
+        public IdentityMutation(IUserRepository userRepository, IEmailSender emailSender, AuthHelper helper)
         {
 
             _userRepository = userRepository;
             _emailSender = emailSender;
+            _helper = helper;
 
-            Field<string>("registration")
+            Field<NonNullGraphType<StringGraphType>>("registration")
                 .Argument<NonNullGraphType<RegistrationInputGraphType>>("registration")
                 .ResolveAsync(async context =>
                 {
@@ -39,9 +41,9 @@ namespace WebSocketGraphql.GraphQl.IdentityTypes
                     return "Ok";
                 });
 
-            Field<StringGraphType>("sentResetPasswordEmail")
+            Field<NonNullGraphType<StringGraphType>>("sentResetPasswordEmail")
                 .Argument<StringGraphType>("nickNameOrEmail", el => el.ApplyDirective(
-                   "length","min", RegistrationInputGraphType.minNickNameLength, "max", RegistrationInputGraphType.maxEmailLength))
+                   "length", "min", RegistrationInputGraphType.minNickNameLength, "max", RegistrationInputGraphType.maxEmailLength))
                 .ResolveAsync(async context =>
                 {
                     string LoginOrEmail = context.GetArgument<string>("nickNameOrEmail");
@@ -60,12 +62,13 @@ namespace WebSocketGraphql.GraphQl.IdentityTypes
 
                     return "Email has sent!";
                 });
-            Field<StringGraphType>("resetUserPasswordByCode")
+            Field<NonNullGraphType<StringGraphType>>("resetUserPasswordByCode")
                .Argument<NonNullGraphType<StringGraphType>>("code")
-               .Argument<NonNullGraphType<StringGraphType>>("password",el => el.ApplyDirective(
+               .Argument<NonNullGraphType<StringGraphType>>("password", el => el.ApplyDirective(
                 "length", "min", minPasswordLength, "max", maxPasswordLength))
                .Argument<NonNullGraphType<StringGraphType>>("email", el => el.ApplyDirective(
-                "length", "min", RegistrationInputGraphType.minEmailLength, "max", RegistrationInputGraphType.maxEmailLength))
+                "length", "min", RegistrationInputGraphType.minEmailLength, "max", RegistrationInputGraphType.maxEmailLength)
+                .ApplyDirective("email"))
                .ResolveAsync(async context =>
                {
                    string code = context.GetArgument<string>("code");
@@ -94,6 +97,8 @@ namespace WebSocketGraphql.GraphQl.IdentityTypes
 
                    return "Password reseted successfully";
                });
+
+
         }
     }
 }

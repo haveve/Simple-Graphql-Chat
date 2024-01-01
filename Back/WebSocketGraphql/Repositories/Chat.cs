@@ -5,11 +5,7 @@ using Message = WebSocketGraphql.Models.Message;
 using TimeTracker.Repositories;
 using Dapper;
 using WebSocketGraphql.Models;
-using GraphQL.Types.Relay.DataObjects;
 using System.Xml.Linq;
-using System;
-using static GraphQL.Validation.Rules.OverlappingFieldsCanBeMerged;
-using TimeTracker.Models;
 using WebSocketGraphql.ViewModels;
 
 namespace WebSocketGraphql.Repositories

@@ -25,11 +25,6 @@ export type DeleteAll = {
     fromId: number
 }
 
-export type ChangeChatParticipants = {
-    chatId: number,
-    type: ChangeParticipantsType
-}
-
 export enum ChangeParticipantsType {
     DELETE,
     ADD
@@ -175,12 +170,13 @@ export const chatSlicer = createSlice({
             });
         },
 
-        changeChatParticipances(state, action: PayloadAction<ChangeChatParticipants>) {
+        changeChatParticipants(state, action: PayloadAction<ChangeParticipantsType>) {
             state.status = 'idle'
-            if (!state.currentChat || action.payload.chatId !== state.currentChat.id) {
+            if (!state.currentChat) {
                 return;
             }
-            switch (action.payload.type) {
+            
+            switch (action.payload) {
                 case ChangeParticipantsType.DELETE:
                     state.currentChat.chatMembersCount = state.currentChat.chatMembersCount - 1;
                     break;
@@ -199,6 +195,15 @@ export const chatSlicer = createSlice({
         },
 
         setParticipantState(state, action: PayloadAction<ParticipantState>) {
+            if (action.payload.nickName) {
+                state.messages = state.messages.map(el => {
+                    if (el.fromId === action.payload.id) {
+                        return { ...el, nickName: action.payload.nickName! }
+                    }
+                    return el;
+                })
+            }
+
             state.participants = SortByOnline(state.participants.map(el => {
                 if (el.id === action.payload.id) {
                     return { ...el, online: action.payload.online }
@@ -217,4 +222,4 @@ export const chatSlicer = createSlice({
 })
 
 export default chatSlicer.reducer;
-export const { setUpdateMessage, dropUpdateMessage, updateMessage, setParticipantState, deleteAll, setError, setState, removeMessage, setChats, changeChatParticipances, setChat, setMessages, addMessage, updateChat, setParticipants, addChat, removeChat, dropCurrentChat } = chatSlicer.actions;
+export const { setUpdateMessage, dropUpdateMessage, updateMessage, setParticipantState, deleteAll, setError, setState, removeMessage, setChats, changeChatParticipants, setChat, setMessages, addMessage, updateChat, setParticipants, addChat, removeChat, dropCurrentChat } = chatSlicer.actions;

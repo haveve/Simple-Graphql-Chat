@@ -3,7 +3,6 @@ import { Container, Row, Col, Form } from 'react-bootstrap';
 import { ConnectToChat } from '../Requests/Requests';
 import { addMessageMutation, queryGetAllChats, queryUser, subscriptionToChat, subscriptionToNotification } from '../Features/Queries';
 import Dispatch from '../SocketDispatcher';
-import { setCookie } from '../Features/Functions';
 import MessageComponent from '../Components/Message';
 import MultiControl from './MultiControl';
 import ChatSelect from './ChatSelect';
@@ -14,7 +13,7 @@ import { Status, dropCurrentChat, dropUpdateMessage, setState, setState as setSt
 import ChatHeader from './ChatHeader';
 import NotificationModalWindow, { MessageType } from './Service/NotificationModalWindow';
 import { setState as setStateGlobalNotification } from '../Redux/Slicers/GlobalNotification';
-import AdditionalInfo from './AuthRegReset/AdditionalInfo';
+import AdditionalInfo from './UserManagementAndAuthReg/AdditionalInfo';
 import MessageOptions, { MessageOptionType } from './MessageOperation/MessageOption';
 import { defaultState } from './ChatSelect';
 import { useImmer } from 'use-immer';
@@ -24,13 +23,14 @@ import { selectMessageIdsWithDate } from '../Redux/reselect';
 import { DateFromString } from '../Features/Functions';
 
 export const maxVisibleLength = 26;
-
-enum themes{
+export const maxSymbolsInMessage = 200;
+enum themes {
   light = "light",
   dark = "dark"
 }
 
 function Chat() {
+
   const chatPending = setState('pending');
 
   const currentChat = useTypedSelector(store => store.chat.currentChat)
@@ -40,27 +40,27 @@ function Chat() {
   const erroMessage = useTypedSelector(store => store.chat.error)
   const globalNotification = useTypedSelector(store => store.global_notification)
   const dispatch = useTypedDispatch()
-  const [wasInitialAuth, setInitialAuth] = useState<boolean>(false);
+  const wasInitialAuth = useRef(true);
   let lastMessage = useRef<HTMLDivElement>(null);
   let refToOpt = useRef<HTMLDivElement>(null);
 
   const prevDate = useRef<string | null>(null)
 
-  const [theme,setTheme] = useState<themes>(themes.light)
+  const [theme, setTheme] = useState<themes>(themes.light)
 
   const [option, setOption] = useImmer<MessageOptionType>(defaultState)
 
   const updatedMessage = useTypedSelector(store => store.chat.updatedMessage)
 
-  useEffect(()=>{
+  useEffect(() => {
     const className = `root-${theme}`;
 
     document.body.classList.add(className)
 
-    return ()=>{
+    return () => {
       document.body.classList.remove(className)
     }
-  },[theme])
+  }, [theme])
 
   UseEffectIf(() => {
     lastMessage.current?.scrollIntoView()
@@ -71,20 +71,19 @@ function Chat() {
     })
 
   useEffect(() => {
-    const connection = ConnectToChat(false, !wasInitialAuth)
-    let sub = connection.subscribe(sub => sub.subscribe({
-      next: (response) => Dispatch(response)
-    }))
-    const subToNotify = RequestBuilder('start', { query: subscriptionToNotification })
+    if (wasInitialAuth.current) {
+      const connection = ConnectToChat(false, wasInitialAuth.current)
+      connection.subscribe(sub => sub.subscribe({
+        next: (response) => Dispatch(response)
+      }))
+      const subToNotify = RequestBuilder('start', { query: subscriptionToNotification })
 
-    connection.subscribe(sub => sub.next(subToNotify, chatPending))
-    connection.subscribe(sub => sub.next(RequestBuilder('start', { query: queryUser }), chatPending))
-    connection.subscribe(sub => sub.next(RequestBuilder('start', { query: queryGetAllChats }), chatPending))
-
+      connection.subscribe(sub => sub.next(subToNotify, chatPending))
+      connection.subscribe(sub => sub.next(RequestBuilder('start', { query: queryUser }), chatPending))
+      connection.subscribe(sub => sub.next(RequestBuilder('start', { query: queryGetAllChats }), chatPending))
+    }
     return () => {
-      connection.subscribe(sub => sub.next(RequestBuilder('stop', {}, subToNotify.id!), chatPending))
-      sub.unsubscribe();
-      setInitialAuth(true);
+      wasInitialAuth.current = false;
     }
   }, [])
 
@@ -145,8 +144,11 @@ function Chat() {
   const HandleContextMenu = useCallback((chatId: number, messageId: string, event: React.MouseEvent<HTMLDivElement>) => {
     event.preventDefault()
     if (refToOpt.current) {
+
+      const elementData = refToOpt.current.getBoundingClientRect()
+
       refToOpt.current.style.top = event.clientY + "px"
-      refToOpt.current.style.left = event.clientX + "px"
+      refToOpt.current.style.left = event.clientX - elementData.width + "px"
     }
     setOption(el => {
       el.chatId = chatId
@@ -190,16 +192,16 @@ function Chat() {
       </Col>
       {currentChat?.id ?? -1 > 0 ?
         <Col className='d-flex flex-column h-100 p-0 m-0' onMouseLeave={handleHideOption} onClick={handleHideOption}>
-          <ChatHeader onSmileClick = {()=>{
-            setTheme(theme => theme == themes.dark?themes.light:themes.dark)
+          <ChatHeader onSmileClick={() => {
+            setTheme(theme => theme == themes.dark ? themes.light : themes.dark)
           }} currentChat={currentChat!} withChatInfo={true} />
-          <Col className='p-4 m-0 h5 scroll'>
+          <Col className='p-4 m-0 h5 scroll' onScroll={handleHideOption}>
             {
               GetMessages()
             }
           </Col>
           <MessageOptions option={option} ref={refToOpt}></MessageOptions>
-          <MultiControl maxSymbols={200} value={updatedMessage?.content} SendMessage={SendMessage} />
+          <MultiControl maxSymbols={maxSymbolsInMessage} value={updatedMessage?.content} SendMessage={SendMessage} />
         </Col>
         : null}
     </Row>

@@ -5,8 +5,9 @@ import { useTypedSelector } from '../../Redux/store';
 import Drop2factorAuht from './Drop2f';
 import Set2factorAuth from './Set2f';
 import { ajaxFor2fAuth, ajaxFor2fDrop } from '../../Requests/AuthorizationRequests';
-import { setState,setError } from '../../Redux/Slicers/UserSlicer';
+import { setState, setError } from '../../Redux/Slicers/UserSlicer';
 import { useTypedDispatch } from '../../Redux/store';
+import UserSettings from './UserSettings';
 
 export default function AdditionalInfo() {
 
@@ -17,6 +18,7 @@ export default function AdditionalInfo() {
 
     const [isVisibleDrop, setVisibleDrop] = useState(false)
     const [isVisibleSet, setVisibleSet] = useState(false)
+    const [isVisibleSetting, setVisibleSetting] = useState(false)
 
     const [_2fAuthCode, set2fAuthCode] = useState<null | _2fAuthResult>(null)
 
@@ -31,7 +33,7 @@ export default function AdditionalInfo() {
             next: (data) => {
                 set2fAuthCode(data.response)
                 setVisibleSet(true)
-                dispatch(setState("success"))
+                dispatch(setState("idle"))
             },
             error: () => {
                 dispatch(setError("incorrect one-time code"))
@@ -43,17 +45,23 @@ export default function AdditionalInfo() {
         setVisibleDrop(true)
     }
 
-    const _2fHandler = key2Auth ? drop2fHandler: set2fHandler
+    const userSettingsHandler = () => {
+        setVisibleSetting(true);
+    }
+
+    const _2fHandler = key2Auth ? drop2fHandler : set2fHandler
 
     return <Dropdown className='additional-info'>
         <Dropdown.Toggle as={CustomToggle} id="dropdown-basic">
         </Dropdown.Toggle>
         <Dropdown.Menu>
+            <Dropdown.Item className='additional-info-node' onClick={userSettingsHandler}>Settings</Dropdown.Item>
             <Dropdown.Item className='additional-info-node' onClick={_2fHandler}>{_2fText}</Dropdown.Item>
             <Dropdown.Item className='additional-info-node' onClick={logOutHandler}>Log out</Dropdown.Item>
         </Dropdown.Menu>
         <Drop2factorAuht isVisibleDrop2fa={isVisibleDrop} setVisibleDrop2fa={setVisibleDrop} />
         <Set2factorAuth _2fAuthData={_2fAuthCode} isVisibleSet2fa={isVisibleSet} setVisibleSet2fa={setVisibleSet} />
+        <UserSettings setVisible={setVisibleSetting} isVisible={isVisibleSetting} />
     </Dropdown>
 }
 

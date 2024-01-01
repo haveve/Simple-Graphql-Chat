@@ -6,6 +6,8 @@ using TimeTracker.Models;
 using TimeTracker.Services;
 using WebSocketGraphql.Services;
 using WebSocketGraphql.Helpers;
+using Microsoft.AspNetCore.Mvc;
+using WebSocketGraphql.Repositories;
 
 namespace TimeTracker.Repositories
 {
@@ -16,7 +18,7 @@ namespace TimeTracker.Repositories
         private readonly DapperContext _dapperContext;
         private readonly int _iteration;
 
-        public UserRepository(DapperContext context, IConfiguration configuration,IAuthorizationRepository authorizationRepository)
+        public UserRepository(DapperContext context, IConfiguration configuration, IAuthorizationRepository authorizationRepository)
         {
             _configuration = configuration;
             _authorizationRepository = authorizationRepository;
@@ -34,11 +36,32 @@ namespace TimeTracker.Repositories
             return code;
         }
 
-        public async Task DeleteUserAsync(int id)
+        public async Task<int> DeleteUserAsync(RemoveUser data)
         {
-            string query = "DELETE FROM Users WHERE id = @id";
+            var salt = await GetUserSalt(data.Id);
+            string query = "DELETE FROM Users WHERE id = @Id AND password = @Password";
+            data.Password = data.Password.ComputeHash(salt, _iteration);
             using var connection = _dapperContext.CreateConnection();
-            await connection.ExecuteAsync(query, param: new {id}).ConfigureAwait(false);
+            return await connection.ExecuteAsync(query, data).ConfigureAwait(false) > 0
+                   ? data.Id : throw new InvalidDataException("Invalid Data");
+        }
+
+        public async Task<UpdateUser> UpdateUserAsync(UpdateUser data)
+        {
+            using var connection = _dapperContext.CreateConnection();
+            var salt = await GetUserSalt(data.Id);
+            var dotNotChangePassword = data.NewPassword.Equals(data.OldPassword);
+
+            salt = dotNotChangePassword ? salt : PasswordHasher.GenerateSalt();
+            data.OldPassword = data.OldPassword.ComputeHash(salt, _iteration);
+            data.NewPassword = dotNotChangePassword ?
+                               data.OldPassword :
+                               data.NewPassword.ComputeHash(salt, _iteration);
+            data.Salt = salt;
+
+            string query = @"UPDATE Users SET email = @Email, nick_name = @NickName,password = @NewPassword, salt = @Salt 
+                             WHERE id = @Id AND password = @OldPassword";
+            return await connection.ExecuteAsync(query, data) > 0 ? data : throw new InvalidDataException("uncorrect data");
         }
 
         public async Task<User?> GetUserAsync(int id)
@@ -57,7 +80,7 @@ namespace TimeTracker.Repositories
                 return user;
             }
 
-            if(password.ComparePasswords(user.Password, true,user.Salt,_iteration))
+            if (password.ComparePasswords(user.Password, true, user.Salt, _iteration))
             {
                 return user;
             }
@@ -72,35 +95,13 @@ namespace TimeTracker.Repositories
             return await connection.QuerySingleOrDefaultAsync<User>(query, param: new { nickNameOrEmail }).ConfigureAwait(false);
         }
 
-        public async Task UpdateUserAsync(User user, bool withPassword = false, bool withCode = false)
-        {
-            string query = "UPDATE Users SET nick_name = @NickName,email = @Email";
-
-            if (withPassword)
-            {
-                var salt = PasswordHasher.GenerateSalt();
-                user.Password = user.Password.ComputeHash(salt,_iteration);
-                query += ",password = @Password,salt = @salt";
-            }
-
-            if (withCode)
-            {
-                query += ",acrivate_code = @AcrivateCode";
-            }
-
-            query += "WHERE id = @Id";
-
-            using var connection = _dapperContext.CreateConnection();
-            await connection.ExecuteAsync(query, param: user).ConfigureAwait(false);
-        }
-
         public async Task UpdateUserPasswordAndCodeAsync(int id, string password)
         {
             string query = "UPDATE Users SET password = @password, salt = @salt, activate_code = @code WHERE id = @id";
             var salt = PasswordHasher.GenerateSalt();
             password = password.ComputeHash(salt, _iteration);
             using var connection = _dapperContext.CreateConnection();
-            await connection.ExecuteAsync(query, param: new { id, password, salt,code = (string?)null }).ConfigureAwait(false);
+            await connection.ExecuteAsync(query, param: new { id, password, salt, code = (string?)null }).ConfigureAwait(false);
         }
 
         public async Task UpdateUserResetCodeByIdAsync(int id, string code)
@@ -108,6 +109,13 @@ namespace TimeTracker.Repositories
             string query = "UPDATE Users SET activate_code = @code WHERE id = @id";
             using var connection = _dapperContext.CreateConnection();
             await connection.ExecuteAsync(query, param: new { id, code }).ConfigureAwait(false);
+        }
+
+        private async Task<string> GetUserSalt(int id)
+        {
+            using var connection = _dapperContext.CreateConnection();
+            string queryUserSalt = "SELECT salt from Users where id = @id";
+            return await connection.QuerySingleAsync<string>(queryUserSalt, new { id });
         }
     }
 }

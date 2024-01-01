@@ -7,14 +7,14 @@ import {
   createBrowserRouter,
   RouterProvider
 } from "react-router-dom";
-import SetPassword from './Components/AuthRegReset/SetPassword';
+import SetPassword from './Components/UserManagementAndAuthReg/SetPassword';
 import { getTokenOrNavigate } from './Features/Functions';
 import store from './Redux/store';
 import { Provider } from 'react-redux'
 import NotFound from './Components/NotFoundPage';
-import AuthReg from './Components/AuthRegReset/AuthRegist';
-import ResetPassword from './Components/AuthRegReset/ResetPassword';
-import Auth2f from './Components/AuthRegReset/Auth2f';
+import AuthReg from './Components/UserManagementAndAuthReg/AuthRegist';
+import ResetPassword from './Components/UserManagementAndAuthReg/ResetPassword';
+import Auth2f from './Components/UserManagementAndAuthReg/Auth2f';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
