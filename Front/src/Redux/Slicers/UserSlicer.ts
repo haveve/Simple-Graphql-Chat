@@ -15,7 +15,7 @@ const initialState: UserInitialType = {
 
 export type UpdateUserResult = {
     nickName: string,
-    id:number
+    id: number
     email: string
 }
 
@@ -53,9 +53,15 @@ const userSlicer = createSlice({
             state.status = 'success'
             state.user!.email = action.payload.email
             state.user!.nickName = action.payload.nickName
+        },
+
+        updateAvatar(state, action: PayloadAction<string>) {
+            if (state.user) {
+                state.user!.avatar = action.payload
+            }
         }
     }
 })
 
 export default userSlicer.reducer;
-export const { addUser, setState, setError, updateUserData } = userSlicer.actions;
+export const { addUser, setState, setError, updateUserData, updateAvatar } = userSlicer.actions;

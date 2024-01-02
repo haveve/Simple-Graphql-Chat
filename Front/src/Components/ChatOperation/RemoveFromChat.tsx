@@ -26,12 +26,12 @@ export default function RemoveFromChat(props: { chatId: number | null, show: boo
 
             const request = RequestBuilder('start', { query: queryParticipants, variables: { chatId: chatId } });
             connection.subscribe(sub => {
-                sub.next(request,chatPending)
+                sub.next(request, chatPending)
             })
-            
+
             return () => {
                 connection.subscribe(sub => {
-                    sub.next(RequestBuilder('stop', {}, request.id!),chatPending)
+                    sub.next(RequestBuilder('stop', {}, request.id!), chatPending)
                 })
             }
         }
@@ -48,7 +48,7 @@ export default function RemoveFromChat(props: { chatId: number | null, show: boo
             setShow(false)
             connection.subscribe((sub) => sub.next(
                 RequestBuilder('start',
-                    { query: removeUserFromChatMutation, variables: { chatId: chat.id, deleteAll, user: removeName } }),chatPending))
+                    { query: removeUserFromChatMutation, variables: { chatId: chat.id, deleteAll, user: removeName } }), chatPending))
         }
     }
 
@@ -64,10 +64,10 @@ export default function RemoveFromChat(props: { chatId: number | null, show: boo
             }}>
                 <option value="">select user (red color - admin)</option>
                 {participats.map(el => {
-                    if(el.id === chat.creatorId){
-                        return <option value={""} className='text-danger'>{el.nickName}</option>
+                    if (el.id === chat.creatorId) {
+                        return <option key={el.id} value={""} className='text-danger'>{el.nickName}</option>
                     }
-                    return <option value={el.nickName}>{el.nickName}</option>
+                    return <option key={el.id} value={el.nickName}>{el.nickName}</option>
                 })}
             </Form.Select>
             <Form.Check onChange={deleteAllHandler} reverse label='Do you wanna delete all messages?' className='h5 pb-4 pt-1' size={17} />

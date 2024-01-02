@@ -3,7 +3,7 @@ $secondary: #886d0b;
 $success: #7fa931;
 $info: #19b5e0;
 $warning: #fec311;
-$danger: hsl(0, 100%, 30%);
+$danger: hsl(0, 85%, 48%);
 $light: #f8f9fa;
 $dark: #313132;
 
@@ -15,7 +15,7 @@ body.root-dark {
     --input-focus: #35c0ea;
     --input-focus-bg: #1e96fc;
     --input-bg: #4ea8de;
-    --chat-bg: url('../Pictures/bg-picture-dark.jpg');
+    --chat-bg: url('../pictures/bg-picture-dark.jpg');
     --warning-color: rgb(240, 213, 10);
     --message-container: linear-gradient(112.1deg, rgb(32, 38, 57) 11.4%, rgb(63, 76, 119) 70.2%);
     --tech-color: #2172bd;
@@ -36,7 +36,7 @@ body.root-light {
     --bs-body-bg: #fefae0;
     --hovered-element: rgb(241, 227, 123);
     --selected-element: #f9cd55;
-    --chat-bg: url('../Pictures/bg-picture.png');
+    --chat-bg: url('../pictures/bg-picture.png');
     --text-color: #000000;
     --icon-border-color: #000000;
     --tech-color: #937539;
@@ -58,20 +58,20 @@ input:focus,
 
 select,
 input {
-    border-color:var(--icon-border-color) !important;
+    border-color: var(--icon-border-color) !important;
     color: var(--text-color) !important;
     background-color: var(--input-bg) !important;
 }
 
-.additional-info-node{
+.additional-info-node {
     color: var(--text-color) !important;
 }
 
-.additional-info-node:hover{
+.additional-info-node:hover {
     background-color: var(--input-focus) !important;
 }
 
-div{
+div {
     color: var(--text-color);
 }
 
@@ -186,7 +186,7 @@ body {
     font-size: 14px;
 }
 
-.chat-text-color{
+.chat-text-color {
     color: var(--text-color);
 }
 
@@ -219,10 +219,11 @@ body {
     justify-content: center;
     align-items: center;
     border-radius: 100px;
-    border: 2px var(--icon-border-color) dashed;
+    border: none;
     height: 60px;
     width: 60px;
     color: var(--icon-border-color) !important;
+
 }
 
 .chat-title-icon-size {
@@ -230,10 +231,21 @@ body {
     justify-content: center;
     align-items: center;
     border-radius: 100px;
-    border: 2px var(--icon-border-color) dashed;
+    border: none;
     height: 55px;
     width: 55px;
     color: var(--icon-border-color) !important;
+
+}
+
+.ico-color {
+    color: var(--icon-border-color) !important;
+}
+
+.chat-title-icon-size-xl {
+    height: 100px;
+    width: 100px;
+    font-size: 60px;
 }
 
 .chat {
@@ -248,7 +260,8 @@ body {
 
 .chat-hover:hover {
     cursor: pointer;
-    background-color: var(--hovered-element);;
+    background-color: var(--hovered-element);
+    ;
 }
 
 .participants {
@@ -344,14 +357,30 @@ body {
     height: 110px;
 }
 
-.smile-text-color{
+.smile-text-color {
     color: var(--tech-color);
 }
-.d-message-none{
+
+.d-message-none {
     opacity: 0;
     z-index: -10;
 }
 
-.d-message-none>div:hover{
+.d-message-none>div:hover {
     cursor: default !important;
+}
+
+.selec-file-avatar {
+    border-radius: 100px;
+    background-color: #42414174;
+    color: $light;
+}
+
+.selec-file-avatar>* {
+    opacity: 0.3;
+    transition: opacity 0.5s;
+}
+
+.selec-file-avatar>*:hover {
+    opacity: 1;
 }

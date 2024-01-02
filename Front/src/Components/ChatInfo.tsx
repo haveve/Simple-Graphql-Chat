@@ -83,7 +83,7 @@ export default function ChatInfo(props: { show: boolean, handleClose: () => void
         <div className='pt-2 ps-2 h5 h-100 select-chat-scroll'>
             {participants.map(el => {
                 return <div key={el.nickName} onContextMenu={(event) => HandleContextMenu(el, event)}>
-                    <Icon color={el.color} name={el.nickName}>
+                    <Icon color={el.color} name={el.nickName} src={el.avatar}>
                         <div className={`d-flex align-items-center small ${el.online ? 'text-success' : 'text-danger'} `}>{el.online ? "online" : "offline"}</div>
                     </Icon>
                 </div>

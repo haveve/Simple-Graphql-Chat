@@ -2,10 +2,8 @@
 using GraphQL.Types;
 using TimeTracker.Repositories;
 using WebSocketGraphql.GraphQl.ChatTypes.Types;
-using WebSocketGraphql.Models;
 using WebSocketGraphql.Repositories;
 using WebSocketGraphql.Services.AuthenticationServices;
-using WebSocketGraphql.ViewModels;
 
 namespace WebSocketGraphql.GraphQl.ChatTypes
 {

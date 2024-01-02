@@ -28,7 +28,7 @@ namespace WebSocketGraphql.Repositories
             _chats = new();
             _userChatNotifyer = new ConcurrentDictionary<int, Subject<UserNotification>>();
 
-            if(!Int32.TryParse(configuration["ChatConfigData:UserSubNumber"], out _userNumberInSubject))
+            if (!Int32.TryParse(configuration["ChatConfigData:UserSubNumber"], out _userNumberInSubject))
             {
                 _userNumberInSubject = _userInOneSubjectDefault;
             }
@@ -39,13 +39,13 @@ namespace WebSocketGraphql.Repositories
             return (int)Math.Ceiling((decimal)userId / _userNumberInSubject) * _userNumberInSubject;
         }
 
-        public void NotifyAllChats(IEnumerable<int> chatIds,object obj)
+        public void NotifyAllChats(IEnumerable<int> chatIds, object obj)
         {
-            foreach(int i in chatIds)
+            foreach (int i in chatIds)
             {
                 try
                 {
-                   _chats[i].OnNext(obj);
+                    _chats[i].OnNext(obj);
                 }
                 catch
                 {
@@ -216,20 +216,20 @@ namespace WebSocketGraphql.Repositories
             return GetOrCreateChat(chatId).AsObservable();
         }
 
-        public async Task<IEnumerable<ChatParticipant>> GetAllChatParticipatsAsync(int chatId,string search = "")
+        public async Task<IEnumerable<ChatParticipant>> GetAllChatParticipatsAsync(int chatId, string search = "")
         {
             string query = @"
-                            SELECT u.nick_name,u.id, u.online FROM Users as u
+                            SELECT u.nick_name,u.id, u.online,u.avatar FROM Users as u
                             JOIN Chat as ch
                             ON ch.id = @chatId AND u.id = ch.creator
                             WHERE u.nick_name LIKE @search + '%'
                             UNION ALL
-                            SELECT u.nick_name,u.id, u.online FROM Users as u
+                            SELECT u.nick_name,u.id, u.online, u.avatar FROM Users as u
                             JOIN Users_Chat_Keys as uck
                             ON u.id = uck.user_id AND uck.chat_id = @chatId
                             WHERE u.nick_name LIKE @search + '%'";
             using var connection = _dapperContext.CreateConnection();
-            return await connection.QueryAsync<ChatParticipant>(query, new { chatId, search});
+            return await connection.QueryAsync<ChatParticipant>(query, new { chatId, search });
         }
 
         public async Task<IEnumerable<Message>> GetAllMessagesAsync(int chatId)
@@ -267,7 +267,7 @@ namespace WebSocketGraphql.Repositories
                             SELECT ch.creator,ch.id,ch.name,(SELECT Count(*) FROM Users_Chat_Keys WHERE chat_id = ch.id) AS ChatMembersCount FROM Chat AS ch 
                             WHERE ch.id = @chatId and ch.creator = @userId";
             using var connection = _dapperContext.CreateConnection();
-            return await connection.QuerySingleOrDefaultAsync<ChatResult>(query, new { userId,chatId }).ConfigureAwait(false);
+            return await connection.QuerySingleOrDefaultAsync<ChatResult>(query, new { userId, chatId }).ConfigureAwait(false);
         }
 
         public async ValueTask<bool> RemoveMessageAsync(Message message)
@@ -305,22 +305,22 @@ namespace WebSocketGraphql.Repositories
             using var connection = _dapperContext.CreateConnection();
             return await connection.QuerySingleAsync<int>(query, chat).ConfigureAwait(false);
         }
-        
+
         public async ValueTask<bool> LeaveFromChatAsync(string nickName, int chatId, bool deleteMessages = false)
         {
-            return await RemoveUserFromChatAsync(chatId,nickName, deleteMessages).ConfigureAwait(false);
+            return await RemoveUserFromChatAsync(chatId, nickName, deleteMessages).ConfigureAwait(false);
         }
 
         public async ValueTask<bool> RemoveChatAsync(int chatId)
         {
             string query = "DELETE Chat WHERE id = @chatId";
             using var connection = _dapperContext.CreateConnection();
-            bool result =  await connection.ExecuteAsync(query, new { chatId }).ConfigureAwait(false) > 0;
+            bool result = await connection.ExecuteAsync(query, new { chatId }).ConfigureAwait(false) > 0;
 
             if (result)
             {
                 var subject = GetOrCreateChat(chatId);
-                subject.OnNext(new ChatSubscription(ChatResultType.DELETE) { Id = chatId});
+                subject.OnNext(new ChatSubscription(ChatResultType.DELETE) { Id = chatId });
             }
 
             return result;
@@ -330,7 +330,7 @@ namespace WebSocketGraphql.Repositories
         {
             string query = "INSERT INTO TechMessage(chat_id,content,sent_at) VALUES(@chatId,@Content,@SentAt)";
             using var connection = _dapperContext.CreateConnection();
-            return await connection.ExecuteAsync(query, new { chatId,message.Content,message.SentAt}).ConfigureAwait(false) > 0;
+            return await connection.ExecuteAsync(query, new { chatId, message.Content, message.SentAt }).ConfigureAwait(false) > 0;
         }
 
         public async ValueTask<bool> UpdateChatAsync(int chatId, string name)
@@ -379,7 +379,7 @@ namespace WebSocketGraphql.Repositories
             END";
 
             using var connection = _dapperContext.CreateConnection();
-            ChatOperationUser? user = await connection.QuerySingleOrDefaultAsync<ChatOperationUser?>(query, new { chatId, nickNameOrEmail,deleteAll }).ConfigureAwait(false);
+            ChatOperationUser? user = await connection.QuerySingleOrDefaultAsync<ChatOperationUser?>(query, new { chatId, nickNameOrEmail, deleteAll }).ConfigureAwait(false);
 
             if (user is null)
             {
@@ -389,7 +389,7 @@ namespace WebSocketGraphql.Repositories
             var subject = GetOrCreateChat(chatId);
 
             string leaveOrRemove = byOrSelf is null ? "leave" : "removed";
-            string byOrNothing = byOrSelf is null ?  string.Empty: $"by {byOrSelf}";
+            string byOrNothing = byOrSelf is null ? string.Empty : $"by {byOrSelf}";
 
             var message = new MessageSubscription(new()
             {

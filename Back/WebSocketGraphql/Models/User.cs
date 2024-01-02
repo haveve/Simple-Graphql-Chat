@@ -21,9 +21,12 @@ namespace TimeTracker.Models
         [Description("salt")]
         public string Salt { get; set; } = null;
         [Description("key_2auth")]
-        public string? Key2Auth {  get; set; }
+        public string? Key2Auth { get; set; }
         [Description("reset_key_2auth")]
         public string? ResetCode { get; set; }
+
+        [Description("avatar")]
+        public string? Avatar { get; set; }
 
     }
 }

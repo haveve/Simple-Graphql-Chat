@@ -11,11 +11,14 @@ using TimeTracker.Services;
 using WebSocketGraphql.Services.AuthenticationServices;
 using GraphQL.Validation.Rules;
 using WebSocketGraphql.GraphQl.ValidationRules;
+using CourseWorkDB.Repositories;
+using FileUploadSample;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddSingleton<IChat, Chat>();
 builder.Services.AddSingleton<IAuthorizationManager, AuthorizationManager>();
+builder.Services.AddSingleton<IUploadRepository, UploadRepository>();
 builder.Services.AddSingleton<DapperContext>();
 builder.Services.AddSingleton<IAuthorizationRepository, AuthorizationRepository>();
 builder.Services.AddSingleton<IUserRepository, UserRepository>();
@@ -24,6 +27,8 @@ builder.Services.AddSingleton<AuthHelper>();
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddControllers();
+
+builder.Services.AddGraphQLUpload();
 
 builder.Services.AddSingleton<ISchema, ChatSchema>(service =>
 {
@@ -72,12 +77,16 @@ app.UseCors(conf =>
     .AllowCredentials();
 });
 
+app.UseStaticFiles();
+
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseWebSockets();
+
+app.UseGraphQLUpload<ChatSchema>("/graphql");
 
 app.UseGraphQL<ChatSchema>("/graphql");
 

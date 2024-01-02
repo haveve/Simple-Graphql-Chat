@@ -1,5 +1,7 @@
-﻿using GraphQL;
+﻿using CourseWorkDB.Repositories;
+using GraphQL;
 using GraphQL.Types;
+using GraphQL.Upload.AspNetCore;
 using TimeTracker.Repositories;
 using WebSocketGraphql.GraphQl.ChatTypes.Types;
 using WebSocketGraphql.GraphQl.IdentityTypes;
@@ -13,7 +15,7 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
     public class ChatMutation : ObjectGraphType
     {
 
-        public ChatMutation(IChat chat, AuthHelper helper, IUserRepository userRepository)
+        public ChatMutation(IChat chat, AuthHelper helper, IUserRepository userRepository, IUploadRepository uploadRepository)
         {
             Field<NonNullGraphType<MessageGraphType>>("addMessage")
                 .Argument<NonNullGraphType<MessageInputGraphType>>("message", el => el.ApplyDirective(
@@ -224,6 +226,33 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
 
                 return result;
             });
+
+            Field<NonNullGraphType<StringGraphType>>("updateUserAvatart")
+                .Argument<NonNullGraphType<UploadGraphType>>("image")
+                .ResolveAsync(async context =>
+                {
+                    var userPictPath = "user_pictures";
+                    var img = context.GetArgument<IFormFile>("image");
+                    var userId = helper.GetUserId(context.User!);
+                    var newImg = await uploadRepository.SaveImgAsync(img, userPictPath);
+
+                    try
+                    {
+                        var result = await userRepository.UpdateUserAvatarAsync(userId, newImg);
+
+                        if (result is not null)
+                        {
+                            uploadRepository.DeleteFile(Path.Combine(userPictPath, result));
+                        }
+                        return newImg;
+                    }
+                    catch
+                    {
+
+                        uploadRepository.DeleteFile(Path.Combine(userPictPath, newImg));
+                        throw;
+                    }
+                });
 
         }
 

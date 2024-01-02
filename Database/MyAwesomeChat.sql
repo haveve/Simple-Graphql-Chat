@@ -14,6 +14,7 @@ salt nvarchar(24) NULL,
 online bit not null Default 0,
 key_2auth nvarchar(44) not null,
 reset_key_2auth nvarchar(44) not null,
+avatar nvarchar(46) null,
 
 CONSTRAINT PK_Users_Id PRIMARY KEY(id),
 CONSTRAINT UQ_Users_NickName Unique(nick_name),

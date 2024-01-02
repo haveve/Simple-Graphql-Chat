@@ -10,5 +10,8 @@ namespace WebSocketGraphql.ViewModels
         public string NickName { get; set; }
         [Description("online")]
         public bool Online { get; set; }
+
+        [Description("avatar")]
+        public string? Avatar { get; set; }
     }
 }

@@ -81,7 +81,8 @@ export const queryParticipants = `query($chatId:Int!,$search:String){
   participants(chatId:$chatId,search:$search){
     id,
     nickName,
-    online
+    online,
+    avatar
   }
 }`
 
@@ -90,7 +91,8 @@ export const queryUser = `query{
     id,
     email,
     nickName,
-    key2Auth
+    key2Auth,
+    avatar
   }
 }`
 
@@ -179,3 +181,5 @@ export const updateUserDataMutaion = `mutation update($data:UserUpdateInput!){
 export const deleteUserMutation = `mutation remove($data:UserRemoveInput!){
     deleteUser(data:$data)
   }`
+
+export const updateUserAvatarMutation = `mutation($file:Upload!){updateUserAvatart(image:$file)}`;

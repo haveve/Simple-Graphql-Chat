@@ -2,8 +2,6 @@ import { backDomain } from '../Features/Constants';
 import { ajax } from 'rxjs/ajax';
 import { map, catchError, Observable, timer, mergeMap } from 'rxjs';
 import { LogoutDeleteCookie, setCookie, getCookie } from '../Features/Functions';
-import { redirect } from 'react-router'
-import path from 'path';
 
 export const url = `https://${backDomain}/graphql-auth`
 
@@ -133,7 +131,7 @@ export enum TokenAjaxStatus {
     Error
 }
 
-export function GetAjaxObservable<T, K>(query: string, variables: {}, url: string, refreshToken: string | null = null, withCredentials = false,) {
+export function GetAjaxObservable<T, K>(query: string, variables: {}, url: string, refreshToken: string | null = null, withCredentials = false, skipContentType: boolean = false) {
 
     const tokenString = getCookie("access_token");
 
@@ -152,17 +150,21 @@ export function GetAjaxObservable<T, K>(query: string, variables: {}, url: strin
         }
     }
 
+    if (!skipContentType) {
+        tokenHeader['Content-Type'] = 'application/json'
+    }
+
+
     return ajax<response<T, K>>({
         url,
         method: "POST",
         headers: {
-            'Content-Type': 'application/json',
             ...tokenHeader
         },
-        body: JSON.stringify({
+        body: {
             query,
             variables
-        }),
+        },
         withCredentials: withCredentials
     })
 }
@@ -515,11 +517,11 @@ export function axajSetUser2fAuth(key: string, code: string) {
 
 const _2fVerifyServiceUrl = "https://" + backDomain + "/verify-2f-auth";
 
-export function ajaxVerifyUserCode(token: string, code: string, loginPath:string) {
+export function ajaxVerifyUserCode(token: string, code: string, loginPath: string) {
     return ajax<string>({
         url: _2fVerifyServiceUrl + `?token=${token}&code=${code}`
-    }).pipe(map((response)=>{
-       return loginPath+response.response 
+    }).pipe(map((response) => {
+        return loginPath + response.response
     }))
 }
 

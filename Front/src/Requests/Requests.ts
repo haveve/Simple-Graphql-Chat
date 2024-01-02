@@ -2,7 +2,7 @@ import { webSocket } from 'rxjs/webSocket'
 import { Chat, ChatParticipant, Message, DerivedMessageOrChatInfo, UserNotification, User, FullChat } from '../Features/Types';
 import { backDomain } from '../Features/Constants';
 import { WebSocketSubject } from 'rxjs/webSocket'
-import { NextObserver, interval, Subscription, Observable, Subscriber } from 'rxjs'
+import { NextObserver, interval, Subscription, Observable, Subscriber, mergeMap, map } from 'rxjs'
 import { GetTokenObservable, StoredTokenType } from './AuthorizationRequests';
 import { getCookie } from '../Features/Functions';
 import { nanoid } from 'nanoid';
@@ -11,6 +11,8 @@ import { dropCurrentChat, setError } from '../Redux/Slicers/ChatSlicer';
 import { defaultErrorMessage } from '../Features/Constants';
 import { PayloadAction } from '@reduxjs/toolkit';
 import { UpdateUserResult } from '../Redux/Slicers/UserSlicer';
+import { ajax } from 'rxjs/ajax';
+import { response } from './AuthorizationRequests';
 
 const dispatch = store.dispatch
 
@@ -184,4 +186,33 @@ export function ConnectToChat(reconnect: boolean = false, newToken: boolean = fa
             SendProxy(subscribe)
         }
     })
+}
+
+export function ajaxUploadFile(file: File, variableName: string, query: string) {
+
+    var formData = new FormData()
+
+    formData.append('operations', `{"query":"${query}","variables":{"${variableName}":null},"operationName":null}`);
+    formData.append('map', JSON.stringify({ "0": [`variables.${variableName}`] }));
+    formData.append('0', file)
+
+    return GetTokenObservable().pipe(mergeMap(() => {
+        const token: StoredTokenType = JSON.parse(getCookie("access_token")!)
+        return ajax<response<{ updateUserAvatart: string }>>({
+            url: `https://${backDomain}/graphql`,
+            method: "POST",
+            headers: {
+                Accept: '*/*',
+                'Authorization': 'Bearer ' + token.token
+            },
+            body: formData
+        }).pipe(map((response) => {
+            const data = response.response;
+            if (data.errors) {
+                throw 'error'
+            }
+
+            return data.data.updateUserAvatart;
+        }))
+    }))
 }

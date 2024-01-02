@@ -10,7 +10,7 @@ namespace WebSocketGraphql.GraphQl.Schemes
     {
         public ChatSchema(IServiceProvider service) : base(service)
         {
-            Metadata.Add(AuthorizationExtensions.AUTHORIZE_KEY, true);
+            Metadata.Add(AuthorizationExtensions.AUTHORIZE_KEY, false);
             Directives.Register(new LengthDirective(),
                                 new EmailDirective());
 

@@ -64,9 +64,17 @@ namespace TimeTracker.Repositories
             return await connection.ExecuteAsync(query, data) > 0 ? data : throw new InvalidDataException("uncorrect data");
         }
 
+        public async Task<string?> UpdateUserAvatarAsync(int userId, string avatarName)
+        {
+            var query = @"update users
+                        set avatar = @avatarName OUTPUT deleted.avatar where id = @userId";
+            using var connection = _dapperContext.CreateConnection();
+            return await connection.QuerySingleAsync<string?>(query, new { userId, avatarName });
+        }
+
         public async Task<User?> GetUserAsync(int id)
         {
-            string query = "SELECT id,nick_name,email,reset_key_2auth,key_2auth FROM Users WHERE id = @id";
+            string query = "SELECT id,nick_name,email,reset_key_2auth,key_2auth,avatar FROM Users WHERE id = @id";
             using var connection = _dapperContext.CreateConnection();
             return await connection.QuerySingleOrDefaultAsync<User>(query, param: new { id }).ConfigureAwait(false);
         }
