@@ -10,5 +10,7 @@ namespace WebSocketGraphql.Models
         public string Name { get; set; }
         [Description("creator")]
         public int CreatorId { get; set; } = 0;
+        [Description("avatar")]
+        public string? Avatar { get; set; }
     }
 }

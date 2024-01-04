@@ -77,7 +77,7 @@ export default function ChatInfo(props: { show: boolean, handleClose: () => void
                 {children}
             </div>
             <div className='px-3'>
-                <Form.Control onChange={searchHandler} className='round mb-2 border-dark'></Form.Control>
+                <Form.Control value={search ?? ""} onChange={searchHandler} className='round mb-2 border-dark'></Form.Control>
             </div>
         </div>
         <div className='pt-2 ps-2 h5 h-100 select-chat-scroll'>

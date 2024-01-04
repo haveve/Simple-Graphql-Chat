@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { Chat, ReduxMessage, Message, ChatParticipant, User } from '../../Features/Types'
 import { Status } from './ChatSlicer'
+import { baseUserPictureFolder } from '../../Features/Constants'
 
 export type UserInitialType = {
     user: User | null,
@@ -38,6 +39,7 @@ const userSlicer = createSlice({
     reducers: {
         addUser: (state, action: PayloadAction<User>) => {
             state.user = { ...action.payload }
+            state.user.avatar = action.payload.avatar ? baseUserPictureFolder + '/' + action.payload.avatar : null
         },
 
         setError(state, action: PayloadAction<string>) {
@@ -57,7 +59,7 @@ const userSlicer = createSlice({
 
         updateAvatar(state, action: PayloadAction<string>) {
             if (state.user) {
-                state.user!.avatar = action.payload
+                state.user!.avatar = baseUserPictureFolder + '/' + action.payload
             }
         }
     }

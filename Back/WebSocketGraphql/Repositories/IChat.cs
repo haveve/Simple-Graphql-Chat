@@ -39,6 +39,8 @@ namespace WebSocketGraphql.Repositories
 
         ValueTask<bool> UpdateChatAsync(int chatId, string name);
 
+        Task<string?> UpdateChatAvatarAsync(int chatId, string avatarName);
+
         ValueTask<bool> AddUserToChatAsync(int chatId, string nickNameOrEmail, string by);
 
         ValueTask<bool> RemoveUserFromChatAsync(int chatId, string nickNameOrEmail, bool deletedAll = false, string? byOrSelf = null);

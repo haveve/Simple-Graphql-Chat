@@ -4,11 +4,10 @@ import { GetAbbreviationFromPhrase } from '../Features/Functions';
 import { backDomain } from '../Features/Constants';
 
 const baseUrl = `https://${backDomain}`
-const baseUserPictureFolder = 'user_pictures'
 
-export default function Icon(props: { color: string, name: string, children?: JSX.Element | null, withChatInfo?: boolean, handleChatInfo?: () => void, onlyImage?: boolean, src?: string | null }) {
+export default function Icon(props: { color: string, name: string, children?: JSX.Element | null, withChatInfo?: boolean, handleChatInfo?: () => void, onlyImage?: boolean, src?: string | null, onlyImageSmall?: boolean }) {
 
-    const { color, name, children, withChatInfo, handleChatInfo, onlyImage, src } = props;
+    const { color, name, children, withChatInfo, handleChatInfo, onlyImage, src, onlyImageSmall } = props;
 
     const userAbr = src ? null : <div className='position-absolute z-0 ico-color'>{GetAbbreviationFromPhrase(name)}</div>;
 
@@ -18,9 +17,9 @@ export default function Icon(props: { color: string, name: string, children?: JS
     </>
         : userAbr
 
-    const linkToImg = baseUrl + '/' + baseUserPictureFolder + '/' + src
+    const linkToImg = baseUrl + '/' + src
 
-    const img = src ? <div className={`p-0 m-0 chat-title-icon-size ${onlyImage ? 'chat-title-icon-size-xl' : null}`}
+    const img = src ? <div className={`p-0 m-0 chat-title-icon-size flex-grow-0 flex-shrink-0 flex-basis-0 ${onlyImage && !onlyImageSmall ? 'chat-title-icon-size-xl' : null}`}
         style={{
             backgroundImage: `url(${linkToImg})`,
             backgroundRepeat: 'no-repeat',
@@ -29,7 +28,7 @@ export default function Icon(props: { color: string, name: string, children?: JS
         }}>
         {icoText}
     </div> :
-        <div className={`chat-title-icon-size ${onlyImage ? 'chat-title-icon-size-xl' : null} flex-grow-0 flex-shrink-0 flex-basis-0 h5 p-0 m-0`} style={{
+        <div className={`chat-title-icon-size ${onlyImage && !onlyImageSmall ? 'chat-title-icon-size-xl' : null} flex-grow-0 flex-shrink-0 flex-basis-0 h5 p-0 m-0`} style={{
             backgroundColor: color,
         }}>
             {icoText}

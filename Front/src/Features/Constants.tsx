@@ -11,6 +11,9 @@ export const backDomain = 'localhost:7000'
 export const defaultErrorMessage = "There is occured some error. For details check console and turn to administrator"
 export const defaultSuccessMessage = "Operation was successfully commited"
 
+export const baseUserPictureFolder = 'user_pictures';
+export const baseChatPictureFolder = 'chat_pictures';
+
 export type SmileListType = {
     picture: React.ReactElement,
     message: string

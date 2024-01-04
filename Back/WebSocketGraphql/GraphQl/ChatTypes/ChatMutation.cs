@@ -14,9 +14,16 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
 {
     public class ChatMutation : ObjectGraphType
     {
+        private const int DefaultMaxFileSizeInKB = 150;
 
-        public ChatMutation(IChat chat, AuthHelper helper, IUserRepository userRepository, IUploadRepository uploadRepository)
+        private readonly int _maxFileSizeInKb;
+        public ChatMutation(IChat chat, IConfiguration configuration, AuthHelper helper, IUserRepository userRepository, IUploadRepository uploadRepository)
         {
+            if (Int32.TryParse(configuration["MaxPictureSizeInKB"], out int value))
+                _maxFileSizeInKb = value;
+            else
+                _maxFileSizeInKb = DefaultMaxFileSizeInKB;
+
             Field<NonNullGraphType<MessageGraphType>>("addMessage")
                 .Argument<NonNullGraphType<MessageInputGraphType>>("message", el => el.ApplyDirective(
                    "length", "min", MessageInputGraphType.minLength, "max", MessageInputGraphType.maxLength))
@@ -94,7 +101,7 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
                 .ResolveAsync(async (context) =>
                 {
                     var chatUpdate = context.GetArgument<ChatModel>("chat");
-                    if (!await helper.CheckChatOwner(helper.GetUserId(context.User!), chatUpdate.Id, context.UserContext))
+                    if (!helper.CheckChatOwner(chatUpdate.Id, context.UserContext))
                     {
                         ThrowError("You does not have anough rights");
                     }
@@ -113,7 +120,7 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
                 .ResolveAsync(async (context) =>
                 {
                     var chatId = context.GetArgument<int>("chatId");
-                    if (!await helper.CheckChatOwner(helper.GetUserId(context.User!), chatId, context.UserContext))
+                    if (!helper.CheckChatOwner(chatId, context.UserContext))
                     {
                         ThrowError("You does not have anough rights");
                     }
@@ -135,7 +142,7 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
                     var chatId = context.GetArgument<int>("chatId");
                     var user = context.GetArgument<string>("user");
 
-                    if (!await helper.CheckChatOwner(helper.GetUserId(context.User!), chatId, context.UserContext))
+                    if (!helper.CheckChatOwner(chatId, context.UserContext))
                     {
                         ThrowError("You does not have anough rights");
                     }
@@ -159,7 +166,7 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
                     var user = context.GetArgument<string>("user");
                     var deleteAll = context.GetArgument<bool?>("deleteAll");
 
-                    if (!await helper.CheckChatOwner(helper.GetUserId(context.User!), chatId, context.UserContext))
+                    if (!helper.CheckChatOwner(chatId, context.UserContext))
                     {
                         ThrowError("You does not have anough rights");
                     }
@@ -233,12 +240,47 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
                 {
                     var userPictPath = "user_pictures";
                     var img = context.GetArgument<IFormFile>("image");
+
                     var userId = helper.GetUserId(context.User!);
-                    var newImg = await uploadRepository.SaveImgAsync(img, userPictPath);
+                    var newImg = await uploadRepository.SaveImgAsync(img, userPictPath, _maxFileSizeInKb);
 
                     try
                     {
                         var result = await userRepository.UpdateUserAvatarAsync(userId, newImg);
+
+                        if (result is not null)
+                        {
+                            uploadRepository.DeleteFile(Path.Combine(userPictPath, result));
+                        }
+                        return newImg;
+                    }
+                    catch
+                    {
+
+                        uploadRepository.DeleteFile(Path.Combine(userPictPath, newImg));
+                        throw;
+                    }
+                });
+
+            Field<NonNullGraphType<StringGraphType>>("updateChatAvatart")
+                .Argument<NonNullGraphType<IntGraphType>>("chatId")
+                .Argument<NonNullGraphType<UploadGraphType>>("image")
+                .ResolveAsync(async context =>
+                {
+
+                    var chatId = context.GetArgument<int>("chatId");
+                    if (!helper.CheckChatOwner(chatId, context.UserContext))
+                    {
+                        ThrowError("You does not have anough rights");
+                    }
+
+                    var userPictPath = "chat_pictures";
+                    var img = context.GetArgument<IFormFile>("image");
+                    var newImg = await uploadRepository.SaveImgAsync(img, userPictPath, _maxFileSizeInKb);
+
+                    try
+                    {
+                        var result = await chat.UpdateChatAvatarAsync(chatId, newImg);
 
                         if (result is not null)
                         {

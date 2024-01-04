@@ -74,6 +74,7 @@ export const queryGetAllChats = `query{
     id,
     creatorId,
     name,
+    avatar
   }
 }`
 
@@ -101,7 +102,8 @@ export const queryFullChatInfo = `query($chatId:Int!){
     name,
     id,
     creatorId,
-    chatMembersCount
+    chatMembersCount,
+    avatar
   }
 }`
 
@@ -183,3 +185,5 @@ export const deleteUserMutation = `mutation remove($data:UserRemoveInput!){
   }`
 
 export const updateUserAvatarMutation = `mutation($file:Upload!){updateUserAvatart(image:$file)}`;
+
+export const updateChatAvatarMutation = `mutation($chatId:Int!,$file:Upload!){updateChatAvatart(image:$file,chatId:$chatId)}`;

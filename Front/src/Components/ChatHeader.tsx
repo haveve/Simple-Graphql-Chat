@@ -27,20 +27,10 @@ export default function ChatHeader(props: { currentChat: ReduxCurrentChat, onSmi
             currentChat!.chatMembersCount + 1 + ' ' + participantText + 's'}
     </span>
 
-    const chatName = <span className='chat-name'>{currentChat!.name}</span>
-
     const ico = <div className='d-flex' role={withChatInfo ? "button" : "img"} onClick={handleChatInfo}>
-        <div className='chat-title-icon-size flex-grow-0 flex-shrink-0 flex-basis-0 h5 ms-2' style={{
-            backgroundColor: currentChat!.color
-        }}>
-            {GetAbbreviationFromPhrase(currentChat!.name)}
-        </div>
-        <div className='h5 pt-1 ms-3 flex-grow-0 flex-shrink-1 flex-basis-1 d-flex flex-column justify-content-center align-items-start'>
-            <span className='chat-text-color'>
-                {chatName}
-            </span>
+        <Icon color={currentChat!.color} src={currentChat.avatar} name={currentChat!.name}>
             {participants}
-        </div>
+        </Icon>
     </div>
 
     const chatInfo = withChatInfo ? <ChatInfo children={ico} show={showChatInfo} handleClose={handleChatInfo} /> : null
@@ -55,7 +45,7 @@ export default function ChatHeader(props: { currentChat: ReduxCurrentChat, onSmi
 
 
     const returned = onlyIco ? ico : <><div className='chat-list p-2 d-flex justify-content-between'>
-        <Icon color={currentChat!.color} name={currentChat!.name} withChatInfo={withChatInfo} handleChatInfo={handleChatInfo}>
+        <Icon color={currentChat!.color} src={currentChat.avatar} name={currentChat!.name} withChatInfo={withChatInfo} handleChatInfo={handleChatInfo}>
             {participants}
         </Icon>
         <OverlayTrigger

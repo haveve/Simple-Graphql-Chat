@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Container, Row, Col, Form } from 'react-bootstrap';
 import { ConnectToChat } from '../Requests/Requests';
 import { addMessageMutation, queryGetAllChats, queryUser, subscriptionToChat, subscriptionToNotification } from '../Features/Queries';
-import Dispatch from '../SocketDispatcher';
 import MessageComponent from '../Components/Message';
 import MultiControl from './MultiControl';
 import ChatSelect from './ChatSelect';
@@ -73,9 +72,6 @@ function Chat() {
   useEffect(() => {
     if (wasInitialAuth.current) {
       const connection = ConnectToChat(false, wasInitialAuth.current)
-      connection.subscribe(sub => sub.subscribe({
-        next: (response) => Dispatch(response)
-      }))
       const subToNotify = RequestBuilder('start', { query: subscriptionToNotification })
 
       connection.subscribe(sub => sub.next(subToNotify, chatPending))

@@ -3,6 +3,7 @@ import { FullChat, Chat, ReduxMessage, Message, ChatParticipant } from '../../Fe
 import { GetStringFromDateTime, SetMessageId, SortByOnline } from '../../Features/Functions'
 import randomColor from 'randomcolor'
 import { ParticipantState } from '../../Features/Types'
+import { baseUserPictureFolder, baseChatPictureFolder } from '../../Features/Constants'
 
 export type Status = 'error' | 'idle' | 'pending' | 'success'
 
@@ -17,7 +18,7 @@ export type sliceState = {
     participants: ReduxParticipant[],
     chats: ReduxChat[],
     error?: string,
-    updatedMessage?: ReduxMessage
+    updatedMessage?: ReduxMessage,
 }
 
 export type DeleteAll = {
@@ -45,7 +46,11 @@ export const chatSlicer = createSlice({
     reducers: {
         setChat: {
             reducer: (state, action: PayloadAction<FullChat>) => {
-                state.currentChat = { ...action.payload, color: state.chats.find(el => el.id === action.payload.id)!.color }
+                state.currentChat = {
+                    ...action.payload, color: action.payload.avatar ? '' : state.chats.find(el => el.id === action.payload.id)!.color,
+                    avatar: action.payload.avatar ? baseChatPictureFolder + '/' + action.payload.avatar : null
+                }
+                state.updatedMessage = undefined;
                 state.messages = [];
                 state.status = 'idle'
             },
@@ -60,7 +65,13 @@ export const chatSlicer = createSlice({
                 state.status = 'idle'
             },
             prepare: (payload: Chat[]) => {
-                return { payload: payload.map(el => ({ ...el, color: randomColor({ hue: 'red', luminosity: 'light' }) })) }
+                return {
+                    payload: payload.map(el => ({
+                        ...el,
+                        color: el.avatar ? '' : randomColor({ hue: 'red', luminosity: 'light' }),
+                        avatar: el.avatar ? baseChatPictureFolder + '/' + el.avatar : null
+                    }))
+                }
             }
         },
 
@@ -122,9 +133,8 @@ export const chatSlicer = createSlice({
                         SortByOnline(payload.map(el =>
                         ({
                             ...el,
-                            color: randomColor({
-                                hue: 'blue', luminosity: 'light'
-                            })
+                            color: el.avatar ? '' : randomColor({ hue: 'blue', luminosity: 'light' }),
+                            avatar: el.avatar ? baseUserPictureFolder + '/' + el.avatar : null
                         })
                         )) as ReduxParticipant[]
                 }
@@ -175,7 +185,7 @@ export const chatSlicer = createSlice({
             if (!state.currentChat) {
                 return;
             }
-            
+
             switch (action.payload) {
                 case ChangeParticipantsType.DELETE:
                     state.currentChat.chatMembersCount = state.currentChat.chatMembersCount - 1;
@@ -217,7 +227,6 @@ export const chatSlicer = createSlice({
         dropUpdateMessage(state) {
             state.updatedMessage = undefined
         }
-
     }
 })
 

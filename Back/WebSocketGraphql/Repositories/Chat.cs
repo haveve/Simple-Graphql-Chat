@@ -248,11 +248,11 @@ namespace WebSocketGraphql.Repositories
 
         public async Task<IEnumerable<ChatModel>> GetUserChatsInstancesAsync(int userId)
         {
-            string query = @"SELECT ch.creator,ch.id,ch.name FROM Chat AS ch
+            string query = @"SELECT ch.creator,ch.id,ch.name,ch.avatar FROM Chat AS ch
                             JOIN  Users_Chat_Keys as uck
                             ON ch.id = uck.chat_id AND uck.user_id = @userId 
                             UNION ALL
-                            SELECT ch.creator,ch.id,ch.name FROM Chat AS ch 
+                            SELECT ch.creator,ch.id,ch.name,ch.avatar FROM Chat AS ch 
                             WHERE ch.creator = @userId";
             using var connection = _dapperContext.CreateConnection();
             return await connection.QueryAsync<ChatModel>(query, new { userId }).ConfigureAwait(false);
@@ -260,11 +260,11 @@ namespace WebSocketGraphql.Repositories
 
         public async Task<ChatResult?> GetFullChatInfoAsync(int chatId, int userId)
         {
-            string query = @"SELECT ch.creator,ch.id,ch.name, (SELECT Count(*) FROM Users_Chat_Keys WHERE chat_id = ch.id) AS ChatMembersCount FROM Chat AS ch
+            string query = @"SELECT ch.creator,ch.id,ch.name,ch.avatar, (SELECT Count(*) FROM Users_Chat_Keys WHERE chat_id = ch.id) AS ChatMembersCount FROM Chat AS ch
                             JOIN  Users_Chat_Keys as uck
                             ON ch.id = @chatId AND uck.chat_id = @chatId AND uck.user_id = @userId
                             UNION ALL
-                            SELECT ch.creator,ch.id,ch.name,(SELECT Count(*) FROM Users_Chat_Keys WHERE chat_id = ch.id) AS ChatMembersCount FROM Chat AS ch 
+                            SELECT ch.creator,ch.id,ch.name,ch.avatar,(SELECT Count(*) FROM Users_Chat_Keys WHERE chat_id = ch.id) AS ChatMembersCount FROM Chat AS ch 
                             WHERE ch.id = @chatId and ch.creator = @userId";
             using var connection = _dapperContext.CreateConnection();
             return await connection.QuerySingleOrDefaultAsync<ChatResult>(query, new { userId, chatId }).ConfigureAwait(false);
@@ -347,6 +347,13 @@ namespace WebSocketGraphql.Repositories
 
             return result;
 
+        }
+        public async Task<string?> UpdateChatAvatarAsync(int chatId, string avatarName)
+        {
+            var query = @"update Chat
+                        set avatar = @avatarName OUTPUT deleted.avatar where id = @chatId";
+            using var connection = _dapperContext.CreateConnection();
+            return await connection.QuerySingleAsync<string?>(query, new { chatId, avatarName });
         }
 
         public async ValueTask<bool> RemoveUserFromChatAsync(int chatId, string nickNameOrEmail, bool deleteAll = false, string? byOrSelf = null)

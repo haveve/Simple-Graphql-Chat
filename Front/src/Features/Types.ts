@@ -46,6 +46,7 @@ export type Chat = {
     id: number,
     name: string,
     creatorId: number,
+    avatar?: string | null
 }
 
 export type FullChat = Chat & {

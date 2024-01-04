@@ -2,19 +2,20 @@ import { webSocket } from 'rxjs/webSocket'
 import { Chat, ChatParticipant, Message, DerivedMessageOrChatInfo, UserNotification, User, FullChat } from '../Features/Types';
 import { backDomain } from '../Features/Constants';
 import { WebSocketSubject } from 'rxjs/webSocket'
-import { NextObserver, interval, Subscription, Observable, Subscriber, mergeMap, map } from 'rxjs'
+import { NextObserver, interval, Subscription, Observable, Subscriber, mergeMap, map, catchError, of } from 'rxjs'
 import { GetTokenObservable, StoredTokenType } from './AuthorizationRequests';
 import { getCookie } from '../Features/Functions';
 import { nanoid } from 'nanoid';
 import store from '../Redux/store';
-import { dropCurrentChat, setError } from '../Redux/Slicers/ChatSlicer';
-import { defaultErrorMessage } from '../Features/Constants';
 import { PayloadAction } from '@reduxjs/toolkit';
 import { UpdateUserResult } from '../Redux/Slicers/UserSlicer';
 import { ajax } from 'rxjs/ajax';
 import { response } from './AuthorizationRequests';
+import Dispatch from '../SocketDispatcher';
 
 const dispatch = store.dispatch
+
+export const MaxFileSizeInKB = 150;
 
 const keepAliveInterval = 60;
 
@@ -87,18 +88,17 @@ class WebSocketProxy<T extends MinWebSocketType>{
     private keepAlive: Subscription
     private skipPinging: boolean
 
-    public constructor(webSocket: WebSocketSubject<T>, keepAliveMessage: T) {
-        this.skipPinging = false;
-        this.webSocket = webSocket
-        this.webSocket.subscribe({
-            error: (error) => {
+    public constructor(webSocketFanctory: () => [WebSocketSubject<T>, T], keepAliveMessage: T, Dispatch: (data: any) => void) {
 
+        const [socket, init] = webSocketFanctory();
+        this.skipPinging = false;
+        this.webSocket = socket
+        this.webSocket.subscribe({
+            next: (response) => {
+                Dispatch(response)
+            },
+            error: (error) => {
                 console.log(JSON.stringify(error))
-                if (this.webSocket.closed) {
-                    this.keepAlive.unsubscribe();
-                    dispatch(dropCurrentChat())
-                }
-                dispatch(setError(defaultErrorMessage))
             }
         })
         this.keepAlive = interval(keepAliveInterval * 1000).subscribe({
@@ -109,6 +109,7 @@ class WebSocketProxy<T extends MinWebSocketType>{
                 this.skipPinging = false;
             }
         })
+        this.next(init, null)
     }
 
     public subscribe(subscriber: NextObserver<any>) {
@@ -151,32 +152,32 @@ function SendProxy(subscriber: Subscriber<WebSocketProxy<defaultSubscriptionResp
     })
 }
 
-
-let socket: WebSocketSubject<defaultSubscriptionResponse<any>>;
-
 export function GetNewToken() {
     return GetTokenObservable(true);
+}
+
+export function GetWebSocket(): [WebSocketSubject<defaultSubscriptionResponse<any>>, defaultSubscriptionResponse<any>] {
+    return [webSocket<defaultSubscriptionResponse<any>>({
+        url: `wss://${backDomain}/graphql`,
+        protocol: 'graphql-ws'
+    }), { "type": "connection_init", "payload": {} }]
 }
 
 export function ConnectToChat(reconnect: boolean = false, newToken: boolean = false): Observable<WebSocketProxy<defaultSubscriptionResponse<any>>> {
 
     return new Observable(subscribe => {
-        if ((!SingletonContainer.GetInstance() || reconnect || socket.closed) && SingletonContainer.getDone()) {
+        if ((!SingletonContainer.GetInstance() || reconnect) && SingletonContainer.getDone()) {
             SingletonContainer.setDone(false);
             GetTokenObservable(newToken).subscribe({
                 next: () => {
-                    socket = webSocket<defaultSubscriptionResponse<any>>({
-                        url: `wss://${backDomain}/graphql`,
-                        protocol: 'graphql-ws'
-                    })
-                    SingletonContainer.SetInstance(new WebSocketProxy(socket, {
+
+                    SingletonContainer.SetInstance(new WebSocketProxy(GetWebSocket, {
                         id: nanoid(), type: "start", payload: {
                             query: `query{
                         ping
                       }`}
-                    }));
+                    }, Dispatch));
                     const proxy = SingletonContainer.GetInstance();
-                    proxy.next({ "type": "connection_init", "payload": {} })
                     SingletonContainer.setDone(true);
                     subscribe.next(proxy)
                 }
@@ -188,31 +189,38 @@ export function ConnectToChat(reconnect: boolean = false, newToken: boolean = fa
     })
 }
 
-export function ajaxUploadFile(file: File, variableName: string, query: string) {
+export function ajaxUploadFile(file: File, variableName: string, query: string, variables: { [key: string]: any } = {}) {
 
-    var formData = new FormData()
+    if (file.size > MaxFileSizeInKB * 1024){
+        throw "You reached maximum size value of file"
+    }
 
-    formData.append('operations', `{"query":"${query}","variables":{"${variableName}":null},"operationName":null}`);
-    formData.append('map', JSON.stringify({ "0": [`variables.${variableName}`] }));
-    formData.append('0', file)
+        return GetTokenObservable().pipe(mergeMap(() => {
+            const token: StoredTokenType = JSON.parse(getCookie("access_token")!)
 
-    return GetTokenObservable().pipe(mergeMap(() => {
-        const token: StoredTokenType = JSON.parse(getCookie("access_token")!)
-        return ajax<response<{ updateUserAvatart: string }>>({
-            url: `https://${backDomain}/graphql`,
-            method: "POST",
-            headers: {
-                Accept: '*/*',
-                'Authorization': 'Bearer ' + token.token
-            },
-            body: formData
-        }).pipe(map((response) => {
-            const data = response.response;
-            if (data.errors) {
-                throw 'error'
-            }
+            var formData = new FormData()
+            variables[variableName] = null;
+            variables["authorization"] = token.token;
 
-            return data.data.updateUserAvatart;
+            formData.append('operations', `{"query":"${query}","variables":${JSON.stringify(variables)},"operationName":null}`);
+            formData.append('map', JSON.stringify({ "0": [`variables.${variableName}`] }));
+            formData.append('0', file)
+
+            return ajax<response<{ updateUserAvatart: string }>>({
+                url: `https://${backDomain}/graphql`,
+                method: "POST",
+                headers: {
+                    Accept: '*/*',
+                    'Authorization': 'Bearer ' + token.token
+                },
+                body: formData
+            }).pipe(map((response) => {
+                const data = response.response;
+                if (data.errors) {
+                    throw 'error'
+                }
+
+                return data.data.updateUserAvatart;
+            }))
         }))
-    }))
 }

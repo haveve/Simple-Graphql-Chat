@@ -20,7 +20,7 @@ namespace WebSocketGraphql.Services.AuthenticationServices
             _configuration = configuration;
         }
 
-        public async Task<bool> CheckChatOwner(int userId, int chatId, IDictionary<string, object?> authUser)
+        public bool CheckChatOwner(int chatId, IDictionary<string, object?> authUser)
         {
             var ownChats = JsonSerializer.Deserialize<IEnumerable<int>>(authUser["UserOwn"] as string);
 

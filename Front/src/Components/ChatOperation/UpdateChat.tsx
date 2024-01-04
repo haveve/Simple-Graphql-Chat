@@ -5,8 +5,12 @@ import { useTypedSelector } from '../../Redux/store';
 import type { ChatUpdate } from '../../Features/Types';
 import { ConnectToChat } from '../../Requests/Requests';
 import { RequestBuilder } from '../../Features/Queries';
-import ChatHeader from '../ChatHeader';
-import { setState } from '../../Redux/Slicers/ChatSlicer';
+import { setError, setState } from '../../Redux/Slicers/ChatSlicer';
+import Icon from '../Icon';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCameraAlt } from '@fortawesome/free-solid-svg-icons';
+import { updateChatAvatarMutation } from '../../Features/Queries';
+import { ajaxUploadFile } from '../../Requests/Requests';
 
 export default function UpdateChat(props: { chatId: number | null, show: boolean, setShow: (value: boolean) => void }) {
 
@@ -14,6 +18,7 @@ export default function UpdateChat(props: { chatId: number | null, show: boolean
 
     const { show, setShow, chatId } = props;
     const [updatedName, setUpdatedName] = useState("");
+    const [fileError, setFileError] = useState("");
 
     const chat = useTypedSelector(store => store.chat.chats.find(el => el.id === chatId))
 
@@ -27,7 +32,7 @@ export default function UpdateChat(props: { chatId: number | null, show: boolean
             const connection = ConnectToChat()
             connection.subscribe((sub) => sub.next(
                 RequestBuilder('start',
-                    { query: updateChatMutation, variables: { chat: updatedChat } }),chatPending))
+                    { query: updateChatMutation, variables: { chat: updatedChat } }), chatPending))
         }
     }
     const updateNameHandler: React.ChangeEventHandler<HTMLInputElement> = (event) => {
@@ -36,10 +41,36 @@ export default function UpdateChat(props: { chatId: number | null, show: boolean
 
     return <Modal centered show={show}>
         <Modal.Body>
-            {chat ? <ChatHeader currentChat={{...chat!,chatMembersCount:0}} withoutParticipants = {true} onlyIco = {true} /> : null}
+            {chat ? <Icon name={chat.name} color={chat.color} onlyImage={true} onlyImageSmall={true} src={chat.avatar} children={
+                <label htmlFor="selec-file-avatar" className='selec-file-avatar d-flex justify-content-center align-items-center h-100 w-100'>
+                    <FontAwesomeIcon icon={faCameraAlt}></FontAwesomeIcon>
+                </label>
+            } /> : null}
+            <span className='text-danger'>{fileError}</span>
             <Form.Control onChange={updateNameHandler} size='lg' placeholder='New chat name' className='border border-dark mt-3'></Form.Control>
             <div className='d-flex justify-content-end gap-3 mt-3'><Button variant='primary' size='lg' onClick={closeHandler}>Cancel</Button>
                 <Button variant='success' size='lg' onClick={updateChatHandler}>Update</Button></div>
+            <input type="file" accept="image/*" hidden id="selec-file-avatar" onChange={event => {
+                if (event.target.validity.valid && event.target.files) {
+                    const img = event.target.files[0]
+
+                    try {
+                        setFileError("")
+                        ajaxUploadFile(img, "file", updateChatAvatarMutation, { chatId: chatId })
+                            .subscribe({
+                                next: (data) => {
+
+                                },
+                                error:(error) => {
+                                    
+                                }
+                            })
+                    }
+                    catch (error) {
+                        setFileError(JSON.stringify(error))
+                    }
+                }
+            }} />
         </Modal.Body>
     </Modal>
 }

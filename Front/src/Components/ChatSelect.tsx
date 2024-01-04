@@ -12,6 +12,7 @@ import { RequestBuilder } from '../Features/Queries';
 import { queryFullChatInfo } from '../Features/Queries';
 import { selectChatIds } from '../Redux/reselect';
 import { setState } from '../Redux/Slicers/ChatSlicer';
+import Icon from './Icon';
 
 export type ChatOptionType = {
     show: boolean,
@@ -40,7 +41,7 @@ export default function ChatSelect() {
 
 export const ChatSel = memo((props: { id: number, setOption: Updater<ChatOptionType>, refToOpt: React.RefObject<HTMLDivElement> }) => {
     const chatPending = setState('pending');
-    
+
     const { id, setOption, refToOpt } = props;
     const el = useTypedSelector(store => store.chat.chats.find(el => el.id === id)!)
     const currentChat = useTypedSelector(store => store.chat.currentChat)
@@ -49,7 +50,7 @@ export const ChatSel = memo((props: { id: number, setOption: Updater<ChatOptionT
         event.preventDefault()
         const connection = ConnectToChat()
         connection.subscribe(sub => {
-            sub.next(RequestBuilder('start', { query: queryFullChatInfo, variables: { chatId: el.id } }),chatPending)
+            sub.next(RequestBuilder('start', { query: queryFullChatInfo, variables: { chatId: el.id } }), chatPending)
         })
     }
 
@@ -69,16 +70,13 @@ export const ChatSel = memo((props: { id: number, setOption: Updater<ChatOptionT
 
     return <div onContextMenu={HandleContextMenu} onClick={currentChat?.id === el.id ? undefined : HandleChatClick}
         className={`${currentChat?.id === el.id ? 'selected' : null}  chat chat-hover p-2 h5`}>
-        <div className='chat-icon-size' style={{
-            backgroundColor: el.color
-        }}>{GetAbbreviationFromPhrase(el.name)}</div>
-        <span className={`ps-2`}>{GetDisplayedName(el.name)}</span>
+        <Icon color={el.color} name={el.name} src={el.avatar} />
     </div>
 })
 
 
-export const Options = forwardRef<HTMLDivElement, {option: ChatOptionType }>((props, ref) => {
-    const { option} = props;
+export const Options = forwardRef<HTMLDivElement, { option: ChatOptionType }>((props, ref) => {
+    const { option } = props;
     const [showUpdate, setShowUpdate] = useState(false)
     const [showRemove, setShowRemove] = useState(false)
     const [showAddUser, setShowAddUser] = useState(false)

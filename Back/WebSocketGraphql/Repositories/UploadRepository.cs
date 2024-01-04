@@ -4,7 +4,7 @@ using System.Collections.Concurrent;
 
 namespace FileUploadSample
 {
-    public class UploadRepository: IUploadRepository
+    public class UploadRepository : IUploadRepository
     {
         private readonly string _uploadDirectory;
         private readonly Random _rnd;
@@ -17,11 +17,17 @@ namespace FileUploadSample
 
         public void DeleteFile(string relatingPath)
         {
-            File.Delete(Path.Combine(_uploadDirectory,relatingPath));
+            File.Delete(Path.Combine(_uploadDirectory, relatingPath));
         }
 
-        public async Task<string> SaveImgAsync(IFormFile formFile, string catalog)
+        public async Task<string> SaveImgAsync(IFormFile formFile, string catalog, int maxFileSizeInKB = 0)
         {
+
+            if (maxFileSizeInKB > 0 && formFile.Length > maxFileSizeInKB * 1024)
+            {
+                throw new InvalidDataException("You reached maximum size value of file");
+            }
+
             if (!formFile.ContentType.StartsWith("image"))
             {
                 throw new InvalidDataException("File is not a image");
