@@ -311,17 +311,17 @@ namespace WebSocketGraphql.Repositories
             return await RemoveUserFromChatAsync(chatId, nickName, deleteMessages).ConfigureAwait(false);
         }
 
-        public async ValueTask<bool> RemoveChatAsync(int chatId)
+        public async ValueTask<string?> RemoveChatAsync(int chatId)
         {
-            string query = "DELETE Chat WHERE id = @chatId";
+            string query = @"DECLARE @chatPicture nvarchar(46)
+                            SELECT @chatPicture = avatar from Chat where id = @chatId
+                            DELETE Chat WHERE id = @chatId
+                            select @chatPicture";
             using var connection = _dapperContext.CreateConnection();
-            bool result = await connection.ExecuteAsync(query, new { chatId }).ConfigureAwait(false) > 0;
+            var result = await connection.QuerySingleAsync<string?>(query, new { chatId }).ConfigureAwait(false);
 
-            if (result)
-            {
-                var subject = GetOrCreateChat(chatId);
-                subject.OnNext(new ChatSubscription(ChatResultType.DELETE) { Id = chatId });
-            }
+            var subject = GetOrCreateChat(chatId);
+            subject.OnNext(new ChatSubscription(ChatResultType.DELETE) { Id = chatId });
 
             return result;
         }

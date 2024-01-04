@@ -192,7 +192,7 @@ export function ConnectToChat(reconnect: boolean = false, newToken: boolean = fa
 export function ajaxUploadFile(file: File, variableName: string, query: string, variables: { [key: string]: any } = {}) {
 
     if (file.size > MaxFileSizeInKB * 1024){
-        throw "You reached maximum size value of file"
+        throw `You reached maximum size value of file ${MaxFileSizeInKB} KB`
     }
 
         return GetTokenObservable().pipe(mergeMap(() => {

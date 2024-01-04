@@ -13,7 +13,7 @@ namespace TimeTracker.Repositories
         Task<UpdateUser> UpdateUserAsync(UpdateUser data);
         Task<User?> GetUserByCredentialsAsync(string nickNameOrEmail, string password);
         Task<string> CreateUserAsync(User user);
-        Task<int> DeleteUserAsync(RemoveUser data);
+        Task<string?> DeleteUserAsync(RemoveUser data);
         Task<User?> GetUserByNickNameOrEmailAsync(string nickNameOrEmail);
         Task UpdateUserResetCodeByIdAsync(int id, string code);
         Task UpdateUserPasswordAndCodeAsync(int id, string password);

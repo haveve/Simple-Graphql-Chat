@@ -14,6 +14,9 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
 {
     public class ChatMutation : ObjectGraphType
     {
+
+        private const string chatPictPath = "chat_pictures";
+        private const string userPictPath = "user_pictures";
         private const int DefaultMaxFileSizeInKB = 150;
 
         private readonly int _maxFileSizeInKb;
@@ -125,10 +128,9 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
                         ThrowError("You does not have anough rights");
                     }
 
-                    if (!await chat.RemoveChatAsync(chatId))
-                    {
-                        ThrowError("Chat cannot be updated because of some reasons");
-                    }
+                    var pictName = await chat.RemoveChatAsync(chatId);
+                    if (pictName is not null)
+                        uploadRepository.DeleteFile(Path.Combine(chatPictPath, pictName));
 
                     return chatId;
                 });
@@ -223,6 +225,11 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
                 data.Id = helper.GetUserId(context.User!);
                 var result = await userRepository.DeleteUserAsync(data);
 
+                if (result is not null)
+                {
+                    uploadRepository.DeleteFile(Path.Combine(userPictPath, result));
+                }
+
                 var participants = helper.GetChatParticipant(context.UserContext);
 
                 if (participants is not null)
@@ -238,7 +245,6 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
                 .Argument<NonNullGraphType<UploadGraphType>>("image")
                 .ResolveAsync(async context =>
                 {
-                    var userPictPath = "user_pictures";
                     var img = context.GetArgument<IFormFile>("image");
 
                     var userId = helper.GetUserId(context.User!);
@@ -274,9 +280,8 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
                         ThrowError("You does not have anough rights");
                     }
 
-                    var userPictPath = "chat_pictures";
                     var img = context.GetArgument<IFormFile>("image");
-                    var newImg = await uploadRepository.SaveImgAsync(img, userPictPath, _maxFileSizeInKb);
+                    var newImg = await uploadRepository.SaveImgAsync(img, chatPictPath, _maxFileSizeInKb);
 
                     try
                     {
@@ -284,14 +289,14 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
 
                         if (result is not null)
                         {
-                            uploadRepository.DeleteFile(Path.Combine(userPictPath, result));
+                            uploadRepository.DeleteFile(Path.Combine(chatPictPath, result));
                         }
                         return newImg;
                     }
                     catch
                     {
 
-                        uploadRepository.DeleteFile(Path.Combine(userPictPath, newImg));
+                        uploadRepository.DeleteFile(Path.Combine(chatPictPath, newImg));
                         throw;
                     }
                 });

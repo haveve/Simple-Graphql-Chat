@@ -36,14 +36,26 @@ namespace TimeTracker.Repositories
             return code;
         }
 
-        public async Task<int> DeleteUserAsync(RemoveUser data)
+        public async Task<string?> DeleteUserAsync(RemoveUser data)
         {
             var salt = await GetUserSalt(data.Id);
-            string query = "DELETE FROM Users WHERE id = @Id AND password = @Password";
+            string query = @"DECLARE @userPicture nvarchar(46)
+                            SELECT @userPicture = avatar from Users WHERE id = @Id
+                            DELETE Users WHERE id = @Id AND password = @Password
+                            IF(@@ROWCOUNT > 0)
+								select @userPicture
+							ELSE 
+								THROW 60000,'invalid data',1";
             data.Password = data.Password.ComputeHash(salt, _iteration);
             using var connection = _dapperContext.CreateConnection();
-            return await connection.ExecuteAsync(query, data).ConfigureAwait(false) > 0
-                   ? data.Id : throw new InvalidDataException("Invalid Data");
+            try
+            {
+                return await connection.QuerySingleAsync<string?>(query, data).ConfigureAwait(false);
+            }
+            catch
+            {
+                throw new InvalidDataException("Incorrect data");
+            }
         }
 
         public async Task<UpdateUser> UpdateUserAsync(UpdateUser data)
