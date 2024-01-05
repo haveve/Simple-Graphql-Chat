@@ -187,3 +187,27 @@ export const deleteUserMutation = `mutation remove($data:UserRemoveInput!){
 export const updateUserAvatarMutation = `mutation($file:Upload!){updateUserAvatart(image:$file)}`;
 
 export const updateChatAvatarMutation = `mutation($chatId:Int!,$file:Upload!){updateChatAvatart(image:$file,chatId:$chatId)}`;
+
+
+//2f
+
+export const set2fMutation = `mutation set2f($data:Set2fDataInput!){
+  set2fAuth(data:$data)
+}`
+
+export const drop2fMutation = `mutation drop2f($code:String!){
+  drop2fAuth(code:$code)
+}`
+
+export const get2fQuery = `query get2f{
+  get2fAuth{
+    key,
+    manualEntry,
+    qrUrl
+  }
+}
+`
+
+export const verify2fQuery = `query varify2f($token:String!,$code:String!){
+  verify2fAuth(token:$token,code:$code)
+}`

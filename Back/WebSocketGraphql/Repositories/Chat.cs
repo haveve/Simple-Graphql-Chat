@@ -107,7 +107,7 @@ namespace WebSocketGraphql.Repositories
             }
         }
 
-        public async ValueTask<bool> AddMessageAsync(Message message)
+        public async Task<bool> AddMessageAsync(Message message)
         {
             string query = "INSERT INTO Message (chat_id,sent_at,from_id,content) VALUES(@ChatId,@SentAt,@FromId,@Content)";
             using var connection = _dapperContext.CreateConnection();
@@ -129,7 +129,7 @@ namespace WebSocketGraphql.Repositories
             public int CreatorId { get; set; } = 0;
         }
 
-        public async ValueTask<bool> AddUserToChatAsync(int chatId, string nickNameOrEmail, string by)
+        public async Task<bool> AddUserToChatAsync(int chatId, string nickNameOrEmail, string by)
         {
             string query = @"
             BEGIN TRANSACTION
@@ -270,7 +270,7 @@ namespace WebSocketGraphql.Repositories
             return await connection.QuerySingleOrDefaultAsync<ChatResult>(query, new { userId, chatId }).ConfigureAwait(false);
         }
 
-        public async ValueTask<bool> RemoveMessageAsync(Message message)
+        public async Task<bool> RemoveMessageAsync(Message message)
         {
             string query = @"
                 DECLARE @CompareDelete DateTime2(3) = @SentAt
@@ -285,7 +285,7 @@ namespace WebSocketGraphql.Repositories
             return result;
         }
 
-        public async ValueTask<bool> UpdateMessageAsync(Message message)
+        public async Task<bool> UpdateMessageAsync(Message message)
         {
             string query = @"DECLARE @CompareDelete DateTime2(3) = @SentAt
             UPDATE Message SET content = @content WHERE sent_at = @CompareDelete AND from_id = @FromId AND chat_id = @ChatId";
@@ -299,19 +299,19 @@ namespace WebSocketGraphql.Repositories
             return result;
         }
 
-        public async ValueTask<int> AddChatAsync(ChatModel chat)
+        public async Task<int> AddChatAsync(ChatModel chat)
         {
             string query = "INSERT INTO Chat (name,creator) OUTPUT Inserted.id VALUES(@Name,@CreatorId)";
             using var connection = _dapperContext.CreateConnection();
             return await connection.QuerySingleAsync<int>(query, chat).ConfigureAwait(false);
         }
 
-        public async ValueTask<bool> LeaveFromChatAsync(string nickName, int chatId, bool deleteMessages = false)
+        public async Task<bool> LeaveFromChatAsync(string nickName, int chatId, bool deleteMessages = false)
         {
             return await RemoveUserFromChatAsync(chatId, nickName, deleteMessages).ConfigureAwait(false);
         }
 
-        public async ValueTask<string?> RemoveChatAsync(int chatId)
+        public async Task<string?> RemoveChatAsync(int chatId)
         {
             string query = @"DECLARE @chatPicture nvarchar(46)
                             SELECT @chatPicture = avatar from Chat where id = @chatId
@@ -326,14 +326,14 @@ namespace WebSocketGraphql.Repositories
             return result;
         }
 
-        public async ValueTask<bool> AddTechMessageAsync(int chatId, Message message)
+        public async Task<bool> AddTechMessageAsync(int chatId, Message message)
         {
             string query = "INSERT INTO TechMessage(chat_id,content,sent_at) VALUES(@chatId,@Content,@SentAt)";
             using var connection = _dapperContext.CreateConnection();
             return await connection.ExecuteAsync(query, new { chatId, message.Content, message.SentAt }).ConfigureAwait(false) > 0;
         }
 
-        public async ValueTask<bool> UpdateChatAsync(int chatId, string name)
+        public async Task<bool> UpdateChatAsync(int chatId, string name)
         {
             string query = "UPDATE Chat SET Name = @name WHERE id = @chatId";
             using var connection = _dapperContext.CreateConnection();
@@ -356,7 +356,7 @@ namespace WebSocketGraphql.Repositories
             return await connection.QuerySingleAsync<string?>(query, new { chatId, avatarName });
         }
 
-        public async ValueTask<bool> RemoveUserFromChatAsync(int chatId, string nickNameOrEmail, bool deleteAll = false, string? byOrSelf = null)
+        public async Task<bool> RemoveUserFromChatAsync(int chatId, string nickNameOrEmail, bool deleteAll = false, string? byOrSelf = null)
         {
             string query = @"
             BEGIN TRANSACTION

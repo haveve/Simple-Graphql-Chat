@@ -11,7 +11,7 @@ namespace WebSocketGraphql.Repositories
     {
         void NotifyAllChats(IEnumerable<int> chatIds, object obj);
 
-        ValueTask<bool> AddMessageAsync(Message message);
+        Task<bool> AddMessageAsync(Message message);
 
         Task<IEnumerable<Message>> GetAllMessagesAsync(int chatId);
 
@@ -29,21 +29,21 @@ namespace WebSocketGraphql.Repositories
 
         Task<IEnumerable<int>> SetOffline(int userId);
 
-        ValueTask<bool> RemoveMessageAsync(Message message);
+        Task<bool> RemoveMessageAsync(Message message);
 
-        ValueTask<bool> UpdateMessageAsync(Message message);
+        Task<bool> UpdateMessageAsync(Message message);
 
-        ValueTask<int> AddChatAsync(ChatModel chat);
+        Task<int> AddChatAsync(ChatModel chat);
 
-        ValueTask<string?> RemoveChatAsync(int chatId);
+        Task<string?> RemoveChatAsync(int chatId);
 
-        ValueTask<bool> UpdateChatAsync(int chatId, string name);
+        Task<bool> UpdateChatAsync(int chatId, string name);
 
         Task<string?> UpdateChatAvatarAsync(int chatId, string avatarName);
 
-        ValueTask<bool> AddUserToChatAsync(int chatId, string nickNameOrEmail, string by);
+        Task<bool> AddUserToChatAsync(int chatId, string nickNameOrEmail, string by);
 
-        ValueTask<bool> RemoveUserFromChatAsync(int chatId, string nickNameOrEmail, bool deletedAll = false, string? byOrSelf = null);
+        Task<bool> RemoveUserFromChatAsync(int chatId, string nickNameOrEmail, bool deletedAll = false, string? byOrSelf = null);
 
         Task<IEnumerable<int>> GetUserChatsAsync(int userId);
 
@@ -53,9 +53,9 @@ namespace WebSocketGraphql.Repositories
 
         Task<ChatResult?> GetFullChatInfoAsync(int chatId, int userId);
 
-        ValueTask<bool> LeaveFromChatAsync(string nickName, int chatId, bool deleteMessages = false);
+        Task<bool> LeaveFromChatAsync(string nickName, int chatId, bool deleteMessages = false);
 
-        ValueTask<bool> AddTechMessageAsync(int chatId, Message message);
+        Task<bool> AddTechMessageAsync(int chatId, Message message);
 
     }
 }

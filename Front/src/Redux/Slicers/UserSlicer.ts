@@ -38,8 +38,13 @@ const userSlicer = createSlice({
     initialState,
     reducers: {
         addUser: (state, action: PayloadAction<User>) => {
-            state.user = { ...action.payload }
-            state.user.avatar = action.payload.avatar ? baseUserPictureFolder + '/' + action.payload.avatar : null
+            if (!state.user || action.payload.avatar !== state.user.avatar) {
+                state.user = { ...action.payload }
+                state.user.avatar = action.payload.avatar ? baseUserPictureFolder + '/' + action.payload.avatar : null
+            }
+            else {
+                state.user = { ...action.payload }
+            }
         },
 
         setError(state, action: PayloadAction<string>) {

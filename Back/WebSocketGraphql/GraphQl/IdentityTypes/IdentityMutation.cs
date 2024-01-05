@@ -1,6 +1,8 @@
-﻿using GraphQL;
+﻿using Google.Authenticator;
+using GraphQL;
 using GraphQL.Types;
 using TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager;
+using TimeTracker.Helpers;
 using TimeTracker.Models;
 using TimeTracker.Repositories;
 using TimeTracker.Services;
@@ -19,7 +21,7 @@ namespace WebSocketGraphql.GraphQl.IdentityTypes
         private readonly IEmailSender _emailSender;
         private readonly AuthHelper _helper;
 
-        public IdentityMutation(IUserRepository userRepository, IEmailSender emailSender, AuthHelper helper)
+        public IdentityMutation(IUserRepository userRepository, IEmailSender emailSender, IAuthorizationRepository authorizationRepository, AuthHelper helper)
         {
 
             _userRepository = userRepository;
@@ -98,7 +100,61 @@ namespace WebSocketGraphql.GraphQl.IdentityTypes
                    return "Password reseted successfully";
                });
 
+            Field<NonNullGraphType<StringGraphType>>("set2fAuth")
+            .Argument<NonNullGraphType<Set2fDataInputGraphType>>("data")
+            .ResolveAsync(async (context) =>
+            {
 
+                var reqData = context.GetArgument<Set2fData>("data");
+
+                var id = helper.GetUserId(context.User!);
+                TwoFactorAuthenticator tfa = new TwoFactorAuthenticator();
+                var resetCode = helper.GetRandomString();
+
+                var data = tfa.ValidateTwoFactorPIN(reqData.Key, reqData.Code);
+
+                if (data && await authorizationRepository.Add2factorKeyAsync(id, reqData.Key, resetCode))
+                {
+                    return resetCode;
+                }
+
+                ThrowError("Uncorrect Code");
+
+                //pointless, but compiler point on it if i don't return value
+                return null;
+            }).AuthorizeWithPolicy("Authorized");
+
+            Field<NonNullGraphType<StringGraphType>>("drop2fAuth")
+            .Argument<NonNullGraphType<StringGraphType>>("code")
+            .ResolveAsync(async (context) =>
+            {
+
+                var code = context.GetArgument<string>("code");
+
+                var id = helper.GetUserId(context.User!);
+                string? key = await authorizationRepository.Get2factorKeyAsync(id);
+
+                if (key != null && _2fAuthHelper.Check2fAuth(key, code) && await authorizationRepository.Drop2factorKeyAsync(id, null))
+                {
+                    return "2f auth was droped";
+                }
+                else if (await authorizationRepository.Drop2factorKeyAsync(id, code))
+                {
+                    return "2f auth was droped";
+                }
+
+                ThrowError("Invalid one-time code or you does not turn on 2f auth");
+
+                //pointless, but compiler point on it if i don't return value
+                return null;
+
+            }).AuthorizeWithPolicy("Authorized");
+
+        }
+
+        private void ThrowError(string message)
+        {
+            throw new InvalidDataException(message);
         }
     }
 }

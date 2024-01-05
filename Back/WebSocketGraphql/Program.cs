@@ -26,8 +26,6 @@ builder.Services.AddSingleton<IEmailSender, EmailSender>();
 builder.Services.AddSingleton<AuthHelper>();
 builder.Services.AddHttpContextAccessor();
 
-builder.Services.AddControllers();
-
 builder.Services.AddGraphQLUpload();
 
 builder.Services.AddSingleton<ISchema, ChatSchema>(service =>
@@ -46,10 +44,7 @@ builder.Services.AddAuthentication(opt =>
     opt.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
 }).AddScheme<JwtBearerOptions, CustomJwtBearerHandler>(JwtBearerDefaults.AuthenticationScheme, options => { });
 
-builder.Services.AddAuthorization(setting =>
-{
-    setting.AddPolicy("Authorized", p => p.RequireAuthenticatedUser());
-});
+builder.Services.AddAuthorization();
 
 builder.Services.AddCors();
 
@@ -60,6 +55,10 @@ builder.Services.AddGraphQL(c =>
     .AddSchema<IdentitySchema>()
     .AddGraphTypes(typeof(ChatSchema).Assembly)
     .AddGraphTypes(typeof(IdentitySchema).Assembly)
+    .AddAuthorization(conf =>
+    {
+        conf.AddPolicy("Authorized", p => p.RequireAuthenticatedUser());
+    })
     .AddValidationRule<CustomAuthorizationValidationRule>()
     .AddValidationRule<InputFieldsAndArgumentsOfCorrectLength>()
     .AddValidationRule<InputAndArgumentEmailValidationRule>()
@@ -93,7 +92,5 @@ app.UseGraphQL<ChatSchema>("/graphql");
 app.UseGraphQL<IdentitySchema>("/graphql-auth");
 
 app.UseGraphQLAltair();
-
-app.MapControllers();
 
 app.Run();

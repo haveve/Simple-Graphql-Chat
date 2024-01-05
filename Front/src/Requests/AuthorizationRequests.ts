@@ -2,6 +2,7 @@ import { backDomain } from '../Features/Constants';
 import { ajax } from 'rxjs/ajax';
 import { map, catchError, Observable, timer, mergeMap } from 'rxjs';
 import { LogoutDeleteCookie, setCookie, getCookie } from '../Features/Functions';
+import { set2fMutation, get2fQuery, drop2fMutation, verify2fQuery } from '../Features/Queries';
 
 export const url = `https://${backDomain}/graphql-auth`
 
@@ -459,7 +460,26 @@ export function ajaxForLogout(token: string) {
     );
 }
 
-const _2fAuthUrl = "https://" + backDomain + "/2f-auth"
+export function ajaxForAuthorizedRequests<T, K>(query: string, variables: { [key: string]: any }, url: string = `https://${backDomain}/graphql`) {
+    return GetTokenObservable().pipe(mergeMap(() => {
+        const tokenString = getCookie("access_token");
+
+        if (!tokenString) {
+            throw 'invalid access token'
+        }
+
+        const token: StoredTokenType = JSON.parse(tokenString)
+        variables["authorized"] = token.token
+        return GetAjaxObservable<T, K>(query, variables, url).pipe(map(response => {
+            const res = response.response;
+            if (res.errors) {
+                console.log(JSON.stringify(res.errors));
+                throw 'error'
+            }
+            return res.data;
+        }))
+    }));
+}
 
 export interface _2fAuthResult {
     qrUrl: string,
@@ -467,77 +487,56 @@ export interface _2fAuthResult {
     key: string
 }
 
-export function ajaxFor2fAuth() {
-    return GetTokenObservable().pipe(mergeMap(() => {
-        const token: StoredTokenType = JSON.parse(getCookie("access_token")!)
-        return ajax<_2fAuthResult>({
-            url: _2fAuthUrl,
-            method: "POST",
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + token.token,
-            }
-        });
-    }))
+export interface _2fAuthResultGraph {
+    get2fAuth: _2fAuthResult
 }
 
-const _2fSetUrl = "https://" + backDomain + "/set-2f-auth";
+
+export function ajaxFor2fAuth() {
+    return ajaxForAuthorizedRequests<_2fAuthResultGraph, any>(get2fQuery, {}, url).pipe(map(data => data.get2fAuth))
+}
+
+export interface _set2fResultGraph {
+    set2fAuth: string
+}
 
 export function axajSetUser2fAuth(key: string, code: string) {
-    return GetTokenObservable().pipe(mergeMap(() => {
-        const token: StoredTokenType = JSON.parse(getCookie("access_token")!)
-        return ajax<string>({
-            url: _2fSetUrl,
-            method: "POST",
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + token.token
-            },
-            body: JSON.stringify({
-                key,
-                code
-            })
-        }).pipe(map(response => {
-            const data = response.response
-            if (data) {
-                const toBlob = `Reset token = ${data}`
-                const blob = new Blob([toBlob], { type: 'text/plain' });
-                const url = window.URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = '_2f_code_reset.txt';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            }
-        }))
-
+    return ajaxForAuthorizedRequests<_set2fResultGraph, any>(set2fMutation, { data: { key, code } }, url).pipe(map(response => {
+        const data = response.set2fAuth;
+        if (data) {
+            const toBlob = `Reset token = ${data}`
+            const blob = new Blob([toBlob], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = '_2f_code_reset.txt';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
     }))
 }
 
-const _2fVerifyServiceUrl = "https://" + backDomain + "/verify-2f-auth";
+export interface verifyUserCodeGraph {
+    verify2fAuth: string
+}
 
 export function ajaxVerifyUserCode(token: string, code: string, loginPath: string) {
-    return ajax<string>({
-        url: _2fVerifyServiceUrl + `?token=${token}&code=${code}`
-    }).pipe(map((response) => {
-        return loginPath + response.response
+    return GetAjaxObservable<verifyUserCodeGraph, any>(verify2fQuery, { token, code }, url).pipe(map((response) => {
+        const data = response.response;
+        if (data.errors) {
+            throw 'error'
+        }
+        return loginPath + data.data.verify2fAuth
     }))
 }
 
-const _2fDropUrl = "https://" + backDomain + "/drop-2f-auth"
+export interface _2fDroGraph {
+    drop2fAuth: string
+}
 
 export function ajaxFor2fDrop(code: string) {
-
-    return GetTokenObservable().pipe(mergeMap(() => {
-        const token: StoredTokenType = JSON.parse(getCookie("access_token")!)
-        return ajax<string>({
-            url: _2fDropUrl + `?code=${code}`,
-            method: "POST",
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + token.token,
-            }
-        })
+    return ajaxForAuthorizedRequests<_2fDroGraph, any>(drop2fMutation, { code }, url).pipe(map((response) => {
+        return response.drop2fAuth
     }))
 }

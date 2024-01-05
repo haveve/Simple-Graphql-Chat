@@ -31,7 +31,7 @@ export default function AdditionalInfo() {
         dispatch(setState("pending"))
         ajaxFor2fAuth().subscribe({
             next: (data) => {
-                set2fAuthCode(data.response)
+                set2fAuthCode(data)
                 setVisibleSet(true)
                 dispatch(setState("idle"))
             },

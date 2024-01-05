@@ -1,16 +1,17 @@
-﻿using GraphQL;
+﻿using System.Text.Json;
+using Google.Authenticator;
+using GraphQL;
 using GraphQL.Types;
 using Microsoft.AspNetCore.WebUtilities;
 using TimeTracker.GraphQL.Types.IdentityTipes;
 using TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager;
 using TimeTracker.GraphQL.Types.IdentityTipes.Models;
 using TimeTracker.Helpers;
-using TimeTracker.Models;
 using TimeTracker.Repositories;
 using TimeTracker.Services;
 using WebSocketGraphql.GraphQl.IdentityTypes;
 using WebSocketGraphql.GraphQl.IdentityTypes.Models;
-using WebSocketGraphql.Services;
+using WebSocketGraphql.Services.AuthenticationServices;
 
 namespace TimeTracker.GraphQL.Queries
 {
@@ -23,7 +24,7 @@ namespace TimeTracker.GraphQL.Queries
         private readonly IEmailSender _emailSender;
 
 
-        public IdentityQuery(IConfiguration configuration, IAuthorizationManager authorizationManager, IAuthorizationRepository authorizationRepository, IUserRepository userRepository, IEmailSender emailSender)
+        public IdentityQuery(IConfiguration configuration, IHostEnvironment hostEnvironment, IAuthorizationManager authorizationManager, IAuthorizationRepository authorizationRepository, IUserRepository userRepository, IEmailSender emailSender, AuthHelper helper)
         {
             _authorizationManager = authorizationManager;
             _authorizationRepository = authorizationRepository;
@@ -39,13 +40,13 @@ namespace TimeTracker.GraphQL.Queries
                 var userRepository = context.RequestServices.GetService<IUserRepository>();
 
                 var user = await _userRepository.GetUserByCredentialsAsync(UserLogData.NickNameOrEmail, UserLogData.Password);
-                
+
                 if (user == null)
                 {
                     throw new Exception("User does not exist");
                 }
 
-                if(user.ActivateCode != null)
+                if (user.ActivateCode != null)
                 {
                     throw new Exception("User has not setted password");
                 }
@@ -64,13 +65,13 @@ namespace TimeTracker.GraphQL.Queries
                     {
                         access_token = new(string.Empty, DateTime.MinValue, DateTime.MinValue),
                         user_id = -1,
-                        refresh_token = new(string.Empty,DateTime.MinValue, DateTime.MinValue),
+                        refresh_token = new(string.Empty, DateTime.MinValue, DateTime.MinValue),
                         redirect_url = QueryHelpers.AddQueryString("/2f-auth", tempQueryParams)
                     };
 
                 }
 
-                var encodedJwt =  await _authorizationManager.GetAccessToken(user.Id);
+                var encodedJwt = await _authorizationManager.GetAccessToken(user.Id);
 
                 var refreshToken = _authorizationManager.GetRefreshToken(user.Id);
                 await _authorizationRepository.CreateRefreshTokenAsync(refreshToken, user.Id);
@@ -86,7 +87,7 @@ namespace TimeTracker.GraphQL.Queries
             });
 
             Field<IdentityOutPutGraphType>("refreshToken").
-                ResolveAsync(async(context) =>
+                ResolveAsync(async (context) =>
                 {
                     HttpContext httpContext = context.RequestServices!.GetService<IHttpContextAccessor>()!.HttpContext!;
 
@@ -108,7 +109,7 @@ namespace TimeTracker.GraphQL.Queries
                     int userId = int.Parse(_authorizationManager.ReadJwtToken(refreshToken).Claims.First(c => c.Type == "UserId").Value);
                     var newRefreshToken = _authorizationManager.GetRefreshToken(userId);
 
-                    await  _authorizationRepository.UpdateRefreshTokenAsync(refreshToken, newRefreshToken, userId);
+                    await _authorizationRepository.UpdateRefreshTokenAsync(refreshToken, newRefreshToken, userId);
 
                     return new LoginOutput()
                     {
@@ -120,7 +121,7 @@ namespace TimeTracker.GraphQL.Queries
                 });
 
             Field<StringGraphType>("logout").
-              ResolveAsync(async(context) =>
+              ResolveAsync(async (context) =>
               {
                   HttpContext httpContext = context.RequestServices!.GetService<IHttpContextAccessor>()!.HttpContext!;
                   var refreshToken = httpContext.Request.Headers.First(at => at.Key == "refresh_token").Value[0]!;
@@ -129,14 +130,90 @@ namespace TimeTracker.GraphQL.Queries
 
                   return "Successfully";
               });
-        }
 
+
+            Field<Get2fDataOuputGraphType>("get2fAuth")
+                .ResolveAsync(async (context) =>
+                {
+                    string key = helper.GetRandomString();
+
+                    var id = helper.GetUserId(context.User!);
+
+                    var user = await userRepository.GetUserAsync(id);
+
+                    TwoFactorAuthenticator tfa = new TwoFactorAuthenticator();
+                    SetupCode setupInfo = tfa.GenerateSetupCode(hostEnvironment.ApplicationName, user.Email, key, false, 3);
+
+                    string qrCodeImageUrl = setupInfo.QrCodeSetupImageUrl;
+                    string manualEntrySetupCode = setupInfo.ManualEntryKey;
+
+                    return new Get2fData { QrUrl = qrCodeImageUrl, ManualEntry = manualEntrySetupCode, Key = key };
+                }).AuthorizeWithPolicy("Authorized");
+
+            Field<StringGraphType>("verify2fAuth")
+            .Argument<NonNullGraphType<StringGraphType>>("token")
+            .Argument<NonNullGraphType<StringGraphType>>("code")
+            .ResolveAsync(async (context) =>
+            {
+
+                var token = context.GetArgument<string>("token");
+                var code = context.GetArgument<string>("code");
+
+                if (!await authorizationManager.IsValidToken(token, refresh: true))
+                {
+                    ThrowError("Invalid temporary token");
+                }
+
+                var tokenData = authorizationManager.ReadJwtToken(token);
+                try
+                {
+                    int userId = int.Parse(tokenData.Claims.First(c => c.Type == "UserId").Value);
+                    string refreshToken = tokenData.Claims.First(c => c.Type == "RefreshToken").Value;
+                    DateTime issuedAt = JsonSerializer.Deserialize<DateTime>(tokenData.Claims.First(c => c.Type == "IssuedAtRefresh").Value);
+                    DateTime expiredAt = JsonSerializer.Deserialize<DateTime>(tokenData.Claims.First(c => c.Type == "ExpiredAtRefresh").Value);
+
+                    var user = await userRepository.GetUserAsync(userId);
+                    if (user is null || !_2fAuthHelper.Has2fAuth(user) || (!_2fAuthHelper.Check2fAuth(user.Key2Auth, code) && user.ResetCode != code))
+                    {
+                        context.Errors.Add(new("Invalid one-time code or you does not turn on 2f auth"));
+                        return null;
+                    }
+
+                    await _authorizationRepository.CreateRefreshTokenAsync(new(refreshToken, expiredAt, issuedAt), user.Id);
+
+                    Dictionary<string, string?> queryParams = new Dictionary<string, string?>
+            {
+                { "expiredAt", JsonSerializer.Serialize(expiredAt)},
+                { "issuedAt", JsonSerializer.Serialize(issuedAt) },
+                { "token", refreshToken }
+            };
+
+                    var url = QueryHelpers.AddQueryString("", queryParams);
+
+                    return url;
+                }
+                catch
+                {
+                    ThrowError("Invalid temporary token");
+
+                    //never return, but compiler demand it
+                    return null;
+                }
+
+            });
+
+
+        }
+        private void ThrowError(string message)
+        {
+            throw new InvalidDataException(message);
+        }
         public LoginOutput ExpiredSessionError(IResolveFieldContext<object?> context)
         {
             context.Errors.Add(new ExecutionError("User does not auth"));
             return new LoginOutput()
             {
-                access_token = new("",new DateTime(),new DateTime()),
+                access_token = new("", new DateTime(), new DateTime()),
                 user_id = 0,
                 refresh_token = new("Your session was expired. Please, login again", new DateTime(), new DateTime()),
             };
