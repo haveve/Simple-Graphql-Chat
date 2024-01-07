@@ -3,13 +3,13 @@ import { Form, Button, Card, Modal, Row, Col, ProgressBar, InputGroup, ListGroup
 import { _2fAuthResult, axajSetUser2fAuth } from '../../Requests/AuthorizationRequests';
 import { useTypedDispatch, useTypedSelector } from '../../Redux/store';
 import { RemoveUser as RemoveUserType } from '../../Redux/Slicers/UserSlicer';
-import { deleteUserMutation,RequestBuilder } from '../../Features/Queries';
+import { deleteUserMutation, RequestBuilder } from '../../Features/Queries';
 import { ConnectToChat } from '../../Requests/Requests';
 import { minPasswordLength, maxPasswordLength } from './SetPassword';
 import { SetErrorHandler } from '../../SocketDispatcher';
 import { setError, setState } from '../../Redux/Slicers/UserSlicer';
-import { defaultSuccessMessage } from '../../Features/Constants';
 import GetElementInfDueToState from '../GetElementDueToState';
+import { useTranslation } from 'react-i18next';
 
 export const minNickNameLength = 3;
 export const maxNickNameLength = 75;
@@ -21,14 +21,15 @@ export default function RemoveUser(props: { isVisible: boolean, setVisible: (v: 
 
     const [password, setPassword] = useState<string | null>(null);
 
+    const { t } = useTranslation();
+
     const dispatch = useTypedDispatch();
-    const user = useTypedSelector(store => store.user.user);
     const state = useTypedSelector(store => store.user.status);
     const error = useTypedSelector(store => store.user.error);
 
-    const message = state === 'error' ? error : state === 'success' ? defaultSuccessMessage : undefined
+    const message = state === 'error' ? error : state === 'success' ? t('DefaultSuccessMessage') : undefined
 
-    const infoMessage = <div className='h5 text-center mb-3'>Are you sure that you wanna remove you account?<br/> You cannot restore it after deleting.<br/> If you after all wanna delete, fill out the field below and put the button 'Remove' </div>
+    const infoMessage = <div className='h5 text-center mb-3'>{t('RemoveUser.warning1')}<br />{t('RemoveUser.warning2')}<br />{t('RemoveUser.warning3')}</div>
 
     const passwordValidation = () => {
         if (!password)
@@ -48,7 +49,7 @@ export default function RemoveUser(props: { isVisible: boolean, setVisible: (v: 
             }}
             size='lg'
             centered>
-            <Modal.Header closeButton className='h2'>Remove account</Modal.Header>
+            <Modal.Header closeButton className='h2'>{t('UserSettings.removeAccount')}</Modal.Header>
             <Modal.Body>
                 <Row className='mt-3 d-flex gap-3 flex-row justify-content-center'>
                     {infoMessage}
@@ -57,11 +58,11 @@ export default function RemoveUser(props: { isVisible: boolean, setVisible: (v: 
                             <Form.Control
                                 isInvalid={!passwordValidation()}
                                 type='password'
-                                placeholder={"Enter password"}
+                                placeholder={t('UserSettings.enterPassPlaceholder')}
                                 onChange={(event) => setPassword(event.target.value)}>
                             </Form.Control>
                             <Form.Control.Feedback type="invalid" className='text-center'>
-                                Please provide a valid password
+                                {t('ValidationPasswordError')}
                             </Form.Control.Feedback>
                         </Form.Group>
                     </div>
@@ -87,7 +88,7 @@ export default function RemoveUser(props: { isVisible: boolean, setVisible: (v: 
 
                                 sub.next(request, setState('pending'))
                             })
-                        }} >Remove</Button>
+                        }} >{t('Remove')}</Button>
                     </div>
                     <div className='mt-3 text-center'>
                         <GetElementInfDueToState state={state} message={message} />

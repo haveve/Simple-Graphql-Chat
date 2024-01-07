@@ -7,14 +7,15 @@ namespace WebSocketGraphql.Services
 {
     public static class Mapper
     {
-        static string GetDescriptionFromAttribute(MemberInfo member)
+        static string? GetDescriptionFromAttribute(MemberInfo member)
         {
             if (member == null) return null;
 
-            var attrib = (DescriptionAttribute)Attribute.GetCustomAttribute(member, typeof(DescriptionAttribute), false);
+            var attrib = (DescriptionAttribute?)Attribute.GetCustomAttribute(member, typeof(DescriptionAttribute), false);
             return (attrib?.Description ?? member.Name).ToLower();
         }
 
+        #nullable disable
         static public void SetMapper(Type someType)
         {
             var map = new CustomPropertyTypeMap(someType, (type, columnName)

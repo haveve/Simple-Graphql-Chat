@@ -5,13 +5,17 @@ import { ReduxChat, ReduxCurrentChat } from '../Redux/Slicers/ChatSlicer';
 import ChatInfo from './ChatInfo';
 import Icon from './Icon';
 import { SmilesList, SmilesWithComments, SmileListType } from '../Features/Constants';
+import { useTranslation } from 'react-i18next';
 
 export default function ChatHeader(props: { currentChat: ReduxCurrentChat, onSmileClick?: () => void, withChatInfo?: boolean, onlyIco?: boolean, withoutParticipants?: boolean }) {
 
     const { currentChat, onSmileClick, onlyIco, withoutParticipants, withChatInfo } = props
     const [showChatInfo, setShowChatInfo] = useState(false);
     const [randomImg, setRandomImg] = useState<SmileListType | null>(null)
-    const participantText = 'participant'
+
+    const { t } = useTranslation();
+
+    const participantText = t('Participant').toLocaleLowerCase()
 
     const handleChatInfo = () => {
         setShowChatInfo(inf => !inf)
@@ -22,9 +26,7 @@ export default function ChatHeader(props: { currentChat: ReduxCurrentChat, onSmi
     }, [SmilesList.length, currentChat.id])
 
     const participants = withoutParticipants ? null : <span className='participants'>
-        {currentChat!.chatMembersCount === 0 ?
-            currentChat!.chatMembersCount + 1 + ' ' + participantText :
-            currentChat!.chatMembersCount + 1 + ' ' + participantText + 's'}
+        {currentChat!.chatMembersCount + 1 + ' ' + participantText}
     </span>
 
     const ico = <div className='d-flex' role={withChatInfo ? "button" : "img"} onClick={handleChatInfo}>
@@ -38,7 +40,7 @@ export default function ChatHeader(props: { currentChat: ReduxCurrentChat, onSmi
     const SmileTip = (props: React.ComponentProps<any>) => {
         return <Tooltip id="button-tooltip" {...props}>
             <span className='smile-text-color'>
-                {randomImg?.message}
+                {t(randomImg?.message ?? "")}
             </span>
         </Tooltip>
     }

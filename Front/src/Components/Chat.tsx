@@ -27,6 +27,7 @@ enum themes {
   light = "light",
   dark = "dark"
 }
+export const MessagesInOneRequest = 15;
 
 function Chat() {
 
@@ -45,29 +46,19 @@ function Chat() {
 
   const prevDate = useRef<string | null>(null)
 
+  const maxMessageHistoryFetchDate = useTypedSelector(store => store.chat.maxMessageHistoryFetchDate)
+  const noHistoryMessagesLost = useTypedSelector(store => store.chat.noHistoryMessagesLost)
+  const skip = useRef<number>(0)
+  const rootChat = useRef<HTMLDivElement>(null)
+  const intersectObservable = useRef<IntersectionObserver | null>(null)
+  const firstMessage = useRef<HTMLDivElement>(null)
+
   const [theme, setTheme] = useState<themes>(themes.light)
 
   const [option, setOption] = useImmer<MessageOptionType>(defaultState)
 
   const updatedMessage = useTypedSelector(store => store.chat.updatedMessage)
 
-  useEffect(() => {
-    const className = `root-${theme}`;
-
-    document.body.classList.add(className)
-
-    return () => {
-      document.body.classList.remove(className)
-    }
-  }, [theme])
-
-  UseEffectIf(() => {
-    lastMessage.current?.scrollIntoView()
-  },
-    [messageIdsWithDate.length], [0],
-    ([prevLength]) => {
-      return prevLength < messageIdsWithDate.length
-    })
 
   useEffect(() => {
     if (wasInitialAuth.current) {
@@ -83,12 +74,85 @@ function Chat() {
     }
   }, [])
 
+
+  useEffect(() => {
+    const className = `root-${theme}`;
+    document.body.classList.add(className)
+    return () => {
+      document.body.classList.remove(className)
+    }
+  }, [theme])
+
+
+  UseEffectIf(() => {
+    lastMessage.current?.scrollIntoView()
+  },
+    [messageIdsWithDate.length, skip.current], [0, 0],
+    ([prevLength, prevSkip]) => {
+      return prevSkip === 0 || prevLength + 1 === messageIdsWithDate.length
+    })
+
+
+  UseEffectIf(() => {
+    if (firstMessage.current) {
+      intersectObservable.current?.observe(firstMessage.current)
+    }
+  },
+    [messageIdsWithDate.length], [0, 0],
+    ([prevLength]) => {
+      return prevLength + 1 !== messageIdsWithDate.length
+    })
+
+
+
+  useEffect(() => {
+    if (noHistoryMessagesLost) {
+      intersectObservable.current?.disconnect()
+      intersectObservable.current = null;
+    }
+  }, [noHistoryMessagesLost])
+
+  useEffect(() => {
+    if (currentChat?.id && maxMessageHistoryFetchDate) {
+      intersectObservable.current = new IntersectionObserver(entries => {
+        const entry = entries[0]
+        if (entry.isIntersecting) {
+          const chatIdVard = {
+            chatId: currentChat!.id,
+            take: MessagesInOneRequest,
+            skip: skip.current,
+            maxDate: maxMessageHistoryFetchDate
+          }
+          const connection = ConnectToChat()
+          connection.subscribe(sub => sub.next(RequestBuilder('start', { query: queryGetAllMessages, variables: chatIdVard }), chatPending))
+          intersectObservable.current!.unobserve(entry.target)
+          skip.current += MessagesInOneRequest;
+        }
+      }, { root: rootChat.current });
+
+      if (firstMessage.current)
+        intersectObservable.current!.observe(firstMessage.current)
+
+      return () => {
+        intersectObservable.current?.disconnect()
+        intersectObservable.current = null;
+      }
+    }
+
+  }, [currentChat?.id, maxMessageHistoryFetchDate])
+
+
+
   useEffect(() => {
     if (currentChat) {
+      skip.current = 0;
       const connection = ConnectToChat()
 
       const chatIdVard = {
-        chatId: currentChat.id
+        chatId: currentChat!.id,
+        take: MessagesInOneRequest,
+        skip: skip.current,
+        maxDate: null,
       }
 
       connection.subscribe(sub => sub.next(RequestBuilder('start', { query: queryGetAllMessages, variables: chatIdVard }), chatPending))
@@ -100,6 +164,7 @@ function Chat() {
       }
     }
   }, [currentChat?.id])
+
 
   const SendMessage = (createdMessage: string, setCreatedMessage: React.Dispatch<string>) => {
 
@@ -173,7 +238,7 @@ function Chat() {
         prevDate.current = data.sentAt
       }
 
-      return <MessageComponent setDate={setDate} HandleContext={HandleContextMenu} key={data.id} id={data.id!} ref={key == messageIdsWithDate.length - 1 ? lastMessage : undefined} />
+      return <MessageComponent setDate={setDate} HandleContext={HandleContextMenu} key={data.id} id={data.id!} ref={key == messageIdsWithDate.length - 1 ? lastMessage : key === 0 ? firstMessage : undefined} />
     })
   }
 
@@ -191,7 +256,7 @@ function Chat() {
           <ChatHeader onSmileClick={() => {
             setTheme(theme => theme == themes.dark ? themes.light : themes.dark)
           }} currentChat={currentChat!} withChatInfo={true} />
-          <Col className='p-4 m-0 h5 scroll' onScroll={handleHideOption}>
+          <Col ref={rootChat} className='p-4 m-0 h5 scroll' onScroll={handleHideOption}>
             {
               GetMessages()
             }

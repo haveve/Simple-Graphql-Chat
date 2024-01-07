@@ -37,7 +37,6 @@ namespace TimeTracker.GraphQL.Queries
             .ResolveAsync(async context =>
             {
                 Login UserLogData = context.GetArgument<Login>("login");
-                var userRepository = context.RequestServices.GetService<IUserRepository>();
 
                 var user = await _userRepository.GetUserByCredentialsAsync(UserLogData.NickNameOrEmail, UserLogData.Password);
 
@@ -142,7 +141,7 @@ namespace TimeTracker.GraphQL.Queries
                     var user = await userRepository.GetUserAsync(id);
 
                     TwoFactorAuthenticator tfa = new TwoFactorAuthenticator();
-                    SetupCode setupInfo = tfa.GenerateSetupCode(hostEnvironment.ApplicationName, user.Email, key, false, 3);
+                    SetupCode setupInfo = tfa.GenerateSetupCode(hostEnvironment.ApplicationName, user!.Email, key, false, 3);
 
                     string qrCodeImageUrl = setupInfo.QrCodeSetupImageUrl;
                     string manualEntrySetupCode = setupInfo.ManualEntryKey;
@@ -159,7 +158,7 @@ namespace TimeTracker.GraphQL.Queries
                 var token = context.GetArgument<string>("token");
                 var code = context.GetArgument<string>("code");
 
-                if (!await authorizationManager.IsValidToken(token, refresh: true))
+                if (!authorizationManager.IsValidToken(token, refresh: true))
                 {
                     ThrowError("Invalid temporary token");
                 }
@@ -173,7 +172,7 @@ namespace TimeTracker.GraphQL.Queries
                     DateTime expiredAt = JsonSerializer.Deserialize<DateTime>(tokenData.Claims.First(c => c.Type == "ExpiredAtRefresh").Value);
 
                     var user = await userRepository.GetUserAsync(userId);
-                    if (user is null || !_2fAuthHelper.Has2fAuth(user) || (!_2fAuthHelper.Check2fAuth(user.Key2Auth, code) && user.ResetCode != code))
+                    if (user is null || !_2fAuthHelper.Has2fAuth(user) || (!_2fAuthHelper.Check2fAuth(user.Key2Auth!, code) && user.ResetCode != code))
                     {
                         context.Errors.Add(new("Invalid one-time code or you does not turn on 2f auth"));
                         return null;

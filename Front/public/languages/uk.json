@@ -1,0 +1,56 @@
+{
+    "Drop2f": "Видалити 2f",
+    "Set2f": "Встановити 2f",
+    "Cancel": "Скасувати",
+    "Add": "Додати",
+    "Leave": "Вийти",
+    "AddChat": "Додати чат",
+    "QrCode": "QR-код для сканування",
+    "ManualCode": "Інструкція для написання коду",
+    "IncorrectOneTimeCode": "Невірний одноразовий код",
+    "LogOut": "Вийти",
+    "Settings": "Налаштування",
+    "OneTimeCodePlaceholder": "Введіть одноразовий код",
+    "DefaultErrorMessage": "Сталася помилка. Для деталей звертайтеся до адміністратора",
+    "DefaultSuccessMessage": "Операція успішно виконана",
+    "ValidationEmailError": "Будь ласка, введіть дійсну електронну пошту",
+    "ValidationNicknameError": "Будь ласка, введіть дійсний псевдонім",
+    "ValidationPasswordError": "Будь ласка, введіть дійсний пароль",
+    "Remove": "Видалити",
+    "Update": "Оновити",
+    "AddUser": "Додати користувача",
+    "RemoveUserText": "Видалити користувача",
+    "SelectUser": "Вибрати користувача",
+    "WillingDeleteAllMessages": "Ви впевнені, що хочете видалити всі повідомлення?",
+    "UserNicknameOrEmailPlaceholder": "Нік або електронна пошта користувача",
+    "SureOfWilling": "Ви впевнені, що хочете",
+    "From": "з",
+    "Agree": "Згоден",
+    "Reject": "Відхилити",
+    "Message": "Повідомлення",
+    "Sending": "Надсилання",
+    "Participant": "Учасник(ів)",
+    "FileSizeError": "Ви досягли максимального розміру файлу",
+    "UserSettings": {
+        "changeNicknameSwitch": "Змінити псевдонім",
+        "changeEmailSwitch": "Змінити електронну пошту",
+        "removeAccount": "Видалити обліковий запис",
+        "enterPassPlaceholder": "Введіть пароль",
+        "commitChanges": "Підтвердити зміни"
+    },
+    "RemoveUser": {
+        "warning1": "Ви впевнені, що хочете видалити свій обліковий запис?",
+        "warning2": "Ви не зможете його відновити після видалення.",
+        "warning3": "Якщо ви все ж хочете видалити, заповніть поле нижче та натисніть кнопку 'Видалити'"
+    },
+    "UpdateChat": {
+        "NewChatName": "Введіть нову назву чату"
+    },
+    "Smiles": {
+        "doNotCry": "не плач, як і я",
+        "likeMe": "іноді ми всі як і я",
+        "haveBigSmile": "завжди майте посмішку таку велику, як моя",
+        "beCool": "будь крутим, як я",
+        "beDifferent": "маєте якусь відмінність"
+    }
+}

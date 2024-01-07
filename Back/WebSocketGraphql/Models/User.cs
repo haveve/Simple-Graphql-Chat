@@ -11,15 +11,15 @@ namespace TimeTracker.Models
         [Description("id")]
         public int Id { get; set; }
         [Description("nick_name")]
-        public string NickName { get; set; }
+        public string NickName { get; set; } = null!;
         [Description("password")]
-        public string Password { get; set; } = null;
+        public string? Password { get; set; } = null;
         [Description("email")]
-        public string Email { get; set; }
+        public string Email { get; set; } = null!;
         [Description("activate_code")]
-        public string ActivateCode { get; set; } = null;
+        public string? ActivateCode { get; set; } = null;
         [Description("salt")]
-        public string Salt { get; set; } = null;
+        public string? Salt { get; set; } = null;
         [Description("key_2auth")]
         public string? Key2Auth { get; set; }
         [Description("reset_key_2auth")]

@@ -6,12 +6,15 @@ import { ConnectToChat } from '../../Requests/Requests';
 import { RequestBuilder } from '../../Features/Queries';
 import ChatHeader from '../ChatHeader';
 import { setState } from '../../Redux/Slicers/ChatSlicer';
+import { useTranslation } from 'react-i18next';
 
 export default function AddUserToChat(props: { chatId: number | null, show: boolean, setShow: (value: boolean) => void }) {
     const chatPending = setState('pending');
 
     const { show, setShow, chatId } = props;
     const [addedName, setAddedName] = useState("");
+
+    const { t } = useTranslation();
 
     const chat = useTypedSelector(store => store.chat.chats.find(el => el.id === chatId))
 
@@ -24,7 +27,7 @@ export default function AddUserToChat(props: { chatId: number | null, show: bool
             const connection = ConnectToChat()
             connection.subscribe((sub) => sub.next(
                 RequestBuilder('start',
-                    { query: addUserToChatMutation, variables: { chatId,user:addedName } }),chatPending))
+                    { query: addUserToChatMutation, variables: { chatId, user: addedName } }), chatPending))
         }
     }
     const updateNameHandler: React.ChangeEventHandler<HTMLInputElement> = (event) => {
@@ -33,10 +36,10 @@ export default function AddUserToChat(props: { chatId: number | null, show: bool
 
     return <Modal centered show={show}>
         <Modal.Body>
-            {chat ? <ChatHeader currentChat={{...chat!,chatMembersCount:0}} withoutParticipants = {true} onlyIco = {true} /> : null}
-            <Form.Control onChange={updateNameHandler} size='lg' placeholder='User nick name or email' className='border border-dark mt-3'></Form.Control>
-            <div className='d-flex justify-content-end gap-3 mt-3'><Button variant='primary' size='lg' onClick={closeHandler}>Cancel</Button>
-                <Button variant='success' size='lg' onClick={updateChatHandler}>Add</Button></div>
+            {chat ? <ChatHeader currentChat={{ ...chat!, chatMembersCount: 0 }} withoutParticipants={true} onlyIco={true} /> : null}
+            <Form.Control onChange={updateNameHandler} size='lg' placeholder={t('UserNicknameOrEmailPlaceholder')} className='border border-dark mt-3'></Form.Control>
+            <div className='d-flex justify-content-end gap-3 mt-3'><Button variant='primary' size='lg' onClick={closeHandler}>{t('Cancel')}</Button>
+                <Button variant='success' size='lg' onClick={updateChatHandler}>{t('Add')}</Button></div>
         </Modal.Body>
     </Modal>
 }

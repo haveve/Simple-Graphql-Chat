@@ -64,6 +64,7 @@ const userSlicer = createSlice({
 
         updateAvatar(state, action: PayloadAction<string>) {
             if (state.user) {
+                state.status = 'success'
                 state.user!.avatar = baseUserPictureFolder + '/' + action.payload
             }
         }

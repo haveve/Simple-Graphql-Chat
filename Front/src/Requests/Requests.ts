@@ -12,6 +12,7 @@ import { UpdateUserResult } from '../Redux/Slicers/UserSlicer';
 import { ajax } from 'rxjs/ajax';
 import { response } from './AuthorizationRequests';
 import Dispatch from '../SocketDispatcher';
+import i18next from 'i18next';
 
 const dispatch = store.dispatch
 
@@ -191,36 +192,36 @@ export function ConnectToChat(reconnect: boolean = false, newToken: boolean = fa
 
 export function ajaxUploadFile(file: File, variableName: string, query: string, variables: { [key: string]: any } = {}) {
 
-    if (file.size > MaxFileSizeInKB * 1024){
-        throw `You reached maximum size value of file ${MaxFileSizeInKB} KB`
+    if (file.size > MaxFileSizeInKB * 1024) {
+        throw `${i18next.t('FileSizeError')} ${MaxFileSizeInKB} KB`
     }
 
-        return GetTokenObservable().pipe(mergeMap(() => {
-            const token: StoredTokenType = JSON.parse(getCookie("access_token")!)
+    return GetTokenObservable().pipe(mergeMap(() => {
+        const token: StoredTokenType = JSON.parse(getCookie("access_token")!)
 
-            var formData = new FormData()
-            variables[variableName] = null;
-            variables["authorization"] = token.token;
+        var formData = new FormData()
+        variables[variableName] = null;
+        variables["authorization"] = token.token;
 
-            formData.append('operations', `{"query":"${query}","variables":${JSON.stringify(variables)},"operationName":null}`);
-            formData.append('map', JSON.stringify({ "0": [`variables.${variableName}`] }));
-            formData.append('0', file)
+        formData.append('operations', `{"query":"${query}","variables":${JSON.stringify(variables)},"operationName":null}`);
+        formData.append('map', JSON.stringify({ "0": [`variables.${variableName}`] }));
+        formData.append('0', file)
 
-            return ajax<response<{ updateUserAvatart: string }>>({
-                url: `https://${backDomain}/graphql`,
-                method: "POST",
-                headers: {
-                    Accept: '*/*',
-                    'Authorization': 'Bearer ' + token.token
-                },
-                body: formData
-            }).pipe(map((response) => {
-                const data = response.response;
-                if (data.errors) {
-                    throw 'error'
-                }
+        return ajax<response<{ updateUserAvatart: string }>>({
+            url: `https://${backDomain}/graphql`,
+            method: "POST",
+            headers: {
+                Accept: '*/*',
+                'Authorization': 'Bearer ' + token.token
+            },
+            body: formData
+        }).pipe(map((response) => {
+            const data = response.response;
+            if (data.errors) {
+                throw 'error'
+            }
 
-                return data.data.updateUserAvatart;
-            }))
+            return data.data.updateUserAvatart;
         }))
+    }))
 }

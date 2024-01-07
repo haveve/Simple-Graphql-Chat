@@ -59,8 +59,8 @@ export const subscriptionToChat = `subscription($chatId:Int!){
 
 //Query
 
-export const queryGetAllMessages = `query($chatId:Int!){
-  messages(chatId:$chatId){
+export const queryGetAllMessages = `query($chatId:Int!,$take:Int!,$skip:Int!,$maxDate:DateTime){
+  messages(chatId:$chatId,take:$take,skip:$skip,maxDate:$maxDate){
       sentAt
       content
       chatId

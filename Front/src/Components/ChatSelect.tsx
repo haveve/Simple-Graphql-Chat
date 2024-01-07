@@ -13,6 +13,7 @@ import { queryFullChatInfo } from '../Features/Queries';
 import { selectChatIds } from '../Redux/reselect';
 import { setState } from '../Redux/Slicers/ChatSlicer';
 import Icon from './Icon';
+import { useTranslation } from 'react-i18next';
 
 export type ChatOptionType = {
     show: boolean,
@@ -81,11 +82,11 @@ export const Options = forwardRef<HTMLDivElement, { option: ChatOptionType }>((p
     const [showRemove, setShowRemove] = useState(false)
     const [showAddUser, setShowAddUser] = useState(false)
     const [showRemoveUser, setShowRemoveUser] = useState(false)
-
+    const { t } = useTranslation()
 
     const userId = useTypedSelector(store => store.user.user?.id)
     const owner = useTypedSelector(store => store.chat.chats.find(el => el.id === option.id!)?.creatorId === userId)
-    const removeOrLeave = owner ? "Remove" : "Leave"
+    const removeOrLeave = t(owner ? "Remove" : "Leave")
 
     const addUserIco = <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" className="bi mb-1 me-1 bi-person-add" viewBox="0 0 16 16">
         <path d="M12.5 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm.5-5v1h1a.5.5 0 0 1 0 1h-1v1a.5.5 0 0 1-1 0v-1h-1a.5.5 0 0 1 0-1h1v-1a.5.5 0 0 1 1 0Zm-2-6a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM8 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" />
@@ -111,9 +112,9 @@ export const Options = forwardRef<HTMLDivElement, { option: ChatOptionType }>((p
     return <div className={`${option.show ? '' : 'd-none'} break-word-child option d-flex flex-column py-3 position-absolute`} ref={ref}>
 
         {owner ? <>
-            <div className='text-success' onClick={() => setShowUpdate(true)} >{updateChatIcon} Update</div>
-            <div className='' onClick={() => setShowAddUser(true)}>{addUserIco} Add user</div>
-            <div className='' onClick={() => setShowRemoveUser(true)}>{removeUserIco}Remove user</div>
+            <div className='text-success' onClick={() => setShowUpdate(true)} >{updateChatIcon} {t('Update')}</div>
+            <div className='' onClick={() => setShowAddUser(true)}>{addUserIco}{t('AddUser')}</div>
+            <div className='' onClick={() => setShowRemoveUser(true)}>{removeUserIco}{t('RemoveUserText')}</div>
             <div className='text-danger' onClick={() => setShowRemove(true)}>{bucket} {removeOrLeave}</div>
             <UpdateChat chatId={option.id!} show={showUpdate} setShow={setShowUpdate} />
             <AddUserToChat chatId={option.id!} show={showAddUser} setShow={setShowAddUser} />

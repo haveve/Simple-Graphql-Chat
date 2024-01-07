@@ -15,7 +15,7 @@ using WebSocketGraphql.Services.AuthenticationServices;
 
 namespace TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager
 {
-    public record class ValidateRefreshAndGetAccess(TokenResult accessToken, bool isValid, string? erroMessage);
+    public record class ValidateRefreshAndGetAccess(TokenResult? accessToken, bool isValid, string? erroMessage);
     public record class TokenResult(string token, DateTime expiredAt, DateTime issuedAt);
 
     public class AuthorizationManager : IAuthorizationManager
@@ -28,7 +28,7 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager
         private readonly IChat _chat;
         private readonly IUserRepository _userRepo;
 
-        public AuthorizationManager(IUserRepository userRepo,IAuthorizationRepository authRepo, IConfiguration configuration,IChat chat, AuthHelper authHelper)
+        public AuthorizationManager(IUserRepository userRepo, IAuthorizationRepository authRepo, IConfiguration configuration, IChat chat, AuthHelper authHelper)
         {
             _authRepo = authRepo;
             _configuration = configuration;
@@ -58,7 +58,7 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager
             return new(new JwtSecurityTokenHandler().WriteToken(refreshToken), expiredAt, issuedAt);
         }
 
-        public async Task<bool> IsValidToken(string token, int? chatId = null, bool refresh = false)
+        public bool IsValidToken(string token, int? chatId = null, bool refresh = false)
         {
             try
             {
@@ -113,14 +113,14 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager
 
             int userId = int.Parse(objRefreshToken.Claims.First(c => c.Type == "UserId").Value);
             bool isRefresh = bool.Parse(objRefreshToken.Claims.First(c => c.Type == "isRefresh").Value);
-            var savedToken = await _authRepo.GetRefreshTokenAsync(refreshToken,userId);
+            var savedToken = await _authRepo.GetRefreshTokenAsync(refreshToken, userId);
 
             if (savedToken == null)
             {
                 return new ValidateRefreshAndGetAccess(null, false, "Refresh token is invalid");
             }
 
-            if (!await IsValidToken(refreshToken,refresh:isRefresh))
+            if (!IsValidToken(refreshToken, refresh: isRefresh))
             {
                 return new ValidateRefreshAndGetAccess(null, false, "Refresh token is invalid");
             }
@@ -139,7 +139,7 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager
             var expiredAt = DateTime.UtcNow.Add(TimeSpan.FromSeconds(IAuthorizationManager.AccessTokenExpiration));
             var issuedAt = DateTime.UtcNow;
 
-           var participatedChats = await _chat.GetUserChatsAsync(userId);
+            var participatedChats = await _chat.GetUserChatsAsync(userId);
             var ownChats = await _chat.GetUserCreationChatsAsync(userId);
             var user = await _userRepo.GetUserAsync(userId);
 

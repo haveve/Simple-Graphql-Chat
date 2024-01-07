@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef, JSX } from 'react';
-import { Container, Row, Col, Form, Offcanvas } from 'react-bootstrap';
 import { GetAbbreviationFromPhrase } from '../Features/Functions';
 import { backDomain } from '../Features/Constants';
 

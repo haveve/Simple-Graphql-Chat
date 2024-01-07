@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo, memo, forwardRef } from 'r
 import { useTypedSelector, useTypedDispatch } from '../../Redux/store';
 import { setUpdateMessage } from '../../Redux/Slicers/ChatSlicer';
 import RemoveMessage from './RemoveMessage';
+import { useTranslation } from 'react-i18next';
 
 export type MessageOptionType = {
     show: boolean,
@@ -16,6 +17,7 @@ const Options = forwardRef<HTMLDivElement, { option: MessageOptionType }>((props
     const userId = useTypedSelector(el => el.user.user?.id)
     const message = useTypedSelector(store => store.chat.messages.find(el => el.id === option.messageId))
 
+    const { t } = useTranslation();
 
     const bucket = <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi mb-1 me-1 bi-trash" viewBox="0 0 16 16">
         <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z" />
@@ -32,8 +34,8 @@ const Options = forwardRef<HTMLDivElement, { option: MessageOptionType }>((props
     const updateHandler = canChange ? () => dispatch(setUpdateMessage(message!)) : undefined
 
     return <div className={`${canChange ? '' : 'd-message-none'} small chat-info-option d-flex flex-column py-3 position-absolute`} ref={ref}>
-        <div className='text-danger' onClick={removeHandler}>{bucket} Remove</div>
-        <div className='text-success mt-2' onClick={updateHandler}>{updateMessageIcon} Update</div>
+        <div className='text-danger' onClick={removeHandler}>{bucket} {t('Remove')}</div>
+        <div className='text-success mt-2' onClick={updateHandler}>{updateMessageIcon} {t('Update')}</div>
         <RemoveMessage setShow={() => setShowRemove(false)} messageId={option.messageId!} show={showRemove} chatId={option.chatId!} />
     </div>
 })

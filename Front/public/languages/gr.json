@@ -1,0 +1,56 @@
+{
+    "Drop2f": "Drop 2f",
+    "Set2f": "Set 2f",
+    "Cancel": "Abbrechen",
+    "Add": "Hinzufügen",
+    "Leave": "Verlassen",
+    "AddChat": "Chat hinzufügen",
+    "QrCode": "QR-Code zum Scannen",
+    "ManualCode": "Manueller Code zum Schreiben",
+    "IncorrectOneTimeCode": "Falscher Einmalcode",
+    "LogOut": "Abmelden",
+    "Settings": "Einstellungen",
+    "OneTimeCodePlaceholder": "Einmalcode eingeben",
+    "DefaultErrorMessage": "Es ist ein Fehler aufgetreten. Wenden Sie sich an den Administrator, um weitere Informationen zu erhalten.",
+    "DefaultSuccessMessage": "Die Operation wurde erfolgreich durchgeführt",
+    "ValidationEmailError": "Bitte geben Sie eine gültige E-Mail-Adresse an",
+    "ValidationNicknameError": "Bitte geben Sie einen gültigen Spitznamen an",
+    "ValidationPasswordError": "Bitte geben Sie ein gültiges Passwort an",
+    "Remove": "Entfernen",
+    "Update": "Aktualisieren",
+    "AddUser": "Benutzer hinzufügen",
+    "RemoveUserText": "Benutzer entfernen",
+    "SelectUser": "Benutzer auswählen",
+    "WillingDeleteAllMessages": "Möchten Sie wirklich alle Nachrichten löschen?",
+    "UserNicknameOrEmailPlaceholder": "Benutzername oder E-Mail-Adresse",
+    "SureOfWilling": "Sind Sie sicher, dass Sie möchten",
+    "From": "Von",
+    "Agree": "Zustimmen",
+    "Reject": "Ablehnen",
+    "Message": "Nachricht",
+    "Sending": "Senden",
+    "Participant": "Teilnehmer",
+    "FileSizeError": "Sie haben den maximalen Dateigrößenwert erreicht",
+    "UserSettings": {
+        "changeNicknameSwitch": "Spitznamen ändern",
+        "changeEmailSwitch": "E-Mail ändern",
+        "removeAccount": "Konto entfernen",
+        "enterPassPlaceholder": "Passwort eingeben",
+        "commitChanges": "Änderungen bestätigen"
+    },
+    "RemoveUser": {
+        "warning1": "Sind Sie sicher, dass Sie Ihr Konto löschen möchten?",
+        "warning2": "Es kann nicht wiederhergestellt werden, nachdem es gelöscht wurde.",
+        "warning3": "Wenn Sie es trotzdem löschen möchten, füllen Sie das unten stehende Feld aus und klicken Sie auf 'Entfernen'"
+    },
+    "UpdateChat": {
+        "NewChatName": "Neuen Chat-Namen eingeben"
+    },
+    "Smiles": {
+        "doNotCry": "Weine nicht wie ich",
+        "likeMe": "Manchmal mögen wir alle mich",
+        "haveBigSmile": "Habe immer ein Lächeln so groß wie meins",
+        "beCool": "Sei cool wie ich",
+        "beDifferent": "Habe etwas Unterschied"
+    }
+}

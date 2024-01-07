@@ -1,0 +1,56 @@
+{
+    "Drop2f": "Rilascia 2f",
+    "Set2f": "Imposta 2f",
+    "Cancel": "Annulla",
+    "Add": "Aggiungi",
+    "Leave": "Abbandona",
+    "AddChat": "Aggiungi chat",
+    "QrCode": "Codice QR da scannerizzare",
+    "ManualCode": "Codice manuale da scrivere",
+    "IncorrectOneTimeCode": "Codice monouso non corretto",
+    "LogOut": "Esci",
+    "Settings": "Impostazioni",
+    "OneTimeCodePlaceholder": "Inserisci il codice monouso",
+    "DefaultErrorMessage": "Si è verificato un errore. Per i dettagli, rivolgersi all'amministratore",
+    "DefaultSuccessMessage": "L'operazione è stata eseguita con successo",
+    "ValidationEmailError": "Fornisci un indirizzo email valido",
+    "ValidationNicknameError": "Fornisci un nickname valido",
+    "ValidationPasswordError": "Fornisci una password valida",
+    "Remove": "Rimuovi",
+    "Update": "Aggiorna",
+    "AddUser": "Aggiungi utente",
+    "RemoveUserText": "Rimuovi utente",
+    "SelectUser": "Seleziona utente",
+    "WillingDeleteAllMessages": "Vuoi eliminare tutti i messaggi?",
+    "UserNicknameOrEmailPlaceholder": "Nickname o email dell'utente",
+    "SureOfWilling": "Sei sicuro di voler",
+    "From": "Da",
+    "Agree": "Accetta",
+    "Reject": "Rifiuta",
+    "Message": "Messaggio",
+    "Sending": "Inviando",
+    "Participant": "Partecipante(s)",
+    "FileSizeError": "Hai raggiunto il valore massimo consentito per il file",
+    "UserSettings": {
+        "changeNicknameSwitch": "Cambia nickname",
+        "changeEmailSwitch": "Cambia email",
+        "removeAccount": "Rimuovi account",
+        "enterPassPlaceholder": "Inserisci la password",
+        "commitChanges": "Conferma modifiche"
+    },
+    "RemoveUser": {
+        "warning1": "Sei sicuro di voler rimuovere il tuo account?",
+        "warning2": "Non sarà possibile recuperarlo dopo l'eliminazione.",
+        "warning3": "Se vuoi davvero eliminare, compila il campo sottostante e premi il pulsante 'Rimuovi'"
+    },
+    "UpdateChat": {
+        "NewChatName": "Inserisci il nuovo nome della chat"
+    },
+    "Smiles": {
+        "doNotCry": "non piangere come me",
+        "likeMe": "a volte siamo tutti come me",
+        "haveBigSmile": "abbia sempre un sorriso grande come il mio",
+        "beCool": "sii cool come lo sono io",
+        "beDifferent": "abbia qualche differenza"
+    }
+}

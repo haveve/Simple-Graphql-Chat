@@ -19,6 +19,8 @@ export type sliceState = {
     chats: ReduxChat[],
     error?: string,
     updatedMessage?: ReduxMessage,
+    maxMessageHistoryFetchDate?: string,
+    noHistoryMessagesLost?: boolean
 }
 
 export type DeleteAll = {
@@ -51,6 +53,8 @@ export const chatSlicer = createSlice({
                     avatar: action.payload.avatar ? baseChatPictureFolder + '/' + action.payload.avatar : null
                 }
                 state.updatedMessage = undefined;
+                state.maxMessageHistoryFetchDate = undefined;
+                state.noHistoryMessagesLost = undefined;
                 state.messages = [];
                 state.status = 'idle'
             },
@@ -109,7 +113,19 @@ export const chatSlicer = createSlice({
         setMessages: {
             reducer: (state, action: PayloadAction<ReduxMessage[]>) => {
                 state.status = 'idle'
-                state.messages = action.payload
+
+                const length = action.payload.length;
+                if (!state.messages.length && length) {
+                    state.maxMessageHistoryFetchDate = action.payload[length - 1].sentAt
+                }
+
+                if (!length) {
+                    state.noHistoryMessagesLost = true;
+                    return;
+                }
+
+                const reversed = [...action.payload].reverse()
+                state.messages = [...reversed, ...state.messages]
             },
             prepare: (action: Message[]) => {
                 return {

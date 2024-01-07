@@ -10,7 +10,7 @@ namespace WebSocketGraphql.Services.AuthenticationServices
     public class CustomAuthorizationValidationRule : IValidationRule
     {
 
-        public virtual async ValueTask<INodeVisitor?> ValidateAsync(ValidationContext context)
+        public virtual ValueTask<INodeVisitor?> ValidateAsync(ValidationContext context)
         {
 
             var variables = context.Variables;
@@ -27,19 +27,19 @@ namespace WebSocketGraphql.Services.AuthenticationServices
                     chatId = intChatId;
                 }
 
-                if (await _authorizationManager!.IsValidToken(tokeString, chatId))
+                if (_authorizationManager!.IsValidToken(tokeString, chatId))
                 {
                     var tokenData = _authorizationManager.ReadJwtToken(tokeString);
-                    if (helper.IsAccess(tokenData.Claims))
+                    if (helper!.IsAccess(tokenData.Claims))
                     {
                         var identity = new ClaimsIdentity(tokenData.Claims, "Token");
                         var principal = new ClaimsPrincipal(identity);
-                        var visitor = new AuthorizationVisitor(context, principal, authService);
+                        var visitor = new AuthorizationVisitor(context, principal, authService!);
                         foreach (var el in tokenData.Claims)
                         {
                             context.UserContext[el.Type] = el.Value;
                         }
-                        return visitor;
+                        return new ValueTask<INodeVisitor?>(visitor);
                     }
                 }
             }
@@ -47,7 +47,7 @@ namespace WebSocketGraphql.Services.AuthenticationServices
             if (context.Schema.IsAuthorizationRequired())
                 context.ReportError(new ValidationError("Access denied"));
 
-            return null;
+            return new ValueTask<INodeVisitor?>(result: null);
         }
     }
 }

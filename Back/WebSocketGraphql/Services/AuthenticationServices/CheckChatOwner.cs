@@ -11,18 +11,24 @@ namespace WebSocketGraphql.Services.AuthenticationServices
 {
     public class AuthHelper
     {
-        private readonly IChat _chat;
         private readonly IConfiguration _configuration;
 
-        public AuthHelper(IChat chat, IConfiguration configuration)
+        public AuthHelper(IConfiguration configuration)
         {
-            _chat = chat;
             _configuration = configuration;
         }
 
         public bool CheckChatOwner(int chatId, IDictionary<string, object?> authUser)
         {
-            var ownChats = JsonSerializer.Deserialize<IEnumerable<int>>(authUser["UserOwn"] as string);
+
+            var data = authUser["UserOwn"] as string;
+
+            if (data is null)
+            {
+                return false;
+            }
+
+            var ownChats = JsonSerializer.Deserialize<IEnumerable<int>>(data);
 
             if (ownChats is null)
             {

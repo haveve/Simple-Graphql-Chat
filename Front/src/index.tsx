@@ -15,6 +15,9 @@ import NotFound from './Components/NotFoundPage';
 import AuthReg from './Components/UserManagementAndAuthReg/AuthRegist';
 import ResetPassword from './Components/UserManagementAndAuthReg/ResetPassword';
 import Auth2f from './Components/UserManagementAndAuthReg/Auth2f';
+import Initiate from './LanguageConfig';
+
+Initiate()
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -22,8 +25,8 @@ const root = ReactDOM.createRoot(
 
 const Router = createBrowserRouter([
   {
-    path:"*",
-    element:<NotFound/>
+    path: "*",
+    element: <NotFound />
   },
   {
     path: '/main',
@@ -37,15 +40,15 @@ const Router = createBrowserRouter([
   },
   {
     path: '/set-password',
-    element: <SetPassword/>
+    element: <SetPassword />
   },
   {
     path: '/reset-password',
-    element:<ResetPassword/>
+    element: <ResetPassword />
   },
   {
-    path:'/2f-auth',
-    element:<Auth2f/>
+    path: '/2f-auth',
+    element: <Auth2f />
   }
 ])
 

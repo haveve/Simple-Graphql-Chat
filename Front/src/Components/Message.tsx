@@ -2,7 +2,6 @@ import React, { forwardRef, memo, useCallback } from "react";
 import { TimeStringFromDate, DateFromString, GetDate } from "../Features/Functions";
 import { useTypedSelector } from "../Redux/store";
 
-
 const MessageComponent = memo(forwardRef<HTMLDivElement, { HandleContext: (chatId: number, messageId: string, event: React.MouseEvent<HTMLDivElement>) => void, setDate: Boolean, id: string }>((props, ref) => {
   const { id, HandleContext, setDate } = props
 

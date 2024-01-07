@@ -13,7 +13,7 @@ namespace WebSocketGraphql.Repositories
 
         Task<bool> AddMessageAsync(Message message);
 
-        Task<IEnumerable<Message>> GetAllMessagesAsync(int chatId);
+        Task<IEnumerable<Message>> GetAllMessagesAsync(int chatId, int take, int skip, DateTime? maxDate);
 
         Task<IEnumerable<ChatParticipant>> GetAllChatParticipatsAsync(int chatId,string search = "");
 

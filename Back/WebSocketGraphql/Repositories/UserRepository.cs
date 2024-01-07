@@ -100,7 +100,7 @@ namespace TimeTracker.Repositories
                 return user;
             }
 
-            if (password.ComparePasswords(user.Password, true, user.Salt, _iteration))
+            if (password.ComparePasswords(user.Password!, true, user.Salt!, _iteration))
             {
                 return user;
             }

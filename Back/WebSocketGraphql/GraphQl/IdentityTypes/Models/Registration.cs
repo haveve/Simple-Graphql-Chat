@@ -2,7 +2,7 @@
 {
     public class Registration
     {
-        public string NickName { get; set; }
-        public string Email { get; set; }   
+        public string NickName { get; set; } = null!;
+        public string Email { get; set; } = null!;
     }
 }

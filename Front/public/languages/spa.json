@@ -1,0 +1,56 @@
+{
+    "Drop2f": "Soltar 2f",
+    "Set2f": "Configurar 2f",
+    "Cancel": "Cancelar",
+    "Add": "Agregar",
+    "Leave": "Salir",
+    "AddChat": "Agregar chat",
+    "QrCode": "Código QR para escanear",
+    "ManualCode": "Código manual para escribir",
+    "IncorrectOneTimeCode": "Código único incorrecto",
+    "LogOut": "Cerrar sesión",
+    "Settings": "Configuración",
+    "OneTimeCodePlaceholder": "Ingrese el código único",
+    "DefaultErrorMessage": "Se produjo un error. Para obtener detalles, consulte al administrador",
+    "DefaultSuccessMessage": "La operación se realizó con éxito",
+    "ValidationEmailError": "Proporcione un correo electrónico válido",
+    "ValidationNicknameError": "Proporcione un apodo válido",
+    "ValidationPasswordError": "Proporcione una contraseña válida",
+    "Remove": "Eliminar",
+    "Update": "Actualizar",
+    "AddUser": "Agregar usuario",
+    "RemoveUserText": "Eliminar usuario",
+    "SelectUser": "Seleccionar usuario",
+    "WillingDeleteAllMessages": "¿Quieres borrar todos los mensajes?",
+    "UserNicknameOrEmailPlaceholder": "Nombre de usuario o correo electrónico",
+    "SureOfWilling": "¿Estás seguro de que quieres",
+    "From": "De",
+    "Agree": "Aceptar",
+    "Reject": "Rechazar",
+    "Message": "Mensaje",
+    "Sending": "Enviando",
+    "Participant": "Participante",
+    "FileSizeError": "Alcanzaste el tamaño máximo permitido de archivo",
+    "UserSettings": {
+        "changeNicknameSwitch": "Cambiar apodo",
+        "changeEmailSwitch": "Cambiar correo electrónico",
+        "removeAccount": "Eliminar cuenta",
+        "enterPassPlaceholder": "Ingrese la contraseña",
+        "commitChanges": "Confirmar cambios"
+    },
+    "RemoveUser": {
+        "warning1": "¿Estás seguro de que quieres eliminar tu cuenta?",
+        "warning2": "No podrás recuperarla después de eliminarla.",
+        "warning3": "Si realmente deseas eliminarla, completa el campo a continuación y presiona el botón 'Eliminar'"
+    },
+    "UpdateChat": {
+        "NewChatName": "Ingrese el nuevo nombre del chat"
+    },
+    "Smiles": {
+        "doNotCry": "no llores como yo",
+        "likeMe": "a veces todos somos como yo",
+        "haveBigSmile": "siempre ten una sonrisa tan grande como la mía",
+        "beCool": "sé genial como yo",
+        "beDifferent": "ten alguna diferencia"
+    }
+}

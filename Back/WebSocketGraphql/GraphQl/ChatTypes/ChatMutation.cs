@@ -238,7 +238,7 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
                     { Id = data.Id, NickName = "DELETED", Online = false });
                 }
 
-                return result;
+                return data.Id;
             });
 
             Field<NonNullGraphType<StringGraphType>>("updateUserAvatart")

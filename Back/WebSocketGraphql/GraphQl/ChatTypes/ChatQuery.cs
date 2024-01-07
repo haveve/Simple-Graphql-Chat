@@ -9,14 +9,21 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
 {
     public class ChatQuery : ObjectGraphType
     {
-        public ChatQuery(IChat chat,IUserRepository user, AuthHelper helper)
+        public ChatQuery(IChat chat, IUserRepository user, AuthHelper helper)
         {
             Field<ListGraphType<MessageGraphType>>("messages")
                 .Argument<NonNullGraphType<IntGraphType>>("chatId")
+                .Argument<NonNullGraphType<IntGraphType>>("take")
+                .Argument<NonNullGraphType<IntGraphType>>("skip")
+                .Argument<DateTimeGraphType>("maxDate")
                 .ResolveAsync(async context =>
                 {
                     int chatId = context.GetArgument<int>("chatId");
-                    return await chat.GetAllMessagesAsync(chatId);
+                    int take = context.GetArgument<int>("take");
+                    int skip = context.GetArgument<int>("skip");
+                    DateTime? maxDate = context.GetArgument<DateTime?>("maxDate");
+
+                    return await chat.GetAllMessagesAsync(chatId, take, skip, maxDate);
                 });
 
             Field<ListGraphType<ChatGraphType>>("chats")
@@ -43,7 +50,7 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
                     int chatId = context.GetArgument<int>("chatId");
                     int userId = helper.GetUserId(context.User!);
 
-                    return await chat.GetFullChatInfoAsync(chatId,userId);
+                    return await chat.GetFullChatInfoAsync(chatId, userId);
                 });
 
             Field<NonNullGraphType<UserGraphType>>("user")

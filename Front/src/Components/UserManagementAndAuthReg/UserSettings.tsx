@@ -8,7 +8,6 @@ import { ConnectToChat } from '../../Requests/Requests';
 import { minPasswordLength, maxPasswordLength } from './SetPassword';
 import { SetErrorHandler } from '../../SocketDispatcher';
 import { setError, setState } from '../../Redux/Slicers/UserSlicer';
-import { defaultSuccessMessage } from '../../Features/Constants';
 import GetElementInfDueToState from '../GetElementDueToState';
 import RemoveUser from './RemoveUser';
 import { updateAvatar } from '../../Redux/Slicers/UserSlicer';
@@ -16,6 +15,8 @@ import { ajaxUploadFile } from '../../Requests/Requests';
 import Icon from '../Icon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCameraAlt } from '@fortawesome/free-solid-svg-icons'
+import { useTranslation } from 'react-i18next';
+import SelectLanguage from './SelectLanguage';
 
 export const minNickNameLength = 3;
 export const maxNickNameLength = 75;
@@ -38,8 +39,8 @@ export default function UserSettings(props: { isVisible: boolean, setVisible: (v
     const user = useTypedSelector(store => store.user.user);
     const state = useTypedSelector(store => store.user.status);
     const error = useTypedSelector(store => store.user.error);
-
-    const message = state === 'error' ? error : state === 'success' ? defaultSuccessMessage : undefined
+    const { t } = useTranslation()
+    const message = state === 'error' ? error : state === 'success' ? t('DefaultSuccessMessage') : undefined
 
     const passwordValidation = () => {
         if (!password)
@@ -73,7 +74,7 @@ export default function UserSettings(props: { isVisible: boolean, setVisible: (v
             onChange={(event) => setEmailToChange(event.target.value)}>
         </Form.Control>
         <Form.Control.Feedback type="invalid">
-            Please provide a valid email
+            {t('ValidationEmailError')}
         </Form.Control.Feedback>
     </Form.Group>
         : <div>{"Email: " + user?.email}</div>
@@ -85,7 +86,7 @@ export default function UserSettings(props: { isVisible: boolean, setVisible: (v
             value={nickName}
             onChange={(event) => setNickNameToChange(event.target.value)}></Form.Control>
         <Form.Control.Feedback type="invalid">
-            Please provide a valid nickname
+            {t('ValidationNicknameError')}
         </Form.Control.Feedback>
     </Form.Group>
         : <div>{"Nickname: " + user?.nickName}</div>
@@ -102,27 +103,40 @@ export default function UserSettings(props: { isVisible: boolean, setVisible: (v
             }}
             size='lg'
             centered>
-            <Modal.Header closeButton className='h2'>User settings</Modal.Header>
+            <Modal.Header closeButton className='h2'>{t('Settings')}</Modal.Header>
             <Modal.Body>
                 <Row className='ms-1 mb-3'>
-                    <Icon name={user?.nickName ?? "nn"} color='yellow' onlyImage={true} src={user?.avatar} children={
-                        <label htmlFor="selec-file-avatar" className='selec-file-avatar d-flex justify-content-center align-items-center h-100 w-100'>
-                            <FontAwesomeIcon icon={faCameraAlt}></FontAwesomeIcon>
-                        </label>
-                    } />
-                    <input type="file" accept="image/*" hidden id="selec-file-avatar" onChange={event => {
-                        if (event.target.validity.valid && event.target.files) {
-                            const img = event.target.files[0]
-                            ajaxUploadFile(img, "file", updateUserAvatarMutation).subscribe({
-                                next: (img) => {
-                                    dispatch(updateAvatar(img))
-                                },
-                                error: () => {
-                                    dispatch(setError('There is some error, please, turn to admin'))
+                    <Col>
+                        <Icon name={user?.nickName ?? "nn"} color='yellow' onlyImage={true} src={user?.avatar} children={
+                            <label htmlFor="selec-file-avatar" className='selec-file-avatar d-flex justify-content-center align-items-center h-100 w-100'>
+                                <FontAwesomeIcon icon={faCameraAlt}></FontAwesomeIcon>
+                            </label>
+                        } />
+                        <input type="file" accept="image/*" hidden id="selec-file-avatar" onChange={event => {
+                            if (event.target.validity.valid && event.target.files && event.target.files[0]) {
+                                const img = event.target.files[0]
+                                try {
+                                    ajaxUploadFile(img, "file", updateUserAvatarMutation).subscribe({
+                                        next: (img) => {
+                                            dispatch(updateAvatar(img))
+                                        },
+                                        error: () => {
+                                            dispatch(setError(t('DefaultErrorMessage')))
+                                        }
+                                    })
+                                } catch (error) {
+                                    const strError = error as string
+                                    if (strError)
+                                        dispatch(setError(strError))
+                                    else
+                                        console.log(JSON.stringify(error));
                                 }
-                            })
-                        }
-                    }} />
+                            }
+                        }} />
+                    </Col>
+                    <Col className='d-flex justify-content-end'>
+                        <SelectLanguage />
+                    </Col>
                 </Row>
                 <Row>
                     <Col className='h5'>
@@ -140,7 +154,7 @@ export default function UserSettings(props: { isVisible: boolean, setVisible: (v
                             reverse
                             type="switch"
                             id="custom-switch"
-                            label="change email"
+                            label={t('UserSettings.changeEmailSwitch')}
                         />
                         <Form.Check
                             onChange={(event) => {
@@ -150,7 +164,7 @@ export default function UserSettings(props: { isVisible: boolean, setVisible: (v
                             reverse
                             type="switch"
                             id="custom-switch"
-                            label="change nickname"
+                            label={t('UserSettings.changeNicknameSwitch')}
                         />
                     </Col>
                 </Row>
@@ -159,7 +173,7 @@ export default function UserSettings(props: { isVisible: boolean, setVisible: (v
                         <Button variant='danger' className='w-100' onClick={() => {
                             setDeleteVisible(true)
                             setVisible(false)
-                        }}>Remove account</Button>
+                        }}>{t('UserSettings.removeAccount')}</Button>
                     </div>
                     <div className='mt-3 text-center'>
                         <GetElementInfDueToState state={state} message={message} />
@@ -172,11 +186,11 @@ export default function UserSettings(props: { isVisible: boolean, setVisible: (v
                         <Form.Control
                             isInvalid={!passwordValidation()}
                             type='password'
-                            placeholder={"Enter password"}
+                            placeholder={t('UserSettings.enterPassPlaceholder')}
                             onChange={(event) => setPassword(event.target.value)}>
                         </Form.Control>
                         <Form.Control.Feedback type="invalid">
-                            Please provide a valid password
+                            {t('ValidationPasswordError')}
                         </Form.Control.Feedback>
                     </Form.Group>
                 </div>
@@ -207,7 +221,7 @@ export default function UserSettings(props: { isVisible: boolean, setVisible: (v
 
                             sub.next(request, setState('pending'))
                         })
-                    }} >Commit Changes</Button>
+                    }} >{t('UserSettings.commitChanges')}</Button>
                 </div>
             </Modal.Footer>
         </Modal >

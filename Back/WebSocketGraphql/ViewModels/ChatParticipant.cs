@@ -7,7 +7,7 @@ namespace WebSocketGraphql.ViewModels
         [Description("id")]
         public int Id { get; set; }
         [Description("nick_name")]
-        public string NickName { get; set; }
+        public string NickName { get; set; } = null!;
         [Description("online")]
         public bool Online { get; set; }
 

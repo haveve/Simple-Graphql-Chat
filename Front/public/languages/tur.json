@@ -1,0 +1,56 @@
+{
+    "Drop2f": "Bırak 2f",
+    "Set2f": "Ayarla 2f",
+    "Cancel": "İptal",
+    "Add": "Ekle",
+    "Leave": "Ayrıl",
+    "AddChat": "Sohbet Ekle",
+    "QrCode": "Taramak için QR kodu",
+    "ManualCode": "Yazmak için Manuel kod",
+    "IncorrectOneTimeCode": "Hatalı tek kullanımlık kod",
+    "LogOut": "Çıkış yap",
+    "Settings": "Ayarlar",
+    "OneTimeCodePlaceholder": "Tek kullanımlık kodu girin",
+    "DefaultErrorMessage": "Bir hata oluştu. Detaylar için yöneticiye başvurun",
+    "DefaultSuccessMessage": "İşlem başarıyla gerçekleştirildi",
+    "ValidationEmailError": "Lütfen geçerli bir e-posta adresi girin",
+    "ValidationNicknameError": "Lütfen geçerli bir takma ad girin",
+    "ValidationPasswordError": "Lütfen geçerli bir şifre girin",
+    "Remove": "Kaldır",
+    "Update": "Güncelle",
+    "AddUser": "Kullanıcı Ekle",
+    "RemoveUserText": "Kullanıcıyı Kaldır",
+    "SelectUser": "Kullanıcı seç",
+    "WillingDeleteAllMessages": "Tüm mesajları silmek istediğinizden emin misiniz?",
+    "UserNicknameOrEmailPlaceholder": "Kullanıcı takma adı veya e-posta",
+    "SureOfWilling": "Emin misiniz",
+    "From": "Kimden",
+    "Agree": "Onayla",
+    "Reject": "Reddet",
+    "Message": "Mesaj",
+    "Sending": "Gönderiliyor",
+    "Participant": "Katılımcı",
+    "FileSizeError": "Maksimum dosya boyutu değerine ulaştınız",
+    "UserSettings": {
+        "changeNicknameSwitch": "Takma adı değiştir",
+        "changeEmailSwitch": "E-postayı değiştir",
+        "removeAccount": "Hesabı kaldır",
+        "enterPassPlaceholder": "Şifreyi girin",
+        "commitChanges": "Değişiklikleri Onayla"
+    },
+    "RemoveUser": {
+        "warning1": "Hesabınızı silmek istediğinizden emin misiniz?",
+        "warning2": "Sildikten sonra geri alamazsınız.",
+        "warning3": "Eğer yine de silmek istiyorsanız, aşağıdaki alanı doldurun ve 'Kaldır' düğmesine basın"
+    },
+    "UpdateChat": {
+        "NewChatName": "Yeni sohbet adını girin"
+    },
+    "Smiles": {
+        "doNotCry": "Benim gibi ağlama",
+        "likeMe": "Bazen hepimiz benim gibi oluruz",
+        "haveBigSmile": "Her zaman benimkisi kadar büyük bir gülümseme sahip ol",
+        "beCool": "Benim gibi cool ol",
+        "beDifferent": "Biraz farklı ol"
+    }
+}

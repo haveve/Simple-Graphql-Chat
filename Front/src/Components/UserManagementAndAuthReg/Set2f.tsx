@@ -5,6 +5,7 @@ import { useTypedDispatch, useTypedSelector } from '../../Redux/store';
 import { addUser } from '../../Redux/Slicers/UserSlicer';
 import GetElementInfDueToState from '../GetElementDueToState';
 import { sliceState as state } from '../../Redux/Slicers/AuthRegSlicer';
+import { useTranslation } from 'react-i18next';
 
 export default function Set2factorAuth(props: { isVisibleSet2fa: boolean, setVisibleSet2fa: (v: boolean) => void, _2fAuthData: _2fAuthResult | null }) {
 
@@ -15,6 +16,8 @@ export default function Set2factorAuth(props: { isVisibleSet2fa: boolean, setVis
     const dispatch = useTypedDispatch();
     const user = useTypedSelector(store => store.user.user);
 
+    const { t } = useTranslation();
+
     return <>
         <Modal
             show={isVisibleSet2fa}
@@ -24,15 +27,15 @@ export default function Set2factorAuth(props: { isVisibleSet2fa: boolean, setVis
             }}
             size='lg'
             centered>
-            <Modal.Header closeButton className='h2'>Set 2f</Modal.Header>
+            <Modal.Header closeButton className='h2'>{t('Set2f')}</Modal.Header>
             <Modal.Body>
                 <Col className="d-flex  flex-row  ">
                     <Col>
-                        <div className='h5'>QR code to scan</div>
+                        <div className='h5'>{t('QrCode')}</div>
                         <Image thumbnail src={_2fAuthData?.qrUrl}></Image>
                     </Col>
                     <Col sm={8} className='ms-3'>
-                        <div className='h5'>Manual code to write</div>
+                        <div className='h5'>{t('ManualCode')}</div>
                         <p><em className="autoWordSpace">{_2fAuthData?.manualEntry}</em></p>
                         <GetElementInfDueToState state={state.state} message={state.message} />
                     </Col>
@@ -41,7 +44,7 @@ export default function Set2factorAuth(props: { isVisibleSet2fa: boolean, setVis
             <Modal.Footer className='d-flex flex-row justify-content-between'>
                 <div className='w-50'>
                     <Form.Control
-                        placeholder={"Enter one-time code"}
+                        placeholder={t('OneTimeCodePlaceholder')}
                         onChange={(event) => setEnteredCode(event.target.value)}>
                     </Form.Control>
                 </div>
@@ -50,17 +53,17 @@ export default function Set2factorAuth(props: { isVisibleSet2fa: boolean, setVis
                         setState({ state: 'pending' })
                         axajSetUser2fAuth(_2fAuthData!.key, enteredCode).subscribe({
                             next: () => {
-                                setState({ message: "Successfully set", state: 'success' })
+                                setState({ message: t('DefaultSuccessMessage'), state: 'success' })
                                 dispatch(addUser({ ...(user!), key2Auth: "key" }));
                             },
                             error: (error) => {
                                 console.log(error)
-                                setState({ message: "Codes was not mached", state: 'error' })
+                                setState({ message: t('IncorrectOneTimeCode'), state: 'error' })
                             }
                         })
                     }}
-                >Set 2f</Button>
-          </Modal.Footer>
+                >{t('Set2f')}</Button>
+            </Modal.Footer>
         </Modal >
     </>
 }

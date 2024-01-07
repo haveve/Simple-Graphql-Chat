@@ -1,6 +1,7 @@
 import React from 'react';
 import { Alert, Modal, Button, Col, Row } from "react-bootstrap";
 import { MessageType } from './NotificationModalWindow';
+import { useTranslation } from 'react-i18next';
 
 export default function CheckModalWindow(props: {
     innerText: string,
@@ -10,6 +11,8 @@ export default function CheckModalWindow(props: {
     agree: () => void,
     reject: () => void
 }) {
+
+    const { t } = useTranslation();
 
     let pict = <svg></svg>;
     let color = "";
@@ -66,11 +69,11 @@ export default function CheckModalWindow(props: {
                     <Button variant='danger' onClick={() => {
                         props.dropMessage("")
                         props.reject();
-                    }}>{"reject"}</Button>
+                    }}>{t('Reject')}</Button>
                     <Button variant='success' onClick={() => {
                         props.dropMessage("")
                         props.agree();
-                    }}>{"agree"}</Button>
+                    }}>{t('Agree')}</Button>
                 </Col>
             </Row>
         </Alert>

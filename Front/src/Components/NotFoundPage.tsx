@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Container, Row, Col, Form,Button } from 'react-bootstrap';
 import { useNavigate } from 'react-router';
+import '../Styles/Custom.scss'
 
 export default function NotFound(){
 

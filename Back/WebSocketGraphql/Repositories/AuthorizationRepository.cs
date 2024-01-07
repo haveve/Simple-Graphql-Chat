@@ -33,20 +33,20 @@ namespace TimeTracker.Repositories
         {
             string query = "DELETE UserRefreshes WHERE token = @refreshToken";
             using var connection = _dapperContext.CreateConnection();
-            await connection.ExecuteAsync(query, new {refreshToken }).ConfigureAwait(false);
+            await connection.ExecuteAsync(query, new { refreshToken }).ConfigureAwait(false);
         }
 
         public async Task UpdateRefreshTokenAsync(string oldRefreshToken, TokenResult refreshToken, int userId)
         {
             string query = "UPDATE UserRefreshes SET token = @token, expiration_start = @issuedAt , expiration_end = @expiredAt   WHERE user_id = @userId AND token = @oldRefreshToken";
             using var connection = _dapperContext.CreateConnection();
-            await connection.ExecuteAsync(query, new { userId, refreshToken.token,refreshToken.expiredAt,refreshToken.issuedAt, oldRefreshToken }).ConfigureAwait(false);
+            await connection.ExecuteAsync(query, new { userId, refreshToken.token, refreshToken.expiredAt, refreshToken.issuedAt, oldRefreshToken }).ConfigureAwait(false);
         }
         public async Task<RefreshToken?> GetRefreshTokenAsync(string refreshToken, int userId)
         {
             string query = "SELECT token, expiration_start, expiration_end FROM UserRefreshes WHERE token = @refreshToken AND user_id = @userId";
             using var connection = _dapperContext.CreateConnection();
-            return connection.QuerySingleOrDefault<RefreshToken?>(query, new {refreshToken, userId });
+            return await connection.QuerySingleOrDefaultAsync<RefreshToken?>(query, new { refreshToken, userId });
         }
 
 
@@ -58,11 +58,11 @@ namespace TimeTracker.Repositories
             return await connection.ExecuteAsync(sqlQuery, new { key, userId, resetCode }).ConfigureAwait(false) > 0;
         }
 
-        public async Task<bool> Drop2factorKeyAsync(int userId,string? resetCode)
+        public async Task<bool> Drop2factorKeyAsync(int userId, string? resetCode)
         {
             using var connection = _dapperContext.CreateConnection();
             string sqlQuery = "Update Users SET key_2auth = @key, reset_key_2auth = @code WHERE id = @userId";
-            if(resetCode is not null)
+            if (resetCode is not null)
             {
                 sqlQuery += " AND reset_key_2auth = @resetCode";
             }

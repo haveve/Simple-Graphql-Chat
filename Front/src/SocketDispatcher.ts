@@ -6,9 +6,9 @@ import { SetMessageId } from './Features/Functions';
 import { batch } from 'react-redux'
 import { addUser } from './Redux/Slicers/UserSlicer';
 import { setError as setErrorGlobal } from './Redux/Slicers/GlobalNotification';
-import { defaultErrorMessage } from './Features/Constants';
 import { TokenErrorHandler } from './Requests/AuthorizationRequests';
 import { updateUserData } from './Redux/Slicers/UserSlicer';
+import i18next from 'i18next';
 
 const dispatch = store.dispatch
 
@@ -53,7 +53,7 @@ export default function Dispatch(response: defaultSubscriptionResponse<any>) {
                     return;
                 }
 
-                dispatch(setErrorGlobal(defaultErrorMessage))
+                dispatch(setErrorGlobal(i18next.t('DefaultErrorMessage')))
                 console.log(JSON.stringify(response));
                 return;
             }
@@ -184,7 +184,7 @@ export default function Dispatch(response: defaultSubscriptionResponse<any>) {
                 handler();
                 return;
             }
-            dispatch(setErrorGlobal(defaultErrorMessage))
+            dispatch(setErrorGlobal(i18next.t('DefaultErrorMessage')))
             console.log(JSON.stringify(response));
             break;
     }

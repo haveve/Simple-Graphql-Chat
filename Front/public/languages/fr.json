@@ -1,0 +1,56 @@
+{
+    "Drop2f": "Lâcher 2f",
+    "Set2f": "Configurer 2f",
+    "Cancel": "Annuler",
+    "Add": "Ajouter",
+    "Leave": "Quitter",
+    "AddChat": "Ajouter un chat",
+    "QrCode": "Code QR à scanner",
+    "ManualCode": "Code manuel à écrire",
+    "IncorrectOneTimeCode": "Code à usage unique incorrect",
+    "LogOut": "Déconnexion",
+    "Settings": "Paramètres",
+    "OneTimeCodePlaceholder": "Entrez le code à usage unique",
+    "DefaultErrorMessage": "Une erreur s'est produite. Pour plus de détails, contactez l'administrateur",
+    "DefaultSuccessMessage": "L'opération a été réalisée avec succès",
+    "ValidationEmailError": "Veuillez fournir une adresse e-mail valide",
+    "ValidationNicknameError": "Veuillez fournir un surnom valide",
+    "ValidationPasswordError": "Veuillez fournir un mot de passe valide",
+    "Remove": "Supprimer",
+    "Update": "Mettre à jour",
+    "AddUser": "Ajouter un utilisateur",
+    "RemoveUserText": "Supprimer un utilisateur",
+    "SelectUser": "Sélectionner un utilisateur",
+    "WillingDeleteAllMessages": "Voulez-vous supprimer tous les messages ?",
+    "UserNicknameOrEmailPlaceholder": "Nom d'utilisateur ou adresse e-mail",
+    "SureOfWilling": "Êtes-vous sûr de vouloir",
+    "From": "De",
+    "Agree": "Accepter",
+    "Reject": "Rejeter",
+    "Message": "Message",
+    "Sending": "Envoi",
+    "Participant": "Participant(s)",
+    "FileSizeError": "Vous avez atteint la taille maximale autorisée du fichier",
+    "UserSettings": {
+        "changeNicknameSwitch": "Changer de surnom",
+        "changeEmailSwitch": "Changer d'adresse e-mail",
+        "removeAccount": "Supprimer le compte",
+        "enterPassPlaceholder": "Entrez le mot de passe",
+        "commitChanges": "Valider les modifications"
+    },
+    "RemoveUser": {
+        "warning1": "Êtes-vous sûr de vouloir supprimer votre compte ?",
+        "warning2": "Vous ne pourrez pas le récupérer après la suppression.",
+        "warning3": "Si vous voulez vraiment supprimer, remplissez le champ ci-dessous et appuyez sur le bouton 'Supprimer'"
+    },
+    "UpdateChat": {
+        "NewChatName": "Entrez le nouveau nom du chat"
+    },
+    "Smiles": {
+        "doNotCry": "ne pleurez pas comme moi",
+        "likeMe": "parfois nous sommes tous comme moi",
+        "haveBigSmile": "aie toujours un sourire aussi grand que le mien",
+        "beCool": "sois cool comme moi",
+        "beDifferent": "soyez un peu différent"
+    }
+}

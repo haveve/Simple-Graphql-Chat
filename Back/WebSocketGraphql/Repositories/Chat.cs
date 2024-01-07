@@ -122,9 +122,9 @@ namespace WebSocketGraphql.Repositories
 
         private class ChatOperationUser
         {
-            public string ChatName { get; set; }
+            public string ChatName { get; set; } = null!;
             public int UserId { get; set; }
-            public string NickName { get; set; }
+            public string NickName { get; set; } = null!;
             public int ChatMembersCount { get; set; } = 0;
             public int CreatorId { get; set; } = 0;
         }
@@ -232,18 +232,21 @@ namespace WebSocketGraphql.Repositories
             return await connection.QueryAsync<ChatParticipant>(query, new { chatId, search });
         }
 
-        public async Task<IEnumerable<Message>> GetAllMessagesAsync(int chatId)
+        public async Task<IEnumerable<Message>> GetAllMessagesAsync(int chatId, int take, int skip, DateTime? maxDate)
         {
-            string query = @"SELECT u.nick_name, m.sent_at,m.content,m.from_id,m.chat_id FROM Message as m 
+
+            string skipMaxDate = maxDate is not null ? "sent_at < @maxDate AND" : string.Empty;
+
+            string query = @$"SELECT u.nick_name, m.sent_at,m.content,m.from_id,m.chat_id FROM Message as m 
                                 JOIN Users as u 
-                                ON u.id = m.from_id
-                                WHERE m.chat_id = @chatId
+                                ON {skipMaxDate} u.id = m.from_id AND m.chat_id = @chatId 
                             UNION ALL
                             SELECT null,sent_at,content,null,chat_id FROM TechMessage
-                            WHERE chat_id = @chatId
-                            ORDER BY sent_at";
+                            WHERE {skipMaxDate} chat_id = @chatId
+                            ORDER BY sent_at desc
+							OFFSET @skip ROWS FETCH NEXT @take ROWS ONLY";
             using var connection = _dapperContext.CreateConnection();
-            return await connection.QueryAsync<Message>(query, new { chatId });
+            return await connection.QueryAsync<Message>(query, new { chatId, skip, take, maxDate });
         }
 
         public async Task<IEnumerable<ChatModel>> GetUserChatsInstancesAsync(int userId)

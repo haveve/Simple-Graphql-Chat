@@ -3,16 +3,18 @@ import { Container, Row, Col, Form, Modal, Button } from 'react-bootstrap';
 import { removeUserFromChatMutation } from '../../Features/Queries';
 import { useTypedSelector } from '../../Redux/store';
 import { queryParticipants } from '../../Features/Queries';
-import type { ChatUpdate } from '../../Features/Types';
 import { ConnectToChat } from '../../Requests/Requests';
 import { RequestBuilder } from '../../Features/Queries';
 import ChatHeader from '../ChatHeader';
 import { IsWhiteSpaceOrEmpty } from '../../Features/Functions';
 import { setState } from '../../Redux/Slicers/ChatSlicer';
+import { useTranslation } from 'react-i18next';
 
 export default function RemoveFromChat(props: { chatId: number | null, show: boolean, setShow: (value: boolean) => void }) {
 
     const chatPending = setState('pending')
+
+    const { t } = useTranslation();
 
     const { show, setShow, chatId } = props;
     const [deleteAll, setDeleteAll] = useState(false)
@@ -62,7 +64,7 @@ export default function RemoveFromChat(props: { chatId: number | null, show: boo
             <Form.Select size='lg' className='mt-3' onChange={(event) => {
                 setRemoveName(event.target.value)
             }}>
-                <option value="">select user (red color - admin)</option>
+                <option value="">{t('SelectUser')}</option>
                 {participats.map(el => {
                     if (el.id === chat.creatorId) {
                         return <option key={el.id} value={""} className='text-danger'>{el.nickName}</option>
@@ -70,9 +72,9 @@ export default function RemoveFromChat(props: { chatId: number | null, show: boo
                     return <option key={el.id} value={el.nickName}>{el.nickName}</option>
                 })}
             </Form.Select>
-            <Form.Check onChange={deleteAllHandler} reverse label='Do you wanna delete all messages?' className='h5 pb-4 pt-1' size={17} />
-            <div className='d-flex justify-content-end gap-3'><Button variant='primary' size='lg' onClick={closeHandler}>Cancel</Button>
-                <Button variant='danger' size='lg' onClick={leaveChatHandler}>Remove</Button></div>
+            <Form.Check onChange={deleteAllHandler} reverse label={t('WillingDeleteAllMessages')} className='h5 pb-4 pt-1' size={17} />
+            <div className='d-flex justify-content-end gap-3'><Button variant='primary' size='lg' onClick={closeHandler}>{t('Cancel')}</Button>
+                <Button variant='danger' size='lg' onClick={leaveChatHandler}>{t('Remove')}</Button></div>
         </Modal.Body >
     </Modal > : <span></span>
 }

@@ -1,4 +1,5 @@
 import React from 'react'
+import i18next from 'i18next'
 
 export const title = 'Awesome chat'
 
@@ -7,9 +8,6 @@ export const logo = <svg xmlns="http://www.w3.org/2000/svg" width="45" height="4
 </svg>
 
 export const backDomain = 'localhost:7000'
-
-export const defaultErrorMessage = "There is occured some error. For details check console and turn to administrator"
-export const defaultSuccessMessage = "Operation was successfully commited"
 
 export const baseUserPictureFolder = 'user_pictures';
 export const baseChatPictureFolder = 'chat_pictures';
@@ -42,25 +40,25 @@ export const SmilesList = [
     </svg>
 ]
 
-export const SmilesWithComments:SmileListType[] = [
+export const SmilesWithComments: SmileListType[] = [
     {
-        message: 'don\'t cry like me',
+        message: 'Smiles.doNotCry',
         picture: SmilesList[0],
     },
     {
-        message: 'sometimes we all like me',
+        message: 'Smiles.likeMe',
         picture: SmilesList[1]
     },
     {
-        message: 'always have smile as big as mine',
+        message: 'Smiles.haveBigSmile',
         picture: SmilesList[2]
     },
     {
-        message: 'be cool like i am',
-        picture: SmilesList[3] 
+        message: 'Smiles.beCool',
+        picture: SmilesList[3]
     },
     {
-        message: 'have some difference',
+        message: 'Smiles.beDifferent',
         picture: SmilesList[4]
     }
 ]
