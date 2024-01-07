@@ -10,8 +10,7 @@ export default function MultiControl(props: { value?: string, size?: 'w-25' | 'w
     const { t } = useTranslation()
 
     useEffect(() => {
-        if (value)
-            setCreatedMessage(value)
+        setCreatedMessage(value ?? '')
     }, [value])
 
     const keyDownEventHandler = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {

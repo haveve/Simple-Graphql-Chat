@@ -223,8 +223,14 @@ function Chat() {
   })
 
   const DropChat = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Escape' && updatedMessage) {
+      dispatch(dropUpdateMessage())
+      return;
+    }
+
     if (event.key === 'Escape') {
       dispatch(dropCurrentChat())
+      return;
     }
   }
 
@@ -238,7 +244,8 @@ function Chat() {
         prevDate.current = data.sentAt
       }
 
-      return <MessageComponent setDate={setDate} HandleContext={HandleContextMenu} key={data.id} id={data.id!} ref={key == messageIdsWithDate.length - 1 ? lastMessage : key === 0 ? firstMessage : undefined} />
+      return <MessageComponent className={updatedMessage?.id === data.id ? "border border-5 border-info" : undefined} setDate={setDate} HandleContext={HandleContextMenu} key={data.id} id={data.id!} ref={key == messageIdsWithDate.length - 1 ? lastMessage : key === 0 ? firstMessage : undefined} />
+
     })
   }
 
