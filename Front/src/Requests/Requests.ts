@@ -190,7 +190,7 @@ export function ConnectToChat(reconnect: boolean = false, newToken: boolean = fa
     })
 }
 
-export function ajaxUploadFile(file: File, variableName: string, query: string, variables: { [key: string]: any } = {}) {
+export function ajaxUploadFile<T>(file: File, variableName: string, query: string, variables: { [key: string]: any } = {}) {
 
     if (file.size > MaxFileSizeInKB * 1024) {
         throw `${i18next.t('FileSizeError')} ${MaxFileSizeInKB} KB`
@@ -207,7 +207,7 @@ export function ajaxUploadFile(file: File, variableName: string, query: string, 
         formData.append('map', JSON.stringify({ "0": [`variables.${variableName}`] }));
         formData.append('0', file)
 
-        return ajax<response<{ updateUserAvatart: string }>>({
+        return ajax<response<T>>({
             url: `https://${backDomain}/graphql`,
             method: "POST",
             headers: {
@@ -218,10 +218,11 @@ export function ajaxUploadFile(file: File, variableName: string, query: string, 
         }).pipe(map((response) => {
             const data = response.response;
             if (data.errors) {
+                console.log(JSON.stringify(data.errors))
                 throw 'error'
             }
 
-            return data.data.updateUserAvatart;
+            return data.data;
         }))
     }))
 }

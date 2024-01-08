@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, JSX } from 'react';
 import { GetAbbreviationFromPhrase } from '../Features/Functions';
 import { backDomain } from '../Features/Constants';
 
-const baseUrl = `https://${backDomain}`
+export const baseUrl = `https://${backDomain}`
 
 export default function Icon(props: { color: string, name: string, children?: JSX.Element | null, withChatInfo?: boolean, handleChatInfo?: () => void, onlyImage?: boolean, src?: string | null, onlyImageSmall?: boolean }) {
 

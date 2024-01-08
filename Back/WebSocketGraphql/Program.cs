@@ -62,6 +62,7 @@ builder.Services.AddGraphQL(c =>
     .AddValidationRule<CustomAuthorizationValidationRule>()
     .AddValidationRule<InputFieldsAndArgumentsOfCorrectLength>()
     .AddValidationRule<InputAndArgumentEmailValidationRule>()
+    .AddValidationRule<InputAndArgumentNumberValidationRule>()
     .AddWebSocketAuthentication<CustomWebSocketAuthenticator>()
     .AddErrorInfoProvider(opt => opt.ExposeExceptionDetails = true);
 });

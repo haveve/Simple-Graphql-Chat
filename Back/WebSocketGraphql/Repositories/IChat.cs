@@ -29,7 +29,7 @@ namespace WebSocketGraphql.Repositories
 
         Task<IEnumerable<int>> SetOffline(int userId);
 
-        Task<bool> RemoveMessageAsync(Message message);
+        Task<string?> RemoveMessageAsync(Message message);
 
         Task<bool> UpdateMessageAsync(Message message);
 

@@ -11,7 +11,8 @@ namespace WebSocketGraphql.GraphQl.Schemes
         {
             Metadata.Add(AuthorizationExtensions.AUTHORIZE_KEY, true);
             Directives.Register(new LengthDirective(),
-                                new EmailDirective());
+                                new EmailDirective(),
+                                new NumberRangeDivective());
 
 
             Query = service.GetRequiredService<ChatQuery>();

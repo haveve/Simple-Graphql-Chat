@@ -14,7 +14,7 @@ export function AddChat() {
   const { t } = useTranslation();
 
   const user = useTypedSelector(store => store.user.user)
-  const addChat = (chatName: string, setChatName: React.Dispatch<string>) => {
+  const addChat = (chatName: string) => {
     if (user) {
       const connection = ConnectToChat()
       connection.subscribe(sub => sub.next(RequestBuilder('start', {
@@ -24,7 +24,6 @@ export function AddChat() {
         }
       }), chatPending));
     }
-    setChatName('')
   }
 
   return <MultiControl maxSymbols={100} size='w-100' className='border-primary mb-2' placeHolder={t('AddChat')} SendMessage={addChat} />

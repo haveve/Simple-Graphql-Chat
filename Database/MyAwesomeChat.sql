@@ -113,7 +113,8 @@ CREATE TABLE Message(
 from_id int not null DEFAULT 1,
 chat_id int not null,
 sent_at DATETIME2(3) not null,
-content nvarchar(200) not null
+content nvarchar(200) not null,
+image nvarchar(46) null
 
 CONSTRAINT FK_Message_user_id FOREIGN KEY(from_id) REFERENCES Users(id) ON DELETE SET DEFAULT,
 CONSTRAINT FK_Message_chat_id FOREIGN KEY(chat_id) REFERENCES Chat(id) ON DELETE CASCADE,

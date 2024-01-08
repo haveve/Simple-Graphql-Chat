@@ -14,5 +14,7 @@ namespace WebSocketGraphql.Models
         public int ChatId { get; set; } = 0;
         [Description("nick_name")]
         public string? NickName { get; set; } = null;
+        [Description("image")]
+        public string? Image { get; set; } = null;
     }
 }

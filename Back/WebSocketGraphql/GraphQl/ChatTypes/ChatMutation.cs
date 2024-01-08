@@ -17,6 +17,8 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
 
         private const string chatPictPath = "chat_pictures";
         private const string userPictPath = "user_pictures";
+        private const string messagePictPath = "message_pictures";
+
         private const int DefaultMaxFileSizeInKB = 150;
 
         private readonly int _maxFileSizeInKb;
@@ -31,16 +33,37 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
                 .Argument<NonNullGraphType<MessageInputGraphType>>("message", el => el.ApplyDirective(
                    "length", "min", MessageInputGraphType.minLength, "max", MessageInputGraphType.maxLength))
                 .Argument<NonNullGraphType<IntGraphType>>("chatId")
+                .Argument<UploadGraphType>("image")
                 .ResolveAsync(async context =>
                 {
+
+                    var img = context.GetArgument<IFormFile>("image");
+
                     var receivedMessage = context.GetArgument<Message>("message");
                     receivedMessage.ChatId = context.GetArgument<int>("chatId");
                     receivedMessage.FromId = helper.GetUserId(context.User!);
                     receivedMessage.NickName = helper.GetUserNickName(context.UserContext);
 
-                    if (!await chat.AddMessageAsync(receivedMessage))
+                    try
                     {
+
+                        if (img is not null)
+                        {
+                            receivedMessage.Image = await uploadRepository.SaveImgAsync(img, Path.Combine(messagePictPath, receivedMessage.ChatId.ToString()), _maxFileSizeInKb);
+                        }
+
+                        if (!await chat.AddMessageAsync(receivedMessage))
+                        {
+                            throw new Exception();
+                        }
+                    }
+                    catch
+                    {
+                        if (receivedMessage.Image is not null)
+                            uploadRepository.DeleteFile(Path.Combine(messagePictPath, receivedMessage.ChatId.ToString(), receivedMessage.Image));
+
                         ThrowError("Message cannot be created because of some reasons");
+
                     }
 
                     return receivedMessage;
@@ -55,8 +78,13 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
                     receivedMessage.FromId = helper.GetUserId(context.User!);
                     receivedMessage.NickName = helper.GetUserNickName(context.UserContext);
 
-
-                    if (!await chat.RemoveMessageAsync(receivedMessage))
+                    try
+                    {
+                        var img = await chat.RemoveMessageAsync(receivedMessage);
+                        if (img is not null)
+                            uploadRepository.DeleteFile(Path.Combine(messagePictPath, receivedMessage.ChatId.ToString(), img));
+                    }
+                    catch
                     {
                         ThrowError("Message cannot be removed because of some reasons");
                     }

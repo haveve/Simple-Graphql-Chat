@@ -123,7 +123,7 @@ div {
 
 .send-message-input {
     resize: none !important;
-    max-height: 50vh !important;
+    max-height: 10vh !important;
     background: var(--message-container);
     color: var(--text-color);
     width: 100%;
@@ -379,4 +379,22 @@ div {
 
 .selec-file-avatar>*:hover {
     opacity: 1;
+}
+
+.selec-file-message>* {
+    height: 36px;
+    width: 36px;
+    fill:#888888;
+    opacity: 0.3;
+    transition: opacity 0.5s;
+}
+
+.selec-file-message>*:hover {
+    fill:#515151;
+    opacity: 1;
+}
+
+.send-icon{
+    width: 480px;
+    height: 360px;
 }

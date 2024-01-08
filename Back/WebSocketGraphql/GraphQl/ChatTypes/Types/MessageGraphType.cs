@@ -13,6 +13,7 @@ namespace WebSocketGraphql.GraphQl.ChatTypes.Types
             Field(el => el.SentAt, nullable: false, typeof(DateTimeGraphType));
             Field(el => el.Content, nullable: false);
             Field(el => el.NickName, nullable: true);
+            Field(el => el.Image, nullable: true);
         }
     }
 }

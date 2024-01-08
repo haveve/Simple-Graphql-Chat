@@ -20,6 +20,12 @@ import { MessageInput } from '../Features/Types';
 import UseEffectIf from './Hooks/useEffectIf';
 import { selectMessageIdsWithDate } from '../Redux/reselect';
 import { DateFromString } from '../Features/Functions';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCameraAlt } from '@fortawesome/free-solid-svg-icons';
+import AddMessageWithImage from './MessageOperation/AddMessageWithImage';
+import { ajaxUploadFile } from '../Requests/Requests';
+import { setError } from '../Redux/Slicers/ChatSlicer';
+import { useTranslation } from 'react-i18next';
 
 export const maxVisibleLength = 26;
 export const maxSymbolsInMessage = 200;
@@ -35,7 +41,6 @@ function Chat() {
 
   const currentChat = useTypedSelector(store => store.chat.currentChat)
   const messageIdsWithDate = useTypedSelector(selectMessageIdsWithDate)
-  const user = useTypedSelector(store => store.user.user)
   const chatState = useTypedSelector(store => store.chat.status)
   const erroMessage = useTypedSelector(store => store.chat.error)
   const globalNotification = useTypedSelector(store => store.global_notification)
@@ -44,7 +49,11 @@ function Chat() {
   let lastMessage = useRef<HTMLDivElement>(null);
   let refToOpt = useRef<HTMLDivElement>(null);
 
+  const { t } = useTranslation()
   const prevDate = useRef<string | null>(null)
+
+  const file = useRef<File | null>(null)
+  const [message, setMessage] = useState('')
 
   const maxMessageHistoryFetchDate = useTypedSelector(store => store.chat.maxMessageHistoryFetchDate)
   const noHistoryMessagesLost = useTypedSelector(store => store.chat.noHistoryMessagesLost)
@@ -54,6 +63,8 @@ function Chat() {
   const firstMessage = useRef<HTMLDivElement>(null)
 
   const [theme, setTheme] = useState<themes>(themes.light)
+  const [showSendMessageWithPict, setShowSendMessageWithPict] = useState(false)
+
 
   const [option, setOption] = useImmer<MessageOptionType>(defaultState)
 
@@ -112,6 +123,8 @@ function Chat() {
     }
   }, [noHistoryMessagesLost])
 
+
+
   useEffect(() => {
     if (currentChat?.id && maxMessageHistoryFetchDate) {
       intersectObservable.current = new IntersectionObserver(entries => {
@@ -165,8 +178,7 @@ function Chat() {
     }
   }, [currentChat?.id])
 
-
-  const SendMessage = (createdMessage: string, setCreatedMessage: React.Dispatch<string>) => {
+  const SendMessage = useCallback((createdMessage: string) => {
 
     if (updatedMessage) {
       const connection = ConnectToChat()
@@ -186,7 +198,7 @@ function Chat() {
     }
 
 
-    if (user && currentChat) {
+    if (currentChat) {
       const connection = ConnectToChat()
       connection.subscribe(sub => sub.next(RequestBuilder('start', {
         query: addMessageMutation,
@@ -199,8 +211,30 @@ function Chat() {
         }
       }), chatPending));
     }
-    setCreatedMessage('')
-  }
+  }, [currentChat, updatedMessage])
+
+
+  const sendMessageWithPicture = useCallback((content: string, file: File) => {
+    if (currentChat) {
+      try {
+        ajaxUploadFile(file, "image", addMessageMutation, {
+          chatId: currentChat.id,
+          message: {
+            content,
+            sentAt: new Date()
+          }
+        }).subscribe(_ => {
+          dispatch(setError(t('DefaultErrorMessage')))
+        })
+      }
+      catch (error) {
+        const strError = error as string
+        if (strError) {
+          setError(strError)
+        }
+      }
+    }
+  }, [currentChat])
 
   const HandleContextMenu = useCallback((chatId: number, messageId: string, event: React.MouseEvent<HTMLDivElement>) => {
     event.preventDefault()
@@ -249,6 +283,20 @@ function Chat() {
     })
   }
 
+  const pictureSelector = <><label htmlFor="selec-file-message" className='selec-file-message d-flex justify-content-center align-items-center h-100 w-100'>
+    <FontAwesomeIcon icon={faCameraAlt}></FontAwesomeIcon>
+  </label>
+    <input type="file" onClick={(event) => {
+      event.currentTarget.value = ""
+    }} accept="image/*" hidden id="selec-file-message" onChange={event => {
+      if (event.target.validity.valid && event.target.files && event.target.files[0]) {
+        const img = event.target.files[0]
+        setShowSendMessageWithPict(true);
+        file.current = img;
+      }
+    }} /></>
+
+
   return <><Container onKeyDown={DropChat} tabIndex={0} fluid={'fluid'} className='root-dark chat-bg p-0 h-100 m-0'>
     <Row className='m-0 flex-row p-0 h-100'>
       <Col sm={3} className='chat-list h-100 p-3 select-chat-scroll'>
@@ -269,7 +317,7 @@ function Chat() {
             }
           </Col>
           <MessageOptions option={option} ref={refToOpt}></MessageOptions>
-          <MultiControl maxSymbols={maxSymbolsInMessage} value={updatedMessage?.content} SendMessage={SendMessage} />
+          <MultiControl children={pictureSelector} maxSymbols={maxSymbolsInMessage} value={updatedMessage?.content} SendMessage={SendMessage} parentState={{ setState: setMessage, state: message }} />
         </Col>
         : null}
     </Row>
@@ -279,6 +327,7 @@ function Chat() {
     <NotificationModalWindow innerText={globalNotification.error ?? ""} isShowed={isError(globalNotification.status)} messageType={MessageType.Error} dropMessage={() => {
       dispatch(setStateGlobalNotification('idle'))
     }} />
+    {currentChat && file.current ? <AddMessageWithImage handleSubmit={sendMessageWithPicture} chatId={currentChat?.id} file={file.current} show={showSendMessageWithPict} setShow={setShowSendMessageWithPict} setMessage={setMessage} message={message} /> : null}
   </Container >
   </>
 }

@@ -40,7 +40,8 @@ export const subscriptionToChat = `subscription($chatId:Int!){
       typeM:type,
       sentAt,
       nickName,
-      deleteAll
+      deleteAll,
+      image
     }
     ...on ChatResulSubscription{
       typeC:type,
@@ -65,7 +66,8 @@ export const queryGetAllMessages = `query($chatId:Int!,$take:Int!,$skip:Int!,$ma
       content
       chatId
       fromId,
-      nickName
+      nickName,
+      image
   }
 }`
 
@@ -109,15 +111,7 @@ export const queryFullChatInfo = `query($chatId:Int!){
 
 //Mutation
 
-export const addMessageMutation = `mutation($message:MessageInput!,$chatId:Int!){
-  addMessage(message:$message,chatId:$chatId){
-    fromId,
-    chatId,
-    sentAt,
-    content,
-    nickName
-  }
-}`
+export const addMessageMutation = `mutation($message:MessageInput!,$chatId:Int!,$image:Upload){addMessage(message:$message,chatId:$chatId,image:$image){fromId,chatId,sentAt,content,nickName,image}}`
 
 export const removeMessageMutation = `mutation($message:MessageInput!,$chatId:Int!){
   removeMessage(message:$message,chatId:$chatId){

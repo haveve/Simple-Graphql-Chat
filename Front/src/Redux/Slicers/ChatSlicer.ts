@@ -3,7 +3,7 @@ import { FullChat, Chat, ReduxMessage, Message, ChatParticipant } from '../../Fe
 import { GetStringFromDateTime, SetMessageId, SortByOnline } from '../../Features/Functions'
 import randomColor from 'randomcolor'
 import { ParticipantState } from '../../Features/Types'
-import { baseUserPictureFolder, baseChatPictureFolder } from '../../Features/Constants'
+import { baseUserPictureFolder, baseChatPictureFolder, baseMessageFolder } from '../../Features/Constants'
 
 export type Status = 'error' | 'idle' | 'pending' | 'success'
 
@@ -130,7 +130,10 @@ export const chatSlicer = createSlice({
             prepare: (action: Message[]) => {
                 return {
                     payload: action.map<ReduxMessage>(el => {
-                        let message = { ...el, sentAt: GetStringFromDateTime(el.sentAt) }
+                        let message = {
+                            ...el, sentAt: GetStringFromDateTime(el.sentAt),
+                            image: el.image ? baseMessageFolder + '/' + el.chatId + '/' + el.image : null
+                        }
                         SetMessageId(message)
                         return message
                     })
@@ -166,6 +169,7 @@ export const chatSlicer = createSlice({
                 let message = {
                     ...payload,
                     sentAt: GetStringFromDateTime(payload.sentAt),
+                    image: payload.image ? baseMessageFolder + '/' + payload.chatId + '/' + payload.image : null
                 }
 
                 SetMessageId(message)

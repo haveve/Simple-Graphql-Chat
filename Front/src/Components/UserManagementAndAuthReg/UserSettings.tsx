@@ -116,9 +116,9 @@ export default function UserSettings(props: { isVisible: boolean, setVisible: (v
                             if (event.target.validity.valid && event.target.files && event.target.files[0]) {
                                 const img = event.target.files[0]
                                 try {
-                                    ajaxUploadFile(img, "file", updateUserAvatarMutation).subscribe({
-                                        next: (img) => {
-                                            dispatch(updateAvatar(img))
+                                    ajaxUploadFile<{ updateUserAvatart: string }>(img, "file", updateUserAvatarMutation).subscribe({
+                                        next: (data) => {
+                                            dispatch(updateAvatar(data.updateUserAvatart))
                                         },
                                         error: () => {
                                             dispatch(setError(t('DefaultErrorMessage')))

@@ -13,8 +13,8 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
         {
             Field<ListGraphType<MessageGraphType>>("messages")
                 .Argument<NonNullGraphType<IntGraphType>>("chatId")
-                .Argument<NonNullGraphType<IntGraphType>>("take")
-                .Argument<NonNullGraphType<IntGraphType>>("skip")
+                .Argument<NonNullGraphType<IntGraphType>>("take",el => el.ApplyDirective("constraint_number","min",1))
+                .Argument<NonNullGraphType<IntGraphType>>("skip",el => el.ApplyDirective("constraint_number","min",0))
                 .Argument<DateTimeGraphType>("maxDate")
                 .ResolveAsync(async context =>
                 {

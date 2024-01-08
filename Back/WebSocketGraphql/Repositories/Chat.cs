@@ -109,7 +109,7 @@ namespace WebSocketGraphql.Repositories
 
         public async Task<bool> AddMessageAsync(Message message)
         {
-            string query = "INSERT INTO Message (chat_id,sent_at,from_id,content) VALUES(@ChatId,@SentAt,@FromId,@Content)";
+            string query = "INSERT INTO Message (chat_id,sent_at,from_id,content,image) VALUES(@ChatId,@SentAt,@FromId,@Content,@Image)";
             using var connection = _dapperContext.CreateConnection();
             bool result = await connection.ExecuteAsync(query, message).ConfigureAwait(false) > 0;
             if (result)
@@ -237,11 +237,11 @@ namespace WebSocketGraphql.Repositories
 
             string skipMaxDate = maxDate is not null ? "sent_at < @maxDate AND" : string.Empty;
 
-            string query = @$"SELECT u.nick_name, m.sent_at,m.content,m.from_id,m.chat_id FROM Message as m 
+            string query = @$"SELECT u.nick_name, m.sent_at,m.content,m.from_id,m.chat_id,m.image FROM Message as m 
                                 JOIN Users as u 
                                 ON {skipMaxDate} u.id = m.from_id AND m.chat_id = @chatId 
                             UNION ALL
-                            SELECT null,sent_at,content,null,chat_id FROM TechMessage
+                            SELECT null,sent_at,content,null,chat_id,null FROM TechMessage
                             WHERE {skipMaxDate} chat_id = @chatId
                             ORDER BY sent_at desc
 							OFFSET @skip ROWS FETCH NEXT @take ROWS ONLY";
@@ -273,19 +273,18 @@ namespace WebSocketGraphql.Repositories
             return await connection.QuerySingleOrDefaultAsync<ChatResult>(query, new { userId, chatId }).ConfigureAwait(false);
         }
 
-        public async Task<bool> RemoveMessageAsync(Message message)
+        public async Task<string?> RemoveMessageAsync(Message message)
         {
             string query = @"
                 DECLARE @CompareDelete DateTime2(3) = @SentAt
-                DELETE Message WHERE from_id = @FromId AND sent_at = @CompareDelete AND chat_id = @ChatId";
+                DELETE Message OUTPUT deleted.image WHERE from_id = @FromId AND sent_at = @CompareDelete AND chat_id = @ChatId";
             using var connection = _dapperContext.CreateConnection();
-            bool result = await connection.ExecuteAsync(query, message).ConfigureAwait(false) > 0;
-            if (result)
-            {
-                var subject = GetOrCreateChat(message.ChatId);
-                subject.OnNext(new MessageSubscription(message) { Type = MessageType.DELETE });
-            }
-            return result;
+            string? img = await connection.QuerySingleAsync<string?>(query, message).ConfigureAwait(false);
+
+            var subject = GetOrCreateChat(message.ChatId);
+            subject.OnNext(new MessageSubscription(message) { Type = MessageType.DELETE });
+
+            return img;
         }
 
         public async Task<bool> UpdateMessageAsync(Message message)

@@ -1,6 +1,7 @@
 import React, { forwardRef, memo, useCallback } from "react";
 import { TimeStringFromDate, DateFromString, GetDate } from "../Features/Functions";
 import { useTypedSelector } from "../Redux/store";
+import { baseUrl } from "./Icon";
 
 const MessageComponent = memo(forwardRef<HTMLDivElement, { HandleContext: (chatId: number, messageId: string, event: React.MouseEvent<HTMLDivElement>) => void, setDate: Boolean, id: string, className?: string }>((props, ref) => {
   const { id, HandleContext, setDate, className } = props
@@ -28,8 +29,9 @@ const MessageComponent = memo(forwardRef<HTMLDivElement, { HandleContext: (chatI
         </span>
       </div>
       <div className='message-text-color chat-transfer'>
-        {el.content}
+        {el.content.split('\n').map(el => <>{el}<br /></>)}
       </div>
+      {el.image ? <div className="w-100 mt-2"> <img className="w-100" src={baseUrl + '/' + el.image}></img></div> : null}
     </div>
   </div> : <div ref={ref} className="mb-3 message-tech-color text-center">{el.content}</div>
   }</>

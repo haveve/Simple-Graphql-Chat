@@ -21,6 +21,7 @@ export type DerivedMessageOrChatInfo = ParticipantState & (Chat & { typeM: Messa
 export type BaseMessage = {
     id?: string
     content: string,
+    image: string|null,
     fromId: number | null,
     chatId: number,
     nickName: string
