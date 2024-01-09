@@ -19,6 +19,7 @@
     <PackageReference Include="GraphQL.Server.Ui.GraphiQL" Version="7.6.0" />
     <PackageReference Include="GraphQL.Upload.AspNetCore" Version="3.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.23" />
+    <PackageReference Include="SkiaSharp" Version="2.88.6" />
     <PackageReference Include="System.Data.SqlClient" Version="4.8.5" />
     <PackageReference Include="System.Reactive" Version="6.0.0" />
   </ItemGroup>

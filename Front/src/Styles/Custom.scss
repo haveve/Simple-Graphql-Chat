@@ -16,6 +16,7 @@ body.root-dark {
     --input-focus-bg: #1e96fc;
     --input-bg: #4ea8de;
     --chat-bg: url('../pictures/bg-picture-dark.jpg');
+    --small-bg: url('../pictures/bg-picture-dark-small.jpg');
     --warning-color: rgb(240, 213, 10);
     --message-container: linear-gradient(112.1deg, rgb(32, 38, 57) 11.4%, rgb(63, 76, 119) 70.2%);
     --tech-color: #2172bd;
@@ -36,7 +37,8 @@ body.root-light {
     --bs-body-bg: #fefae0;
     --hovered-element: rgb(241, 227, 123);
     --selected-element: #f9cd55;
-    --chat-bg: url('../pictures/bg-picture.png');
+    --chat-bg: url('../pictures/bg-picture.jpg');
+    --small-bg: url('../pictures/bg-picture-small.jpg');
     --text-color: #000000;
     --icon-border-color: #000000;
     --tech-color: #937539;
@@ -76,7 +78,7 @@ div {
 }
 
 * {
-    word-break: break-all
+    word-break: break-word !important;
 }
 
 .scroll {
@@ -106,8 +108,8 @@ div {
     outline: 0;
 }
 
-.max-width-50per {
-    max-width: 50% !important;
+.max-width-30per {
+    max-width: 30% !important;
 }
 
 .send-message-container {
@@ -169,13 +171,10 @@ div {
 }
 
 .chat-bg {
+    background-color: #00000000;
     background-image: var(--chat-bg);
     background-repeat: no-repeat;
     background-size: cover;
-}
-
-.chat-transfer {
-    word-break: break-all;
 }
 
 .time-font {
@@ -281,6 +280,7 @@ div {
     font-size: 20px !important;
     padding-left: 10px;
     padding-right: 10px;
+    z-index: 100;
 }
 
 .option>div:hover {
@@ -301,6 +301,7 @@ div {
 
 
 .chat-info-option {
+    z-index: 100;
     border-radius: 10px;
     border: 1px var(--icon-border-color) solid;
     padding-left: 10px;
@@ -382,19 +383,38 @@ div {
 }
 
 .selec-file-message>* {
+    z-index: 3;
     height: 36px;
     width: 36px;
-    fill:#888888;
+    fill: #888888;
     opacity: 0.3;
     transition: opacity 0.5s;
 }
 
 .selec-file-message>*:hover {
-    fill:#515151;
+    fill: #515151;
     opacity: 1;
 }
 
-.send-icon{
+.send-icon {
     width: 480px;
     height: 360px;
+}
+
+.img {
+    aspect-ratio: 1/1;
+    display: block;
+    object-fit: cover;
+    object-position: center;
+}
+
+img.main-img-load{
+    width: 100%;
+    height: 100%;
+    content: var(--small-bg);
+}
+
+.blur-load {
+    background-size: cover;
+    background-position: cover;
 }

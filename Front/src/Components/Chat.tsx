@@ -35,6 +35,7 @@ enum themes {
 }
 export const MessagesInOneRequest = 15;
 
+
 function Chat() {
 
   const chatPending = setState('pending');
@@ -297,38 +298,41 @@ function Chat() {
     }} /></>
 
 
-  return <><Container onKeyDown={DropChat} tabIndex={0} fluid={'fluid'} className='root-dark chat-bg p-0 h-100 m-0'>
-    <Row className='m-0 flex-row p-0 h-100'>
-      <Col sm={3} className='chat-list h-100 p-3 select-chat-scroll'>
-        <div className="d-flex chat-size-head align-items-center p-0 m-0">
-          <AddChat />
-          <AdditionalInfo />
-        </div>
-        <ChatSelect />
-      </Col>
-      {currentChat?.id ?? -1 > 0 ?
-        <Col className='d-flex flex-column h-100 p-0 m-0' onMouseLeave={handleHideOption} onClick={handleHideOption}>
-          <ChatHeader onSmileClick={() => {
-            setTheme(theme => theme == themes.dark ? themes.light : themes.dark)
-          }} currentChat={currentChat!} withChatInfo={true} />
-          <Col ref={rootChat} className='p-4 m-0 h5 scroll' onScroll={handleHideOption}>
-            {
-              GetMessages()
-            }
-          </Col>
-          <MessageOptions option={option} ref={refToOpt}></MessageOptions>
-          <MultiControl children={pictureSelector} maxSymbols={maxSymbolsInMessage} value={updatedMessage?.content} SendMessage={SendMessage} parentState={{ setState: setMessage, state: message }} />
+  return <><div className="w-100 mb-2 h-100 blur-load position-relative">
+    <Container onKeyDown={DropChat} tabIndex={0} fluid={'fluid'} className='position-absolute chat-bg p-0 h-100 m-0'>
+      <Row className='m-0 flex-row p-0 h-100'>
+        <Col sm={3} className='chat-list h-100 p-3 select-chat-scroll'>
+          <div className="d-flex chat-size-head align-items-center p-0 m-0">
+            <AddChat />
+            <AdditionalInfo />
+          </div>
+          <ChatSelect />
         </Col>
-        : null}
-    </Row>
-    <NotificationModalWindow innerText={erroMessage ?? ""} isShowed={isError(chatState)} messageType={MessageType.Error} dropMessage={() => {
-      dispatch(setStateChat('idle'))
-    }} />
-    <NotificationModalWindow innerText={globalNotification.error ?? ""} isShowed={isError(globalNotification.status)} messageType={MessageType.Error} dropMessage={() => {
-      dispatch(setStateGlobalNotification('idle'))
-    }} />
-    {currentChat && file.current ? <AddMessageWithImage handleSubmit={sendMessageWithPicture} chatId={currentChat?.id} file={file.current} show={showSendMessageWithPict} setShow={setShowSendMessageWithPict} setMessage={setMessage} message={message} /> : null}
-  </Container >
+        {currentChat?.id ?? -1 > 0 ?
+          <Col className='d-flex flex-column h-100 p-0 m-0' onMouseLeave={handleHideOption} onClick={handleHideOption}>
+            <ChatHeader onSmileClick={() => {
+              setTheme(theme => theme == themes.dark ? themes.light : themes.dark)
+            }} currentChat={currentChat!} withChatInfo={true} />
+            <Col ref={rootChat} className='p-4 m-0 h5 scroll' onScroll={handleHideOption}>
+              {
+                GetMessages()
+              }
+            </Col>
+            <MessageOptions option={option} ref={refToOpt}></MessageOptions>
+            <MultiControl children={pictureSelector} maxSymbols={maxSymbolsInMessage} value={updatedMessage?.content} SendMessage={SendMessage} parentState={{ setState: setMessage, state: message }} />
+          </Col>
+          : null}
+      </Row>
+      <NotificationModalWindow innerText={erroMessage ?? ""} isShowed={isError(chatState)} messageType={MessageType.Error} dropMessage={() => {
+        dispatch(setStateChat('idle'))
+      }} />
+      <NotificationModalWindow innerText={globalNotification.error ?? ""} isShowed={isError(globalNotification.status)} messageType={MessageType.Error} dropMessage={() => {
+        dispatch(setStateGlobalNotification('idle'))
+      }} />
+      {currentChat && file.current ? <AddMessageWithImage handleSubmit={sendMessageWithPicture} chatId={currentChat?.id} file={file.current} show={showSendMessageWithPict} setShow={setShowSendMessageWithPict} setMessage={setMessage} message={message} /> : null}
+    </Container >
+    <img alt="" className='img main-img-load' />
+  </div>
   </>
 }
 

@@ -6,7 +6,7 @@ export default function SelectLanguage() {
 
     const { t } = useTranslation();
 
-    return <DropdownButton variant='info' title={"Select language"} drop={"end"} className='additional-info' >
+    return <DropdownButton variant='info' title={t("SelectLanguage")} drop={"end"} className='additional-info' >
         {Object.values(Languages)
             .map(value => <Dropdown.Item onClick={() => SetLanguage(value as Languages)} className='additional-info-node'>{`${FullLangugeNames[value]} (${value})`}</Dropdown.Item>)}
     </DropdownButton>

@@ -49,7 +49,7 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
 
                         if (img is not null)
                         {
-                            receivedMessage.Image = await uploadRepository.SaveImgAsync(img, Path.Combine(messagePictPath, receivedMessage.ChatId.ToString()), _maxFileSizeInKb);
+                            receivedMessage.Image = await uploadRepository.SaveImgWithSmallOneAsync(img, Path.Combine(messagePictPath, receivedMessage.ChatId.ToString()), 5, 5, maxFileSizeInKB: _maxFileSizeInKb);
                         }
 
                         if (!await chat.AddMessageAsync(receivedMessage))
@@ -60,7 +60,7 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
                     catch
                     {
                         if (receivedMessage.Image is not null)
-                            uploadRepository.DeleteFile(Path.Combine(messagePictPath, receivedMessage.ChatId.ToString(), receivedMessage.Image));
+                            uploadRepository.DeleteFileWithSmallOne(Path.Combine(messagePictPath, receivedMessage.ChatId.ToString(), receivedMessage.Image));
 
                         ThrowError("Message cannot be created because of some reasons");
 
@@ -82,7 +82,7 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
                     {
                         var img = await chat.RemoveMessageAsync(receivedMessage);
                         if (img is not null)
-                            uploadRepository.DeleteFile(Path.Combine(messagePictPath, receivedMessage.ChatId.ToString(), img));
+                            uploadRepository.DeleteFileWithSmallOne(Path.Combine(messagePictPath, receivedMessage.ChatId.ToString(), img));
                     }
                     catch
                     {

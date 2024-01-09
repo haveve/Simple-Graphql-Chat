@@ -11,7 +11,10 @@ export const backDomain = 'localhost:7000'
 
 export const baseUserPictureFolder = 'user_pictures';
 export const baseChatPictureFolder = 'chat_pictures';
-export const baseMessageFolder = 'message_pictures'
+export const baseMessageFolder = 'message_pictures';
+
+export const defaultSmallPostfix = '-small';
+export const splitImage = '.';
 
 export type SmileListType = {
     picture: React.ReactElement,

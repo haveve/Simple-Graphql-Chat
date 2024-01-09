@@ -31,6 +31,8 @@
     "Sending": "Envoi",
     "Participant": "Participant(s)",
     "FileSizeError": "Vous avez atteint la taille maximale autorisée du fichier",
+    "SendPicture": "Envoyer une photo",
+    "SelectLanguage": "Sélectionner la langue",
     "UserSettings": {
         "changeNicknameSwitch": "Changer de surnom",
         "changeEmailSwitch": "Changer d'adresse e-mail",

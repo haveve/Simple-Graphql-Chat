@@ -2,11 +2,13 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Container, Row, Col, Form, Modal, Button } from 'react-bootstrap';
 import MultiControl from '../MultiControl';
 import { maxSymbolsInMessage } from '../Chat';
+import { useTranslation } from 'react-i18next';
 
 export default function AddMessageWithImage(props: { chatId: number | null, file: File, show: boolean, message: string, setMessage: (message: string) => void, setShow: (value: boolean) => void, handleSubmit: (message: string, file: File) => void }) {
 
     const { show, setShow, chatId, file, message, setMessage, handleSubmit } = props;
     const [imgUrl, setImgUrl] = useState('')
+    const { t } = useTranslation();
 
     useEffect(() => {
         setImgUrl(URL.createObjectURL(file))
@@ -19,7 +21,7 @@ export default function AddMessageWithImage(props: { chatId: number | null, file
 
 
     return <Modal centered show={show}>
-        <Modal.Header className='h2' closeButton onHide={closeHandler}>Send Photo</Modal.Header>
+        <Modal.Header className='h2' closeButton onHide={closeHandler}>{t("SendPicture")}</Modal.Header>
         < Modal.Body className='d-flex justify-content-center mx-3'>
             <div className='send-icon' style={
                 {
@@ -34,7 +36,7 @@ export default function AddMessageWithImage(props: { chatId: number | null, file
         <div className='px-4'>
             <MultiControl size='w-100' value={message} parentState={{ setState: setMessage, state: message }} maxSymbols={maxSymbolsInMessage} SendMessage={(createdMessage) => {
                 setShow(false)
-                handleSubmit(message, file)
+                handleSubmit(createdMessage, file)
             }} />
         </div>
     </Modal >

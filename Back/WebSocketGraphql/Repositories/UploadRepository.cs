@@ -15,6 +15,14 @@ namespace FileUploadSample
             _rnd = new Random();
         }
 
+        public void DeleteFileWithSmallOne(string relatingPath, string smallPostfix = IUploadRepository.defaultSmallOnePostfix)
+        {
+            File.Delete(Path.Combine(_uploadDirectory, relatingPath));
+            string file = Path.GetFileNameWithoutExtension(relatingPath);
+            string NewPath = relatingPath.Replace(file, file + smallPostfix);
+            File.Delete(Path.Combine(_uploadDirectory, NewPath));
+        }
+
         public void DeleteFile(string relatingPath)
         {
             File.Delete(Path.Combine(_uploadDirectory, relatingPath));
@@ -52,6 +60,35 @@ namespace FileUploadSample
             }
 
             return path;
+        }
+
+        public async Task<string> SaveImgWithSmallOneAsync(IFormFile formFile, string catalog, int smallWidth, int smallHeigh, string smallPostfix = IUploadRepository.defaultSmallOnePostfix, int maxFileSizeInKB = 0)
+        {
+            var mainLink = await SaveImgAsync(formFile, catalog, maxFileSizeInKB);
+            using (var memoryStream = new MemoryStream())
+            {
+                try
+                {
+                    await formFile.CopyToAsync(memoryStream);
+                    var smallPict = ImageHelper.ScaleImage(memoryStream.ToArray(), smallWidth, smallHeigh);
+
+                    var extension = Path.GetExtension(mainLink);
+                    var safePath = Path.Combine(_uploadDirectory, catalog, Path.GetFileNameWithoutExtension(mainLink) + smallPostfix + extension);
+                    using (var ws = System.IO.File.Create(safePath))
+                    {
+                        await ws.WriteAsync(smallPict);
+                    }
+                }
+                catch
+                {
+                    if (mainLink is not null)
+                    {
+                        DeleteFile(Path.Combine(catalog, mainLink));
+                    }
+                    throw;
+                }
+            }
+            return mainLink;
         }
 
     }

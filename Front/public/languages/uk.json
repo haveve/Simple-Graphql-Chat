@@ -31,6 +31,8 @@
     "Sending": "Надсилання",
     "Participant": "Учасник(ів)",
     "FileSizeError": "Ви досягли максимального розміру файлу",
+    "SendPicture": "Відправити зображення",
+    "SelectLanguage": "Вибрати мову",
     "UserSettings": {
         "changeNicknameSwitch": "Змінити псевдонім",
         "changeEmailSwitch": "Змінити електронну пошту",

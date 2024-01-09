@@ -31,6 +31,8 @@
     "Sending": "Gönderiliyor",
     "Participant": "Katılımcı",
     "FileSizeError": "Maksimum dosya boyutu değerine ulaştınız",
+    "SendPicture": "Fotoğraf gönder",
+    "SelectLanguage": "Dil seç",
     "UserSettings": {
         "changeNicknameSwitch": "Takma adı değiştir",
         "changeEmailSwitch": "E-postayı değiştir",
