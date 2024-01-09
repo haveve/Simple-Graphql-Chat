@@ -19,7 +19,7 @@ namespace WebSocketGraphql.Repositories
 
         IObservable<object> SubscribeMessages(int chatId);
 
-        IObservable<UserNotification> SubscribeUserNotification(int userId);
+        IObservable<object> SubscribeUserNotification(int userId);
 
         void UnSubscribeUserNotification(int userId);
 

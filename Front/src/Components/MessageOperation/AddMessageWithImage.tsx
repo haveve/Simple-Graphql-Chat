@@ -4,9 +4,9 @@ import MultiControl from '../MultiControl';
 import { maxSymbolsInMessage } from '../Chat';
 import { useTranslation } from 'react-i18next';
 
-export default function AddMessageWithImage(props: { chatId: number | null, file: File, show: boolean, message: string, setMessage: (message: string) => void, setShow: (value: boolean) => void, handleSubmit: (message: string, file: File) => void }) {
+export default function AddMessageWithImage(props: { file: File, show: boolean, message: string, setMessage: (message: string) => void, setShow: (value: boolean) => void, handleSubmit: (message: string, file: File) => void }) {
 
-    const { show, setShow, chatId, file, message, setMessage, handleSubmit } = props;
+    const { show, setShow, file, message, setMessage, handleSubmit } = props;
     const [imgUrl, setImgUrl] = useState('')
     const { t } = useTranslation();
 

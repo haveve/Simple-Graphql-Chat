@@ -70,20 +70,7 @@ export default function Dispatch(response: defaultSubscriptionResponse<any>) {
                 console.log("user was removed from chat")
             }
             else if (data.chatNotification) {
-                if (data.chatNotification.typeC) {
-                    const chatNotification = data.chatNotification
-                    switch (chatNotification.typeC) {
-                        case ChatResultType.UPDATE:
-                            dispatch(updateChat(chatNotification))
-                            break;
-                        case ChatResultType.DELETE:
-                            GetNewToken().subscribe(() => {
-                                dispatch(removeChat(chatNotification.id))
-                            })
-                            break;
-                    }
-                }
-                else if (data.chatNotification.typeM) {
+                if (data.chatNotification.typeM) {
                     const messageNotification = data.chatNotification
                     switch (messageNotification.typeM) {
                         case MessageType.CREATE:
@@ -141,18 +128,32 @@ export default function Dispatch(response: defaultSubscriptionResponse<any>) {
             else if (data.updateMessage) {
             }
             else if (data.userNotification) {
-                switch (data.userNotification.notificationType) {
-                    case ChatNotificationType.ENROLL:
-                        GetNewToken().subscribe(() => {
-                            dispatch(addChat(data.userNotification!))
-                        })
-                        break;
-                    case ChatNotificationType.BANISH:
-                        GetNewToken().subscribe(() => {
-                            dispatch(removeChat(data.userNotification!.id))
-                        })
-                        break;
+                if (data.userNotification.typeC) {
+                    const userNotification = data.userNotification
+                    switch (userNotification.typeC) {
+                        case ChatResultType.UPDATE:
+                            dispatch(updateChat(userNotification))
+                            break;
+                        case ChatResultType.DELETE:
+                            GetNewToken().subscribe(() => {
+                                dispatch(removeChat(userNotification.id))
+                            })
+                            break;
+                    }
+                } else {
+                    switch (data.userNotification.notificationType) {
+                        case ChatNotificationType.ENROLL:
+                            GetNewToken().subscribe(() => {
+                                dispatch(addChat(data.userNotification!))
+                            })
+                            break;
+                        case ChatNotificationType.BANISH:
+                            GetNewToken().subscribe(() => {
+                                dispatch(removeChat(data.userNotification!.id))
+                            })
+                            break;
 
+                    }
                 }
             }
             else if (data.user) {

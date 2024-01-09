@@ -17,11 +17,11 @@ export type ParticipantState = {
 }
 
 export type DerivedMessageOrChatInfo = ParticipantState & (Chat & { typeM: MessageType }) & (Message & { typeC: ChatResultType })
-
+export type DrivedUserOrChatInfo = (Message & { typeC: ChatResultType }) & UserNotification
 export type BaseMessage = {
     id?: string
     content: string,
-    image: string|null,
+    image: string | null,
     fromId: number | null,
     chatId: number,
     nickName: string

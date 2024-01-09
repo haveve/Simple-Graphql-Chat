@@ -329,7 +329,7 @@ function Chat() {
       <NotificationModalWindow innerText={globalNotification.error ?? ""} isShowed={isError(globalNotification.status)} messageType={MessageType.Error} dropMessage={() => {
         dispatch(setStateGlobalNotification('idle'))
       }} />
-      {currentChat && file.current ? <AddMessageWithImage handleSubmit={sendMessageWithPicture} chatId={currentChat?.id} file={file.current} show={showSendMessageWithPict} setShow={setShowSendMessageWithPict} setMessage={setMessage} message={message} /> : null}
+      {currentChat && file.current ? <AddMessageWithImage handleSubmit={sendMessageWithPicture} file={file.current} show={showSendMessageWithPict} setShow={setShowSendMessageWithPict} setMessage={setMessage} message={message} /> : null}
     </Container >
     <img alt="" className='img main-img-load' />
   </div>

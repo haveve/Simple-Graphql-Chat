@@ -3,7 +3,9 @@ import { FullChat, Chat, ReduxMessage, Message, ChatParticipant } from '../../Fe
 import { GetStringFromDateTime, SetMessageId, SortByOnline } from '../../Features/Functions'
 import randomColor from 'randomcolor'
 import { ParticipantState } from '../../Features/Types'
-import { baseUserPictureFolder, baseChatPictureFolder, baseMessageFolder } from '../../Features/Constants'
+import { baseChatPictureFolder, baseMessageFolder } from '../../Features/Constants'
+import { IsWhiteSpaceOrEmpty } from '../../Features/Functions'
+import { GetRelativePathFromUserAvatarName } from './UserSlicer'
 
 export type Status = 'error' | 'idle' | 'pending' | 'success'
 
@@ -41,6 +43,13 @@ const initialState: sliceState = {
     status: 'idle'
 }
 
+export function GetRelativePathFromChatAvatarName(avatar: string) {
+    return baseChatPictureFolder + '/' + avatar;
+}
+
+export function GetRelativePathFromMessagePictureName(chatId: number, avatar: string) {
+    return baseMessageFolder + '/' + chatId + '/' + avatar;
+}
 
 export const chatSlicer = createSlice({
     name: "chat",
@@ -50,7 +59,7 @@ export const chatSlicer = createSlice({
             reducer: (state, action: PayloadAction<FullChat>) => {
                 state.currentChat = {
                     ...action.payload, color: action.payload.avatar ? '' : state.chats.find(el => el.id === action.payload.id)!.color,
-                    avatar: action.payload.avatar ? baseChatPictureFolder + '/' + action.payload.avatar : null
+                    avatar: action.payload.avatar ? GetRelativePathFromChatAvatarName(action.payload.avatar) : null
                 }
                 state.updatedMessage = undefined;
                 state.maxMessageHistoryFetchDate = undefined;
@@ -73,7 +82,7 @@ export const chatSlicer = createSlice({
                     payload: payload.map(el => ({
                         ...el,
                         color: el.avatar ? '' : randomColor({ hue: 'red', luminosity: 'light' }),
-                        avatar: el.avatar ? baseChatPictureFolder + '/' + el.avatar : null
+                        avatar: el.avatar ? GetRelativePathFromChatAvatarName(el.avatar) : null
                     }))
                 }
             }
@@ -86,19 +95,28 @@ export const chatSlicer = createSlice({
 
         addChat: (state, action: PayloadAction<Chat>) => {
             state.status = 'idle'
-            state.chats.unshift({ ...action.payload, color: randomColor({ hue: 'red', luminosity: 'light' }) });
+            state.chats.unshift({
+                ...action.payload, color: action.payload.avatar ? '' : randomColor({ hue: 'red', luminosity: 'light' }),
+                avatar: action.payload.avatar ? GetRelativePathFromChatAvatarName(action.payload.avatar) : undefined
+            });
         },
 
         updateChat(state, action: PayloadAction<Chat>) {
             state.status = 'idle'
             state.chats = state.chats.map(el => {
                 if (el.id === action.payload.id) {
-                    return { ...el, color: el.color, name: action.payload.name }
+                    return {
+                        ...el, color: el.color, name: IsWhiteSpaceOrEmpty(action.payload.name) ? el.name : action.payload.name,
+                        avatar: action.payload.avatar ? GetRelativePathFromChatAvatarName(action.payload.avatar) : el.avatar
+                    }
                 }
                 return el
             })
             if (state.currentChat?.id === action.payload.id) {
-                state.currentChat.name = action.payload.name;
+                state.currentChat.name = IsWhiteSpaceOrEmpty(action.payload.name) ? state.currentChat.name : action.payload.name;
+                if (action.payload.avatar) {
+                    state.currentChat.avatar = GetRelativePathFromChatAvatarName(action.payload.avatar);
+                }
             }
         },
 
@@ -132,7 +150,7 @@ export const chatSlicer = createSlice({
                     payload: action.map<ReduxMessage>(el => {
                         let message = {
                             ...el, sentAt: GetStringFromDateTime(el.sentAt),
-                            image: el.image ? baseMessageFolder + '/' + el.chatId + '/' + el.image : null
+                            image: el.image ? GetRelativePathFromMessagePictureName(el.chatId, el.image) : null
                         }
                         SetMessageId(message)
                         return message
@@ -153,7 +171,7 @@ export const chatSlicer = createSlice({
                         ({
                             ...el,
                             color: el.avatar ? '' : randomColor({ hue: 'blue', luminosity: 'light' }),
-                            avatar: el.avatar ? baseUserPictureFolder + '/' + el.avatar : null
+                            avatar: el.avatar ? GetRelativePathFromUserAvatarName(el.avatar) : null
                         })
                         )) as ReduxParticipant[]
                 }
@@ -169,7 +187,7 @@ export const chatSlicer = createSlice({
                 let message = {
                     ...payload,
                     sentAt: GetStringFromDateTime(payload.sentAt),
-                    image: payload.image ? baseMessageFolder + '/' + payload.chatId + '/' + payload.image : null
+                    image: payload.image ? GetRelativePathFromMessagePictureName(payload.chatId, payload.image) : null
                 }
 
                 SetMessageId(message)

@@ -1,5 +1,5 @@
 import { webSocket } from 'rxjs/webSocket'
-import { Chat, ChatParticipant, Message, DerivedMessageOrChatInfo, UserNotification, User, FullChat } from '../Features/Types';
+import { Chat, ChatParticipant, Message, DerivedMessageOrChatInfo, DrivedUserOrChatInfo, User, FullChat } from '../Features/Types';
 import { backDomain } from '../Features/Constants';
 import { WebSocketSubject } from 'rxjs/webSocket'
 import { NextObserver, interval, Subscription, Observable, Subscriber, mergeMap, map, catchError, of } from 'rxjs'
@@ -29,7 +29,7 @@ export type AllFieldsRequestType = {
     chatFullInfo?: FullChat
     //subscription
     chatNotification?: DerivedMessageOrChatInfo,
-    userNotification?: UserNotification,
+    userNotification?: DrivedUserOrChatInfo,
     //mutation
     addMessage?: Message,
     removeMessage?: Message,

@@ -34,17 +34,18 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
             AddField(new FieldType
             {
                 Name = "userNotification",
-                Type = typeof(UserNortificationGraphType),
-                Resolver = new FuncFieldResolver<UserNotification>(context =>
+                Type = typeof(UserNotificationUnionGraphType),
+                Resolver = new FuncFieldResolver<object>(context =>
                 {
-                    var data = context.Source as UserNotification;
-                    if(data!.UserId != authHelper.GetUserId(context.User!))
+                    var userId = (context.Source as UserNotification)?.UserId;
+                    userId ??= (context.Source as ChatSubscription)?.UserId;
+                    if (userId is not null && userId != authHelper.GetUserId(context.User!))
                     {
                         return null;
                     }
-                    return data;
+                    return context.Source;
                 }),
-                StreamResolver = new SourceStreamResolver<UserNotification>(SubscribeUserNotification),
+                StreamResolver = new SourceStreamResolver<object>(SubscribeUserNotification),
             });
         }
 
@@ -55,13 +56,13 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
         }
 
 
-        private IObservable<UserNotification> SubscribeUserNotification(IResolveFieldContext context)
+        private IObservable<object> SubscribeUserNotification(IResolveFieldContext context)
         {
 
             var ids = _authHelper.GetChatParticipant(context.UserContext);
             var userId = _authHelper.GetUserId(context.User!);
 
-            var observable = new UserOnlineObservable<UserNotification>(userId, ids!, _chat, _chat.SubscribeUserNotification(userId));
+            var observable = new UserOnlineObservable<object>(userId, ids!, _chat, _chat.SubscribeUserNotification(userId));
 
             return observable;
         }

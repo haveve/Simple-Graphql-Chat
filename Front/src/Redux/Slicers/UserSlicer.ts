@@ -33,6 +33,11 @@ export type RemoveUser =
         password: string
     }
 
+export function GetRelativePathFromUserAvatarName(avatar: string) {
+    return baseUserPictureFolder + '/' + avatar;
+}
+
+
 const userSlicer = createSlice({
     name: 'user',
     initialState,
@@ -40,7 +45,7 @@ const userSlicer = createSlice({
         addUser: (state, action: PayloadAction<User>) => {
             if (!state.user || action.payload.avatar !== state.user.avatar) {
                 state.user = { ...action.payload }
-                state.user.avatar = action.payload.avatar ? baseUserPictureFolder + '/' + action.payload.avatar : null
+                state.user.avatar = action.payload.avatar ? GetRelativePathFromUserAvatarName(action.payload.avatar) : null
             }
             else {
                 state.user = { ...action.payload }
@@ -65,7 +70,7 @@ const userSlicer = createSlice({
         updateAvatar(state, action: PayloadAction<string>) {
             if (state.user) {
                 state.status = 'success'
-                state.user!.avatar = baseUserPictureFolder + '/' + action.payload
+                state.user!.avatar = GetRelativePathFromUserAvatarName(action.payload)
             }
         }
     }

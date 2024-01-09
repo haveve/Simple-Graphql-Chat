@@ -19,14 +19,14 @@ namespace WebSocketGraphql.Repositories
         private readonly int _userNumberInSubject;
 
         private ConcurrentDictionary<int, Subject<object>> _chats;
-        private ConcurrentDictionary<int, Subject<UserNotification>> _userChatNotifyer;
+        private ConcurrentDictionary<int, Subject<object>> _userChatNotifyer;
         private readonly DapperContext _dapperContext;
 
         public Chat(DapperContext dapperContext, IConfiguration configuration)
         {
             _dapperContext = dapperContext;
             _chats = new();
-            _userChatNotifyer = new ConcurrentDictionary<int, Subject<UserNotification>>();
+            _userChatNotifyer = new ConcurrentDictionary<int, Subject<object>>();
 
             if (!Int32.TryParse(configuration["ChatConfigData:UserSubNumber"], out _userNumberInSubject))
             {
@@ -54,7 +54,7 @@ namespace WebSocketGraphql.Repositories
             }
         }
 
-        public IObservable<UserNotification> SubscribeUserNotification(int userId)
+        public IObservable<object> SubscribeUserNotification(int userId)
         {
 
             var maxUserId = ComputeUserSubIndex(userId);
@@ -66,11 +66,24 @@ namespace WebSocketGraphql.Repositories
             }
             catch
             {
-                var newSub = new Subject<UserNotification>();
+                var newSub = new Subject<object>();
                 _userChatNotifyer[maxUserId] = newSub;
                 return newSub.AsObservable();
             }
 
+        }
+
+        private Subject<object>? GetUserNotificationSubject(int userId)
+        {
+            try
+            {
+                var sub = _userChatNotifyer[userId];
+                return sub;
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         public void UnSubscribeUserNotification(int userId)
@@ -127,6 +140,7 @@ namespace WebSocketGraphql.Repositories
             public string NickName { get; set; } = null!;
             public int ChatMembersCount { get; set; } = 0;
             public int CreatorId { get; set; } = 0;
+            public string? Avatar { get; set; }
         }
 
         public async Task<bool> AddUserToChatAsync(int chatId, string nickNameOrEmail, string by)
@@ -146,7 +160,7 @@ namespace WebSocketGraphql.Repositories
 			ELSE
             BEGIN
                 INSERT INTO Users_Chat_Keys (user_id,chat_id) VALUES(@userId,@chatId)
-                SELECT @userId as UserId,creator as CreatorId , @nickName as NickName,name as ChatName,(SELECT Count(*) FROM Users_Chat_Keys WHERE chat_id = @chatId) AS ChatMembersCount FROM Chat WHERE id = @chatId
+                SELECT @userId as UserId,creator as CreatorId , @nickName as NickName,name as ChatName,(SELECT Count(*) FROM Users_Chat_Keys WHERE chat_id = @chatId) AS ChatMembersCount, avatar as Avatar FROM Chat WHERE id = @chatId
 				COMMIT TRANSACTION
             END";
 
@@ -176,22 +190,16 @@ namespace WebSocketGraphql.Repositories
 
             var maxId = ComputeUserSubIndex(user.UserId);
 
-            try
+            GetUserNotificationSubject(maxId)?.OnNext(new UserNotification()
             {
-                _userChatNotifyer[maxId].OnNext(new UserNotification()
-                {
-                    UserId = user.UserId,
-                    NotificationType = ChatNotificationType.ENROLL,
-                    Name = user.ChatName,
-                    Id = chatId,
-                    CreatorId = user.CreatorId,
-                    ChatMembersCount = user.ChatMembersCount
-                });
-            }
-            catch
-            {
-
-            }
+                UserId = user.UserId,
+                NotificationType = ChatNotificationType.ENROLL,
+                Name = user.ChatName,
+                Id = chatId,
+                CreatorId = user.CreatorId,
+                ChatMembersCount = user.ChatMembersCount,
+                Avatar = user.Avatar
+            });
 
             return result;
 
@@ -316,16 +324,40 @@ namespace WebSocketGraphql.Repositories
         public async Task<string?> RemoveChatAsync(int chatId)
         {
             string query = @"DECLARE @chatPicture nvarchar(46)
+                            DECLARE @MyTableVar TABLE (
+                             userId INT null);
+
+							INSERT INTO @MyTableVar SELECT user_id from Users_Chat_Keys where chat_id = @chatId
+                            UNION ALL Select creator from chat where id = @chatId
+
                             SELECT @chatPicture = avatar from Chat where id = @chatId
                             DELETE Chat WHERE id = @chatId
-                            select @chatPicture";
+                            select null as avatar, userId from @MyTableVar
+                            UNION ALL select @chatPicture, null";
+
+            string? returnResult = null;
+
             using var connection = _dapperContext.CreateConnection();
-            var result = await connection.QuerySingleAsync<string?>(query, new { chatId }).ConfigureAwait(false);
+            var users = (await connection.QueryAsync<string?, int?, int>(query, (avatar, userId) =>
+            {
+                if (userId is null)
+                {
+                    returnResult = avatar;
+                }
+                return userId ?? 0;
+            }, new { chatId }).ConfigureAwait(false)).SkipLast(1);
 
-            var subject = GetOrCreateChat(chatId);
-            subject.OnNext(new ChatSubscription(ChatResultType.DELETE) { Id = chatId });
+            if (users.Any())
+            {
+                foreach (var userId in users)
+                {
 
-            return result;
+                    var subject = GetUserNotificationSubject(ComputeUserSubIndex(chatId));
+                    subject?.OnNext(new ChatSubscription(ChatResultType.DELETE) { Id = chatId, UserId = userId });
+                }
+            }
+
+            return returnResult;
         }
 
         public async Task<bool> AddTechMessageAsync(int chatId, Message message)
@@ -337,14 +369,21 @@ namespace WebSocketGraphql.Repositories
 
         public async Task<bool> UpdateChatAsync(int chatId, string name)
         {
-            string query = "UPDATE Chat SET Name = @name WHERE id = @chatId";
+            string query = @"set NOCOUNT ON UPDATE 
+                            Chat SET Name = @name WHERE id = @chatId
+                            SELECT user_id from Users_Chat_Keys where chat_id = @chatId
+                            UNION ALL Select creator from chat where id = @chatId";
             using var connection = _dapperContext.CreateConnection();
-            bool result = await connection.ExecuteAsync(query, new { chatId, name }).ConfigureAwait(false) > 0;
+            var users = await connection.QueryAsync<int>(query, new { chatId, name }).ConfigureAwait(false);
 
+            var result = users.Any();
             if (result)
             {
-                var subject = GetOrCreateChat(chatId);
-                subject.OnNext(new ChatSubscription(ChatResultType.UPDATE) { Id = chatId, Name = name });
+                foreach (var userId in users)
+                {
+                    var subject = GetUserNotificationSubject(ComputeUserSubIndex(chatId));
+                    subject?.OnNext(new ChatSubscription(ChatResultType.UPDATE) { Id = chatId, Name = name, UserId = userId });
+                }
             }
 
             return result;
@@ -352,10 +391,39 @@ namespace WebSocketGraphql.Repositories
         }
         public async Task<string?> UpdateChatAvatarAsync(int chatId, string avatarName)
         {
-            var query = @"update Chat
-                        set avatar = @avatarName OUTPUT deleted.avatar where id = @chatId";
+            var query = @"DECLARE @MyTableVar TABLE (
+                        avatar nvarchar(46) null);
+
+                        update Chat set avatar = @avatarName OUTPUT deleted.avatar into @MyTableVar where id = @chatId
+
+                        SELECT null as avatar, user_id from Users_Chat_Keys where chat_id = @chatId
+                        UNION ALL Select null,creator from chat where id = @chatId
+                        UNION ALL SELECT avatar,null from @MyTableVar";
+
+            string? returnResult = null;
+
             using var connection = _dapperContext.CreateConnection();
-            return await connection.QuerySingleAsync<string?>(query, new { chatId, avatarName });
+            var users = (await connection.QueryAsync<string?, int?, int>(query, (avatar, userId) =>
+            {
+                if (userId is null)
+                {
+                    returnResult = avatar;
+                }
+                return userId ?? 0;
+            }, new { chatId, avatarName }, splitOn: "user_id").ConfigureAwait(false)).SkipLast(1);
+
+
+            if (users.Any())
+            {
+                foreach (var userId in users)
+                {
+
+                    var subject = GetUserNotificationSubject(ComputeUserSubIndex(chatId));
+                    subject?.OnNext(new ChatSubscription(ChatResultType.UPDATE) { Id = chatId, Avatar = avatarName, UserId = userId });
+                }
+            }
+
+            return returnResult;
         }
 
         public async Task<bool> RemoveUserFromChatAsync(int chatId, string nickNameOrEmail, bool deleteAll = false, string? byOrSelf = null)
@@ -414,22 +482,17 @@ namespace WebSocketGraphql.Repositories
 
             var maxId = ComputeUserSubIndex(user.UserId);
 
-            try
-            {
-                _userChatNotifyer[maxId].OnNext(new UserNotification()
-                {
-                    UserId = user.UserId,
-                    NotificationType = ChatNotificationType.BANISH,
-                    Name = user.ChatName,
-                    Id = chatId,
-                    CreatorId = user.CreatorId,
-                    ChatMembersCount = user.ChatMembersCount
-                });
-            }
-            catch
-            {
 
-            }
+            GetUserNotificationSubject(maxId)?.OnNext(new UserNotification()
+            {
+                UserId = user.UserId,
+                NotificationType = ChatNotificationType.BANISH,
+                Name = user.ChatName,
+                Id = chatId,
+                CreatorId = user.CreatorId,
+                ChatMembersCount = user.ChatMembersCount,
+                Avatar = user.Avatar
+            });
 
             return result;
         }

@@ -7,7 +7,7 @@ namespace WebSocketGraphql.Models
         [Description("id")]
         public int Id { get; set; }
         [Description("name")]
-        public string Name { get; set; } = null!;
+        public string Name { get; set; } = string.Empty;
         [Description("creator")]
         public int CreatorId { get; set; } = 0;
         [Description("avatar")]

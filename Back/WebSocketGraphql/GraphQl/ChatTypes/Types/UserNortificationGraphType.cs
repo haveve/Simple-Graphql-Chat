@@ -3,7 +3,7 @@ using WebSocketGraphql.ViewModels;
 
 namespace WebSocketGraphql.GraphQl.ChatTypes.Types
 {
-    public class UserNortificationGraphType:ObjectGraphType<UserNotification>
+    public class UserNortificationGraphType : ObjectGraphType<UserNotification>
     {
         public UserNortificationGraphType()
         {
@@ -13,6 +13,7 @@ namespace WebSocketGraphql.GraphQl.ChatTypes.Types
             Field(el => el.CreatorId);
             Field(el => el.UserId);
             Field(el => el.ChatMembersCount);
+            Field(el => el.Avatar, nullable: true);
         }
     }
 }

@@ -10,8 +10,8 @@ namespace WebSocketGraphql.GraphQl.ChatTypes.Types
 
         public ChatInputGraphType()
         {
-            Field(el => el.Name, nullable: false);
-            Field(el => el.Id, nullable: false).Directive("length", "min", minChatNameLength, "max", maxChatNameLength);
+            Field(el => el.Name, nullable: false).Directive("length", "min", minChatNameLength, "max", maxChatNameLength); ;
+            Field(el => el.Id, nullable: false);
         }
     }
 }

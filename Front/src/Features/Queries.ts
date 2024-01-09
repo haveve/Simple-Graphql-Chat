@@ -23,11 +23,22 @@ export function RequestBuilder(type: ConnectionType, payload: PayloadType = {}, 
 
 export const subscriptionToNotification = `subscription{
   userNotification{
-    id,
-    name,
-    creatorId,
-    notificationType,
-    chatMembersCount
+    ...on ChatResulSubscription{
+      typeC:type,
+      name,
+      id,
+      creatorId,
+      chatMembersCount,
+      avatar
+    },
+    ...on UserNortification{
+      id,
+      name,
+      creatorId,
+      notificationType,
+      chatMembersCount,
+      avatar
+    }
   }
 }`
 
@@ -43,13 +54,6 @@ export const subscriptionToChat = `subscription($chatId:Int!){
       deleteAll,
       image
     }
-    ...on ChatResulSubscription{
-      typeC:type,
-      name,
-      id,
-      creatorId,
-      chatMembersCount,
-    },
     ... on ChatParticipantSubscription{
       id,
       online,

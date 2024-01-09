@@ -2,8 +2,8 @@
 
 namespace WebSocketGraphql.ViewModels
 {
-    public class ChatResult:ChatModel
+    public class ChatResult : ChatModel
     {
-        public int ChatMembersCount { get; set; }
+        public int ChatMembersCount { get; set; } = 0;
     }
 }
