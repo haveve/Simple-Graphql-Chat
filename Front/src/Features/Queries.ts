@@ -28,7 +28,6 @@ export const subscriptionToNotification = `subscription{
       name,
       id,
       creatorId,
-      chatMembersCount,
       avatar
     },
     ...on UserNortification{
@@ -36,7 +35,6 @@ export const subscriptionToNotification = `subscription{
       name,
       creatorId,
       notificationType,
-      chatMembersCount,
       avatar
     }
   }

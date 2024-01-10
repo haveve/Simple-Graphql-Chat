@@ -14,6 +14,8 @@ import { selectChatIds } from '../Redux/reselect';
 import { setState } from '../Redux/Slicers/ChatSlicer';
 import Icon from './Icon';
 import { useTranslation } from 'react-i18next';
+import { isPending } from './Chat';
+import { GetCustomSpinner } from '../Features/Constants';
 
 export type ChatOptionType = {
     show: boolean,
@@ -27,6 +29,7 @@ export default function ChatSelect() {
     const userChatsId = useTypedSelector(selectChatIds)
     const [option, setOption] = useImmer<ChatOptionType>(defaultState)
     const refToOpt = useRef<HTMLDivElement>(null)
+    const state = useTypedSelector(store => store.chat.status);
 
     const dropOptions = () => setOption(el => ({ ...el, show: false }))
 
@@ -34,7 +37,7 @@ export default function ChatSelect() {
         event.preventDefault()
     }} >
         <Options ref={refToOpt} option={option} />
-        {userChatsId.map((id) =>
+        {isPending(state) && userChatsId.length === 0 ? <div className='w-100 h-100 d-flex justify-content-center align-items-end'> <GetCustomSpinner width={"50%"} height={"50%"} visible={true} /></div> : userChatsId.map((id) =>
             <ChatSel key={id} id={id} setOption={setOption} refToOpt={refToOpt} />
         )}
     </div>

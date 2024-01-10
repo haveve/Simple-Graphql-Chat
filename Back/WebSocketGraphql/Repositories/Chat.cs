@@ -138,7 +138,6 @@ namespace WebSocketGraphql.Repositories
             public string ChatName { get; set; } = null!;
             public int UserId { get; set; }
             public string NickName { get; set; } = null!;
-            public int ChatMembersCount { get; set; } = 0;
             public int CreatorId { get; set; } = 0;
             public string? Avatar { get; set; }
         }
@@ -160,7 +159,7 @@ namespace WebSocketGraphql.Repositories
 			ELSE
             BEGIN
                 INSERT INTO Users_Chat_Keys (user_id,chat_id) VALUES(@userId,@chatId)
-                SELECT @userId as UserId,creator as CreatorId , @nickName as NickName,name as ChatName,(SELECT Count(*) FROM Users_Chat_Keys WHERE chat_id = @chatId) AS ChatMembersCount, avatar as Avatar FROM Chat WHERE id = @chatId
+                SELECT @userId as UserId,creator as CreatorId , @nickName as NickName,name as ChatName, avatar as Avatar FROM Chat WHERE id = @chatId
 				COMMIT TRANSACTION
             END";
 
@@ -197,7 +196,6 @@ namespace WebSocketGraphql.Repositories
                 Name = user.ChatName,
                 Id = chatId,
                 CreatorId = user.CreatorId,
-                ChatMembersCount = user.ChatMembersCount,
                 Avatar = user.Avatar
             });
 
@@ -345,7 +343,7 @@ namespace WebSocketGraphql.Repositories
                     returnResult = avatar;
                 }
                 return userId ?? 0;
-            }, new { chatId }).ConfigureAwait(false)).SkipLast(1);
+            }, new { chatId }, splitOn: "userId").ConfigureAwait(false)).SkipLast(1);
 
             if (users.Any())
             {
@@ -490,7 +488,6 @@ namespace WebSocketGraphql.Repositories
                 Name = user.ChatName,
                 Id = chatId,
                 CreatorId = user.CreatorId,
-                ChatMembersCount = user.ChatMembersCount,
                 Avatar = user.Avatar
             });
 

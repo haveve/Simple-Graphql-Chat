@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useRef, JSX } from 'react';
 import { GetAbbreviationFromPhrase } from '../Features/Functions';
-import { backDomain } from '../Features/Constants';
-
-export const baseUrl = `https://${backDomain}`
+import { GetFullPicturePath } from '../Features/Constants';
 
 export default function Icon(props: { color: string, name: string, children?: JSX.Element | null, withChatInfo?: boolean, handleChatInfo?: () => void, onlyImage?: boolean, src?: string | null, onlyImageSmall?: boolean }) {
 
@@ -16,7 +14,7 @@ export default function Icon(props: { color: string, name: string, children?: JS
     </>
         : userAbr
 
-    const linkToImg = baseUrl + '/' + src
+    const linkToImg = GetFullPicturePath(src ?? '')
 
     const img = src ? <div className={`p-0 m-0 chat-title-icon-size flex-grow-0 flex-shrink-0 flex-basis-0 ${onlyImage && !onlyImageSmall ? 'chat-title-icon-size-xl' : null}`}
         style={{

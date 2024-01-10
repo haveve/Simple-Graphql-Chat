@@ -11,6 +11,9 @@ import { defaultState, ChatOptionType } from './ChatSelect';
 import { ReduxParticipant } from '../Redux/Slicers/ChatSlicer';
 import { setState } from '../Redux/Slicers/ChatSlicer';
 import { useTranslation } from 'react-i18next';
+import { ColorRing } from 'react-loader-spinner';
+import { isPending } from './Chat';
+import useDefferedValueFrom from './Hooks/useDefferedValueFrom';
 
 export type ChatInfoOptionType = ChatOptionType & {
     userName?: string
@@ -23,7 +26,9 @@ export default function ChatInfo(props: { show: boolean, handleClose: () => void
     const { show, handleClose, children } = props;
 
     const [option, setOption] = useImmer<ChatInfoOptionType>(defaultState)
-    const [search, setSearch] = useState<string | null>(null);
+
+    const [search, setSearch] = useState<string>('');
+    const defferedSearch = useDefferedValueFrom(search, 0.3)
 
     const currentChatId = useTypedSelector(store => store.chat.currentChat?.id)
     const participants = useTypedSelector(store => store.chat.participants)
@@ -55,7 +60,7 @@ export default function ChatInfo(props: { show: boolean, handleClose: () => void
     useEffect(() => {
         if (currentChatId && show) {
             const connection = ConnectToChat();
-            const request = RequestBuilder('start', { query: queryParticipants, variables: { chatId: currentChatId, search } });
+            const request = RequestBuilder('start', { query: queryParticipants, variables: { chatId: currentChatId, search: defferedSearch } });
             connection.subscribe(sub => {
                 sub.next(request, chatPending)
             })
@@ -65,7 +70,7 @@ export default function ChatInfo(props: { show: boolean, handleClose: () => void
                 })
             }
         }
-    }, [currentChatId, show, search]);
+    }, [currentChatId, show, defferedSearch]);
 
 
     const searchHandler: React.ChangeEventHandler<HTMLInputElement> = (event) => {
@@ -73,12 +78,12 @@ export default function ChatInfo(props: { show: boolean, handleClose: () => void
     }
 
     return <Offcanvas show={show} onHide={handleClose} onClick={dropOptions} onMouseLeave={dropOptions} backdrop="static" className=''>
-        <div className='mt-2 border-bottom border-secondary'>
+        <div className='mt-2 '>
             <div className='ps-1'>
                 {children}
             </div>
             <div className='px-3'>
-                <Form.Control value={search ?? ""} onChange={searchHandler} className='round mb-2 border-dark'></Form.Control>
+                <Form.Control value={search} onChange={searchHandler} className='round my-2 border-dark'></Form.Control>
             </div>
         </div>
         <div className='pt-2 ps-2 h5 h-100 select-chat-scroll'>

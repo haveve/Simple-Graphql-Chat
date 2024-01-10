@@ -3,7 +3,7 @@ using WebSocketGraphql.Repositories;
 
 namespace WebSocketGraphql.ViewModels
 {
-    public class ChatSubscription : ChatResult
+    public class ChatSubscription : ChatModel
     {
         public ChatResultType Type { get; set; }
         public int UserId { get; set; }

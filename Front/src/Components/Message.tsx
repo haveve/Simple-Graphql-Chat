@@ -1,13 +1,15 @@
 import React, { forwardRef, memo, useCallback } from "react";
 import { TimeStringFromDate, DateFromString, GetDate } from "../Features/Functions";
-import { useTypedSelector } from "../Redux/store";
-import { baseUrl } from "./Icon";
+import { useTypedSelector, useTypedDispatch } from "../Redux/store";
+import { GetFullPicturePath } from "../Features/Constants";
 import { defaultSmallPostfix, splitImage } from "../Features/Constants";
+import { setImageToScaledShow } from "../Redux/Slicers/ChatSlicer";
 
 const MessageComponent = memo(forwardRef<HTMLDivElement, { HandleContext: (chatId: number, messageId: string, event: React.MouseEvent<HTMLDivElement>) => void, setDate: Boolean, id: string, className?: string }>((props, ref) => {
   const { id, HandleContext, setDate, className } = props
 
   const el = useTypedSelector(store => store.chat.messages.find(el => el.id == id)!)
+  const dispatch = useTypedDispatch();
 
   const onContextMenu = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
     event.preventDefault();
@@ -20,6 +22,10 @@ const MessageComponent = memo(forwardRef<HTMLDivElement, { HandleContext: (chatI
 
   const slipImage = el.image?.split(splitImage);
 
+  const clickImageHandler = useCallback((img: string) => {
+    return () => dispatch(setImageToScaledShow(img))
+  }, [])
+
   const currentId = useTypedSelector(store => store.user.user?.id)
   return <>{dateIndicator} {el.fromId ? <div ref={ref} className={currentId === el.fromId ? 'd-flex mb-3 justify-content-end' : 'mb-3'} >
     <div onContextMenu={onContextMenu} className={` ${className} max-width-30per d-inline-block message-style`}>
@@ -31,8 +37,8 @@ const MessageComponent = memo(forwardRef<HTMLDivElement, { HandleContext: (chatI
           {TimeStringFromDate(date)}
         </span>
       </div>
-      {el.image ? <div className="w-100 mb-2 blur-load" style={{ backgroundImage: `url(${baseUrl + '/' + slipImage![0] + defaultSmallPostfix + splitImage + slipImage![1]})` }}>
-        <img className="w-100 img" loading="lazy" src={baseUrl + '/' + el.image}></img>
+      {el.image ? <div className="w-100 mb-2 blur-load" style={{ backgroundImage: `url(${GetFullPicturePath(slipImage![0] + defaultSmallPostfix + splitImage + slipImage![1])})` }}>
+        <img className="w-100 img" loading="lazy" role="button" onClick={clickImageHandler(GetFullPicturePath(el.image))} src={GetFullPicturePath(el.image)}></img>
       </div> : null}
       <div className='message-text-color'>
         {el.content.split('\n').map((mes, id) => <span key={el.id + '.' + id}>{mes}<br /></span>)}

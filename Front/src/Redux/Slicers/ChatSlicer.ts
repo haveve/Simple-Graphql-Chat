@@ -22,7 +22,8 @@ export type sliceState = {
     error?: string,
     updatedMessage?: ReduxMessage,
     maxMessageHistoryFetchDate?: string,
-    noHistoryMessagesLost?: boolean
+    noHistoryMessagesLost?: boolean,
+    imageToScaledShow?: string,
 }
 
 export type DeleteAll = {
@@ -235,6 +236,7 @@ export const chatSlicer = createSlice({
         },
 
         setError(state, action: PayloadAction<string>) {
+            state.status = 'error'
             state.error = action.payload
         },
 
@@ -264,9 +266,18 @@ export const chatSlicer = createSlice({
         },
         dropUpdateMessage(state) {
             state.updatedMessage = undefined
+        },
+
+        setImageToScaledShow(state, action: PayloadAction<string>) {
+            state.imageToScaledShow = action.payload;
+        },
+
+        dropImageToScaledShow(state) {
+            state.imageToScaledShow = undefined;
         }
+
     }
 })
 
 export default chatSlicer.reducer;
-export const { setUpdateMessage, dropUpdateMessage, updateMessage, setParticipantState, deleteAll, setError, setState, removeMessage, setChats, changeChatParticipants, setChat, setMessages, addMessage, updateChat, setParticipants, addChat, removeChat, dropCurrentChat } = chatSlicer.actions;
+export const { setUpdateMessage, dropUpdateMessage, updateMessage, setParticipantState, deleteAll, setError, setState, removeMessage, setChats, changeChatParticipants, setChat, setMessages, addMessage, updateChat, setParticipants, addChat, removeChat, dropCurrentChat, setImageToScaledShow, dropImageToScaledShow } = chatSlicer.actions;

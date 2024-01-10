@@ -8,7 +8,7 @@ import ChatSelect from './ChatSelect';
 import { useTypedSelector, useTypedDispatch } from '../Redux/store';
 import { queryGetAllMessages, RequestBuilder, updateMessageMutation } from '../Features/Queries';
 import { AddChat } from './ChatOperation/AddChat';
-import { Status, dropCurrentChat, dropUpdateMessage, setState, setState as setStateChat } from '../Redux/Slicers/ChatSlicer';
+import { Status, dropCurrentChat, dropUpdateMessage, setState as setStateChat } from '../Redux/Slicers/ChatSlicer';
 import ChatHeader from './ChatHeader';
 import NotificationModalWindow, { MessageType } from './Service/NotificationModalWindow';
 import { setState as setStateGlobalNotification } from '../Redux/Slicers/GlobalNotification';
@@ -26,6 +26,8 @@ import AddMessageWithImage from './MessageOperation/AddMessageWithImage';
 import { ajaxUploadFile } from '../Requests/Requests';
 import { setError } from '../Redux/Slicers/ChatSlicer';
 import { useTranslation } from 'react-i18next';
+import { GetCustomSpinner } from '../Features/Constants';
+import DisplayScaledImage from './MessageOperation/DisplayScaledImage';
 
 export const maxVisibleLength = 26;
 export const maxSymbolsInMessage = 200;
@@ -38,15 +40,16 @@ export const MessagesInOneRequest = 15;
 
 function Chat() {
 
-  const chatPending = setState('pending');
+  const chatPending = setStateChat('pending');
 
   const currentChat = useTypedSelector(store => store.chat.currentChat)
   const messageIdsWithDate = useTypedSelector(selectMessageIdsWithDate)
   const chatState = useTypedSelector(store => store.chat.status)
   const erroMessage = useTypedSelector(store => store.chat.error)
   const globalNotification = useTypedSelector(store => store.global_notification)
-  const dispatch = useTypedDispatch()
+  const dispatch = useTypedDispatch();
   const wasInitialAuth = useRef(true);
+
   let lastMessage = useRef<HTMLDivElement>(null);
   let refToOpt = useRef<HTMLDivElement>(null);
 
@@ -77,6 +80,7 @@ function Chat() {
       const connection = ConnectToChat(false, wasInitialAuth.current)
       const subToNotify = RequestBuilder('start', { query: subscriptionToNotification })
 
+      dispatch(chatPending);
       connection.subscribe(sub => sub.next(subToNotify, chatPending))
       connection.subscribe(sub => sub.next(RequestBuilder('start', { query: queryUser }), chatPending))
       connection.subscribe(sub => sub.next(RequestBuilder('start', { query: queryGetAllChats }), chatPending))
@@ -168,7 +172,7 @@ function Chat() {
         skip: skip.current,
         maxDate: null,
       }
-
+      dispatch(setStateChat);
       connection.subscribe(sub => sub.next(RequestBuilder('start', { query: queryGetAllMessages, variables: chatIdVard }), chatPending))
       const subToChat = RequestBuilder('start', { query: subscriptionToChat, variables: chatIdVard });
       connection.subscribe(sub => sub.next(subToChat, chatPending))
@@ -231,7 +235,7 @@ function Chat() {
       catch (error) {
         const strError = error as string
         if (strError) {
-          setError(strError)
+          dispatch(setError(strError))
         }
       }
     }
@@ -308,16 +312,19 @@ function Chat() {
           </div>
           <ChatSelect />
         </Col>
-        {currentChat?.id ?? -1 > 0 ?
+        {currentChat?.id ?
           <Col className='d-flex flex-column h-100 p-0 m-0' onMouseLeave={handleHideOption} onClick={handleHideOption}>
             <ChatHeader onSmileClick={() => {
               setTheme(theme => theme == themes.dark ? themes.light : themes.dark)
             }} currentChat={currentChat!} withChatInfo={true} />
-            <Col ref={rootChat} className='p-4 m-0 h5 scroll' onScroll={handleHideOption}>
-              {
-                GetMessages()
-              }
-            </Col>
+            {!isPending(chatState) || maxMessageHistoryFetchDate ?
+              <Col ref={rootChat} className='p-4 m-0 h5 scroll' onScroll={handleHideOption}>
+                {
+                  GetMessages()
+                }
+              </Col> : <Col className='d-flex justify-content-center align-items-center'>
+                <GetCustomSpinner width={"50%"} height={"50%"} visible={true} />
+              </Col>}
             <MessageOptions option={option} ref={refToOpt}></MessageOptions>
             <MultiControl children={pictureSelector} maxSymbols={maxSymbolsInMessage} value={updatedMessage?.content} SendMessage={SendMessage} parentState={{ setState: setMessage, state: message }} />
           </Col>
@@ -329,6 +336,7 @@ function Chat() {
       <NotificationModalWindow innerText={globalNotification.error ?? ""} isShowed={isError(globalNotification.status)} messageType={MessageType.Error} dropMessage={() => {
         dispatch(setStateGlobalNotification('idle'))
       }} />
+      <DisplayScaledImage />
       {currentChat && file.current ? <AddMessageWithImage handleSubmit={sendMessageWithPicture} file={file.current} show={showSendMessageWithPict} setShow={setShowSendMessageWithPict} setMessage={setMessage} message={message} /> : null}
     </Container >
     <img alt="" className='img main-img-load' />
@@ -346,6 +354,6 @@ export function isError(state: Status) {
   return state === 'error'
 }
 
-export function isPadding(state: Status) {
+export function isPending(state: Status) {
   return state === 'pending'
 }

@@ -1,5 +1,5 @@
 import React from 'react'
-import i18next from 'i18next'
+import { ColorRing } from 'react-loader-spinner'
 
 export const title = 'Awesome chat'
 
@@ -16,9 +16,21 @@ export const baseMessageFolder = 'message_pictures';
 export const defaultSmallPostfix = '-small';
 export const splitImage = '.';
 
+export const baseUrl = `https://${backDomain}`
+
 export type SmileListType = {
     picture: React.ReactElement,
     message: string
+}
+
+export function GetCustomSpinner(props: { width: string, height: string, visible: true }) {
+    const { width, height, visible } = props;
+
+    return <ColorRing width={width} height={height} visible={visible} colors={['#fbfbf2', '#e5e6e4', '#cfd2cd', '#a6a2a2', '#847577']} />
+}
+
+export function GetFullPicturePath(relatedPath: string) {
+    return baseUrl + '/' + relatedPath
 }
 
 export const SmilesList = [
