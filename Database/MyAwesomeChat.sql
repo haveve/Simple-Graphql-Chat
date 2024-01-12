@@ -22,7 +22,7 @@ CONSTRAINT UQ_Users_Email Unique(email)
 )
 GO
 
-INSERT INTO Users(nick_name,email) ('DELETED','-')
+INSERT INTO Users(nick_name,email) VALUES('DELETED','-')
 
 CREATE TABLE Chat(
 id INT NOT NULL IDENTITY, 

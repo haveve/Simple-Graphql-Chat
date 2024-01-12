@@ -74,7 +74,7 @@ export const ChatSel = memo((props: { id: number, setOption: Updater<ChatOptionT
 
     return <div onContextMenu={HandleContextMenu} onClick={currentChat?.id === el.id ? undefined : HandleChatClick}
         className={`${currentChat?.id === el.id ? 'selected' : null}  chat chat-hover p-2 h5`}>
-        <Icon color={el.color} name={el.name} src={el.avatar} />
+        <Icon color={el.color} name={GetDisplayedName(el.name)} src={el.avatar} />
     </div>
 })
 

@@ -40,10 +40,10 @@ export enum Languages {
 
 export const FullLangugeNames = {
     "en": "English",
-    "uk": "Ukrainian",
-    "fr": "French",
-    "gr": "German",
-    "ita": "Italian",
-    "tur": "Turkish",
-    "spa": "Spanish"
+    "uk": "Українська",
+    "fr": "Français",
+    "gr": "Deutsch",
+    "ita": "Italiana",
+    "tur": "Türk",
+    "spa": "Español"
 }

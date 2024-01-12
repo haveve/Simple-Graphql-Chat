@@ -305,7 +305,7 @@ function Chat() {
   return <><div className="w-100 mb-2 h-100 blur-load position-relative">
     <Container onKeyDown={DropChat} tabIndex={0} fluid={'fluid'} className='position-absolute chat-bg p-0 h-100 m-0'>
       <Row className='m-0 flex-row p-0 h-100'>
-        <Col sm={3} className='chat-list h-100 p-3 select-chat-scroll'>
+        <Col md={3} className='chat-list h-100 p-3 select-chat-scroll'>
           <div className="d-flex chat-size-head align-items-center p-0 m-0">
             <AddChat />
             <AdditionalInfo />
@@ -317,6 +317,7 @@ function Chat() {
             <ChatHeader onSmileClick={() => {
               setTheme(theme => theme == themes.dark ? themes.light : themes.dark)
             }} currentChat={currentChat!} withChatInfo={true} />
+
             {!isPending(chatState) || maxMessageHistoryFetchDate ?
               <Col ref={rootChat} className='p-4 m-0 h5 scroll' onScroll={handleHideOption}>
                 {

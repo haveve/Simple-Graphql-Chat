@@ -44,11 +44,11 @@ export default function UpdateChat(props: { chatId: number | null, show: boolean
 
     return <Modal centered show={show}>
         <Modal.Body>
-            {chat ? <Icon name={chat.name} color={chat.color} onlyImage={true} onlyImageSmall={true} src={chat.avatar} children={
+            {chat ? <><Icon name={chat.name} color={chat.color} onlyImage={true} onlyImageSmall={true} src={chat.avatar} children={
                 <label htmlFor="selec-file-avatar" className='selec-file-avatar d-flex justify-content-center align-items-center h-100 w-100'>
                     <FontAwesomeIcon icon={faCameraAlt}></FontAwesomeIcon>
                 </label>
-            } /> : null}
+            } /> <span className='h5 ms-2'>{chat.name}</span> </> : null}
             <span className='text-danger'>{fileError}</span>
             <Form.Control onChange={updateNameHandler} size='lg' placeholder={t('UpdateChat.NewChatName')} className='border border-dark mt-3'></Form.Control>
             <div className='d-flex justify-content-end gap-3 mt-3'><Button variant='primary' size='lg' onClick={closeHandler}>{t('Cancel')}</Button>
@@ -56,7 +56,6 @@ export default function UpdateChat(props: { chatId: number | null, show: boolean
             <input type="file" accept="image/*" hidden id="selec-file-avatar" onChange={event => {
                 if (event.target.validity.valid && event.target.files && event.target.files[0]) {
                     const img = event.target.files[0]
-
                     try {
                         ajaxUploadFile(img, "file", updateChatAvatarMutation, { chatId: chatId })
                             .subscribe({
@@ -64,7 +63,7 @@ export default function UpdateChat(props: { chatId: number | null, show: boolean
                                     setFileError("")
                                 },
                                 error: (error) => {
-
+                                    setFileError(t('DefaultErrorMessage'))
                                 }
                             })
                     }
