@@ -24,6 +24,7 @@ export type sliceState = {
     maxMessageHistoryFetchDate?: string,
     noHistoryMessagesLost?: boolean,
     imageToScaledShow?: string,
+    arrivedAllMessages?: boolean,
 }
 
 export type DeleteAll = {
@@ -134,8 +135,10 @@ export const chatSlicer = createSlice({
                 state.status = 'idle'
 
                 const length = action.payload.length;
-                if (!state.messages.length && length) {
-                    state.maxMessageHistoryFetchDate = action.payload[length - 1].sentAt
+                if (!state.messages.length) {
+                    state.arrivedAllMessages = true;
+                    if (length)
+                        state.maxMessageHistoryFetchDate = action.payload[length - 1].sentAt
                 }
 
                 if (!length) {
@@ -245,6 +248,7 @@ export const chatSlicer = createSlice({
         },
 
         setParticipantState(state, action: PayloadAction<ParticipantState>) {
+            state.status = 'idle'
             if (action.payload.nickName) {
                 state.messages = state.messages.map(el => {
                     if (el.fromId === action.payload.id) {

@@ -11,8 +11,6 @@ import { defaultState, ChatOptionType } from './ChatSelect';
 import { ReduxParticipant } from '../Redux/Slicers/ChatSlicer';
 import { setState } from '../Redux/Slicers/ChatSlicer';
 import { useTranslation } from 'react-i18next';
-import { ColorRing } from 'react-loader-spinner';
-import { isPending } from './Chat';
 import useDefferedValueFrom from './Hooks/useDefferedValueFrom';
 
 export type ChatInfoOptionType = ChatOptionType & {
@@ -66,7 +64,7 @@ export default function ChatInfo(props: { show: boolean, handleClose: () => void
             })
             return () => {
                 connection.subscribe(sub => {
-                    sub.next(RequestBuilder('stop', {}, request.id!), chatPending)
+                    sub.next(RequestBuilder('stop', {}, request.id!), null)
                 })
             }
         }

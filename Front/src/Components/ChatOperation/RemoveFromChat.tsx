@@ -33,7 +33,7 @@ export default function RemoveFromChat(props: { chatId: number | null, show: boo
 
             return () => {
                 connection.subscribe(sub => {
-                    sub.next(RequestBuilder('stop', {}, request.id!), chatPending)
+                    sub.next(RequestBuilder('stop', {}, request.id!), null)
                 })
             }
         }
