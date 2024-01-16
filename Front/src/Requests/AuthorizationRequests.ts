@@ -1,10 +1,10 @@
-import { backDomain } from '../Features/Constants';
+import { baseUrl } from '../Features/Constants';
 import { ajax } from 'rxjs/ajax';
 import { map, catchError, Observable, timer, mergeMap } from 'rxjs';
 import { LogoutDeleteCookie, setCookie, getCookie } from '../Features/Functions';
 import { set2fMutation, get2fQuery, drop2fMutation, verify2fQuery } from '../Features/Queries';
 
-export const url = `https://${backDomain}/graphql-auth`
+export const url = `${baseUrl}/graphql-auth`
 
 export type response<T = any, K = any> = {
     data: T,
@@ -460,7 +460,7 @@ export function ajaxForLogout(token: string) {
     );
 }
 
-export function ajaxForAuthorizedRequests<T, K>(query: string, variables: { [key: string]: any }, url: string = `https://${backDomain}/graphql`) {
+export function ajaxForAuthorizedRequests<T, K>(query: string, variables: { [key: string]: any }, url: string = `${baseUrl}/graphql`) {
     return GetTokenObservable().pipe(mergeMap(() => {
         const tokenString = getCookie("access_token");
 

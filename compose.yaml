@@ -1,0 +1,55 @@
+services:
+
+    simple-chat-server:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env_file:
+           - ../back.env
+        environment:
+            - ACCEPT_EULA="Y"
+            - MSSQL_PID=Developer
+        ports:
+          - 1433:1433
+        volumes:
+          - sqlvolume:/var/opt/mssql 
+        networks:
+          - db  
+
+    simple-chat-back:
+        build: Back
+        image: simple-chat-back:latest
+        ports:
+          - 8000:80
+        env_file:
+          - ../back.env
+        environment:
+          - FrontUrl=http://localhost:3000
+        volumes:
+           - app_wwwroot:/app/wwwroot
+        networks:
+          - back
+          - db
+        depends_on:
+          - simple-chat-server
+
+ 
+    simple-chat-front:
+        build: Front
+        image: simple-chat-front:latest
+        environment: 
+            REACT_APP_BACK_DOMAIN: "localhost:8000"
+            REACT_APP_PROTOCOL: "http"
+            REACT_APP_SOCKET_PROTOCOL: "ws"
+        ports:
+          - 3000:3000
+        networks:
+          - back
+        depends_on:
+          - simple-chat-back
+
+networks:
+    db:
+    back:
+
+volumes:
+  app_wwwroot:
+  sqlvolume:

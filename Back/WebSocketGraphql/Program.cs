@@ -39,6 +39,8 @@ builder.Services.AddSingleton<ISchema, IdentitySchema>(service =>
     return new IdentitySchema(new SelfActivatingServiceProvider(service));
 });
 
+builder.Configuration.AddEnvironmentVariables();
+
 builder.Services.AddAuthentication(opt =>
 {
     opt.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;

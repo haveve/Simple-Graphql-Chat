@@ -44,7 +44,6 @@ function Chat() {
 
   const currentChat = useTypedSelector(store => store.chat.currentChat)
   const messageIdsWithDate = useTypedSelector(selectMessageIdsWithDate)
-  const maxMessageHistoryFetchDate = useTypedSelector(store => store.chat.maxMessageHistoryFetchDate)
   const chatState = useTypedSelector(store => store.chat.status)
   const erroMessage = useTypedSelector(store => store.chat.error)
   const globalNotification = useTypedSelector(store => store.global_notification)
@@ -60,7 +59,7 @@ function Chat() {
   const file = useRef<File | null>(null)
   const [message, setMessage] = useState('')
 
-  const arrivedAllMessages = useTypedSelector(store => store.chat.arrivedAllMessages)
+  const maxMessageHistoryFetchDate = useTypedSelector(store => store.chat.maxMessageHistoryFetchDate)
   const noHistoryMessagesLost = useTypedSelector(store => store.chat.noHistoryMessagesLost)
   const skip = useRef<number>(0)
   const rootChat = useRef<HTMLDivElement>(null)
@@ -179,7 +178,7 @@ function Chat() {
       connection.subscribe(sub => sub.next(subToChat, chatPending))
 
       return () => {
-        connection.subscribe(sub => sub.next(RequestBuilder('stop', {}, subToChat.id!), null))
+        connection.subscribe(sub => sub.next(RequestBuilder('stop', {}, subToChat.id!), chatPending))
       }
     }
   }, [currentChat?.id])
@@ -321,7 +320,7 @@ function Chat() {
               setTheme(theme => theme == themes.dark ? themes.light : themes.dark)
             }} currentChat={currentChat!} withChatInfo={true} />
 
-            {!isPending(chatState) || arrivedAllMessages ?
+            {!isPending(chatState) || maxMessageHistoryFetchDate ?
               <Col ref={rootChat} className='p-4 m-0 h5 scroll' onScroll={handleHideOption}>
                 {
                   GetMessages()

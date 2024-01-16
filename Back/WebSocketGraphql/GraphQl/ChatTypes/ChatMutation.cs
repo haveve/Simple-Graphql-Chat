@@ -1,4 +1,4 @@
-﻿using CourseWorkDB.Repositories;
+﻿﻿using CourseWorkDB.Repositories;
 using GraphQL;
 using GraphQL.Types;
 using GraphQL.Upload.AspNetCore;
@@ -62,7 +62,7 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
                         if (receivedMessage.Image is not null)
                             uploadRepository.DeleteFileWithSmallOne(Path.Combine(messagePictPath, receivedMessage.ChatId.ToString(), receivedMessage.Image));
 
-                        ThrowError("Message cannot be created because of some reasons");
+                        throw;
 
                     }
 

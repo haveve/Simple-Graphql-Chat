@@ -1,6 +1,6 @@
 import { webSocket } from 'rxjs/webSocket'
 import { Chat, ChatParticipant, Message, DerivedMessageOrChatInfo, DrivedUserOrChatInfo, User, FullChat } from '../Features/Types';
-import { backDomain } from '../Features/Constants';
+import { backDomain,baseUrl, webSocketProtocol } from '../Features/Constants';
 import { WebSocketSubject } from 'rxjs/webSocket'
 import { NextObserver, interval, Subscription, Observable, Subscriber, mergeMap, map, catchError, of } from 'rxjs'
 import { GetTokenObservable, StoredTokenType } from './AuthorizationRequests';
@@ -159,7 +159,7 @@ export function GetNewToken() {
 
 export function GetWebSocket(): [WebSocketSubject<defaultSubscriptionResponse<any>>, defaultSubscriptionResponse<any>] {
     return [webSocket<defaultSubscriptionResponse<any>>({
-        url: `wss://${backDomain}/graphql`,
+        url: `${webSocketProtocol}://${backDomain}/graphql`,
         protocol: 'graphql-ws'
     }), { "type": "connection_init", "payload": {} }]
 }
@@ -208,7 +208,7 @@ export function ajaxUploadFile<T>(file: File, variableName: string, query: strin
         formData.append('0', file)
 
         return ajax<response<T>>({
-            url: `https://${backDomain}/graphql`,
+            url: `${baseUrl}/graphql`,
             method: "POST",
             headers: {
                 Accept: '*/*',
