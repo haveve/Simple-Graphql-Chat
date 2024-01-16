@@ -229,8 +229,10 @@ function Chat() {
             content,
             sentAt: new Date()
           }
-        }).subscribe(_ => {
-          dispatch(setError(t('DefaultErrorMessage')))
+        }).subscribe({
+          error: _ => {
+            dispatch(setError(t('DefaultErrorMessage')))
+          }
         })
       }
       catch (error) {
