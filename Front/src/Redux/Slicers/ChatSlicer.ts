@@ -24,6 +24,7 @@ export type sliceState = {
     maxMessageHistoryFetchDate?: string,
     noHistoryMessagesLost?: boolean,
     imageToScaledShow?: string,
+    messagesArrived?: boolean,
 }
 
 export type DeleteAll = {
@@ -66,7 +67,7 @@ export const chatSlicer = createSlice({
                 state.maxMessageHistoryFetchDate = undefined;
                 state.noHistoryMessagesLost = undefined;
                 state.messages = [];
-                state.status = 'idle'
+                state.status = 'idle';
             },
             prepare: (payload: FullChat) => {
                 return { payload: { ...payload } }
@@ -134,8 +135,11 @@ export const chatSlicer = createSlice({
                 state.status = 'idle'
 
                 const length = action.payload.length;
-                if (!state.messages.length && length) {
-                    state.maxMessageHistoryFetchDate = action.payload[length - 1].sentAt
+                if (!state.messages.length) {
+                    state.messagesArrived = true;
+                    if (length) {
+                        state.maxMessageHistoryFetchDate = action.payload[length - 1].sentAt
+                    }
                 }
 
                 if (!length) {
@@ -261,6 +265,9 @@ export const chatSlicer = createSlice({
                 return el
             })) as ReduxParticipant[]
         },
+        initiationOfChatRequest(state) {
+            state.messagesArrived = false;
+        },
         setUpdateMessage(state, action: PayloadAction<ReduxMessage>) {
             state.updatedMessage = action.payload
         },
@@ -280,4 +287,4 @@ export const chatSlicer = createSlice({
 })
 
 export default chatSlicer.reducer;
-export const { setUpdateMessage, dropUpdateMessage, updateMessage, setParticipantState, deleteAll, setError, setState, removeMessage, setChats, changeChatParticipants, setChat, setMessages, addMessage, updateChat, setParticipants, addChat, removeChat, dropCurrentChat, setImageToScaledShow, dropImageToScaledShow } = chatSlicer.actions;
+export const { setUpdateMessage, dropUpdateMessage,initiationOfChatRequest, updateMessage, setParticipantState, deleteAll, setError, setState, removeMessage, setChats, changeChatParticipants, setChat, setMessages, addMessage, updateChat, setParticipants, addChat, removeChat, dropCurrentChat, setImageToScaledShow, dropImageToScaledShow } = chatSlicer.actions;

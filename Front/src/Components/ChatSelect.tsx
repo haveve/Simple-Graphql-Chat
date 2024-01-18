@@ -11,7 +11,7 @@ import { ConnectToChat } from '../Requests/Requests';
 import { RequestBuilder } from '../Features/Queries';
 import { queryFullChatInfo } from '../Features/Queries';
 import { selectChatIds } from '../Redux/reselect';
-import { setState } from '../Redux/Slicers/ChatSlicer';
+import { initiationOfChatRequest, setState } from '../Redux/Slicers/ChatSlicer';
 import Icon from './Icon';
 import { useTranslation } from 'react-i18next';
 import { isPending } from './Chat';
@@ -49,10 +49,12 @@ export const ChatSel = memo((props: { id: number, setOption: Updater<ChatOptionT
     const { id, setOption, refToOpt } = props;
     const el = useTypedSelector(store => store.chat.chats.find(el => el.id === id)!)
     const currentChat = useTypedSelector(store => store.chat.currentChat)
+    const dispatch = useTypedDispatch();
 
     const HandleChatClick = (event: React.MouseEvent<HTMLDivElement>) => {
         event.preventDefault()
         const connection = ConnectToChat()
+        dispatch(initiationOfChatRequest())
         connection.subscribe(sub => {
             sub.next(RequestBuilder('start', { query: queryFullChatInfo, variables: { chatId: el.id } }), chatPending)
         })

@@ -47,6 +47,7 @@ function Chat() {
   const chatState = useTypedSelector(store => store.chat.status)
   const erroMessage = useTypedSelector(store => store.chat.error)
   const globalNotification = useTypedSelector(store => store.global_notification)
+  const messagesArrived = useTypedSelector(store => store.chat.messagesArrived)
   const dispatch = useTypedDispatch();
   const wasInitialAuth = useRef(true);
 
@@ -320,7 +321,7 @@ function Chat() {
               setTheme(theme => theme == themes.dark ? themes.light : themes.dark)
             }} currentChat={currentChat!} withChatInfo={true} />
 
-            {!isPending(chatState) || maxMessageHistoryFetchDate ?
+            {messagesArrived ?
               <Col ref={rootChat} className='p-4 m-0 h5 scroll' onScroll={handleHideOption}>
                 {
                   GetMessages()
