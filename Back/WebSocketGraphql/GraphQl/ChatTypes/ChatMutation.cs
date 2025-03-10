@@ -1,12 +1,13 @@
-﻿﻿using CourseWorkDB.Repositories;
+﻿using WebSocketGraphql.Repositories;
 using GraphQL;
 using GraphQL.Types;
 using GraphQL.Upload.AspNetCore;
-using TimeTracker.Repositories;
+using Microsoft.Extensions.Options;
+using WebSocketGraphql.Configurations;
 using WebSocketGraphql.GraphQl.ChatTypes.Types;
+using WebSocketGraphql.GraphQl.Directives.Validation;
 using WebSocketGraphql.GraphQl.IdentityTypes;
 using WebSocketGraphql.Models;
-using WebSocketGraphql.Repositories;
 using WebSocketGraphql.Services.AuthenticationServices;
 using WebSocketGraphql.ViewModels;
 
@@ -14,29 +15,18 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
 {
     public class ChatMutation : ObjectGraphType
     {
-
         private const string chatPictPath = "chat_pictures";
         private const string userPictPath = "user_pictures";
         private const string messagePictPath = "message_pictures";
 
-        private const int DefaultMaxFileSizeInKB = 150;
-
-        private readonly int _maxFileSizeInKb;
-        public ChatMutation(IChat chat, IConfiguration configuration, AuthHelper helper, IUserRepository userRepository, IUploadRepository uploadRepository)
+        public ChatMutation(IChat chat, AuthHelper helper, IUserRepository userRepository, IUploadRepository uploadRepository)
         {
-            if (Int32.TryParse(configuration["MaxPictureSizeInKB"], out int value))
-                _maxFileSizeInKb = value;
-            else
-                _maxFileSizeInKb = DefaultMaxFileSizeInKB;
-
             Field<NonNullGraphType<MessageGraphType>>("addMessage")
-                .Argument<NonNullGraphType<MessageInputGraphType>>("message", el => el.ApplyDirective(
-                   "length", "min", MessageInputGraphType.minLength, "max", MessageInputGraphType.maxLength))
+                .Argument<NonNullGraphType<MessageInputGraphType>>("message", el => el.RestrictLength(MessageInputGraphType.minLength, MessageInputGraphType.maxLength))
                 .Argument<NonNullGraphType<IntGraphType>>("chatId")
                 .Argument<UploadGraphType>("image")
                 .ResolveAsync(async context =>
                 {
-
                     var img = context.GetArgument<IFormFile>("image");
 
                     var receivedMessage = context.GetArgument<Message>("message");
@@ -46,10 +36,9 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
 
                     try
                     {
-
                         if (img is not null)
                         {
-                            receivedMessage.Image = await uploadRepository.SaveImgWithSmallOneAsync(img, Path.Combine(messagePictPath, receivedMessage.ChatId.ToString()), 5, 5, maxFileSizeInKB: _maxFileSizeInKb);
+                            receivedMessage.Image = await uploadRepository.SaveImgWithSmallOneAsync(img, Path.Combine(messagePictPath, receivedMessage.ChatId.ToString()));
                         }
 
                         if (!await chat.AddMessageAsync(receivedMessage))
@@ -101,7 +90,6 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
                     receivedMessage.FromId = helper.GetUserId(context.User!);
                     receivedMessage.NickName = helper.GetUserNickName(context.UserContext);
 
-
                     if (!await chat.UpdateMessageAsync(receivedMessage))
                     {
                         ThrowError("Message cannot be updated because of some reasons");
@@ -111,9 +99,7 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
                 });
 
             Field<NonNullGraphType<ExtendedChatGraphType>>("createChat")
-                .Argument<NonNullGraphType<StringGraphType>>("name",
-                data => data.ApplyDirective("length", "min", ChatInputGraphType.minChatNameLength,
-                "max", ChatInputGraphType.maxChatNameLength))
+                .Argument<NonNullGraphType<StringGraphType>>("name", el => el.RestrictLength(ChatInputGraphType.minChatNameLength, ChatInputGraphType.maxChatNameLength))
                 .ResolveAsync(async (context) =>
                 {
                     var chatData = new ChatResult()
@@ -165,8 +151,7 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
 
             Field<NonNullGraphType<StringGraphType>>("addUserToChat")
                 .Argument<NonNullGraphType<IntGraphType>>("chatId")
-                .Argument<NonNullGraphType<StringGraphType>>("user", el => el.ApplyDirective(
-                   "length", "min", RegistrationInputGraphType.minNickNameLength, "max", RegistrationInputGraphType.maxEmailLength))
+                .Argument<NonNullGraphType<StringGraphType>>("user", el => el.RestrictLength(RegistrationInputGraphType.minNickNameLength, RegistrationInputGraphType.maxEmailLength))
                 .ResolveAsync(async (context) =>
                 {
                     var chatId = context.GetArgument<int>("chatId");
@@ -187,8 +172,7 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
 
             Field<NonNullGraphType<StringGraphType>>("removeUserFromChat")
                 .Argument<NonNullGraphType<IntGraphType>>("chatId")
-                .Argument<NonNullGraphType<StringGraphType>>("user", el => el.ApplyDirective(
-                   "length", "min", RegistrationInputGraphType.minNickNameLength, "max", RegistrationInputGraphType.maxEmailLength))
+                .Argument<NonNullGraphType<StringGraphType>>("user", el => el.RestrictLength(RegistrationInputGraphType.minNickNameLength, RegistrationInputGraphType.maxEmailLength))
                 .Argument<BooleanGraphType>("deleteAll")
                 .ResolveAsync(async (context) =>
                 {
@@ -210,73 +194,72 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
                 });
 
             Field<NonNullGraphType<StringGraphType>>("leaveFromChat")
-    .Argument<NonNullGraphType<IntGraphType>>("chatId")
-    .Argument<BooleanGraphType>("deleteAll")
-    .ResolveAsync(async (context) =>
-    {
-        var chatId = context.GetArgument<int>("chatId");
-        var user = helper.GetUserNickName(context.UserContext);
-        var deleteAll = context.GetArgument<bool?>("deleteAll");
+                .Argument<NonNullGraphType<IntGraphType>>("chatId")
+                .Argument<BooleanGraphType>("deleteAll")
+                .ResolveAsync(async (context) =>
+                {
+                    var chatId = context.GetArgument<int>("chatId");
+                    var user = helper.GetUserNickName(context.UserContext);
+                    var deleteAll = context.GetArgument<bool?>("deleteAll");
 
-        if (!await chat.LeaveFromChatAsync(user, chatId, deleteAll ?? false))
-        {
-            ThrowError("User cannot be removed from chat because of some reasons");
-        }
+                    if (!await chat.LeaveFromChatAsync(user, chatId, deleteAll ?? false))
+                    {
+                        ThrowError("User cannot be removed from chat because of some reasons");
+                    }
 
-        return "Ok";
-    });
+                    return "Ok";
+                });
 
             Field<NonNullGraphType<UserUpdateOutPutGraphType>>("updateUser")
-        .Argument<NonNullGraphType<UserUpdateInputGraphType>>("data")
-        .ResolveAsync(async context =>
-        {
-            var data = context.GetArgument<UpdateUser>("data");
-            data.Id = helper.GetUserId(context.User!);
+                .Argument<NonNullGraphType<UserUpdateInputGraphType>>("data")
+                .ResolveAsync(async context =>
+                {
+                    var data = context.GetArgument<UpdateUser>("data");
+                    data.Id = helper.GetUserId(context.User!);
 
-            var result = await userRepository.UpdateUserAsync(data);
+                    var result = await userRepository.UpdateUserAsync(data);
 
-            var participants = helper.GetChatParticipant(context.UserContext);
+                    var participants = helper.GetChatParticipant(context.UserContext);
 
-            if (participants is not null)
-            {
-                chat.NotifyAllChats(participants, new ChatParticipant()
-                { Id = data.Id, NickName = data.NickName, Online = true });
-            }
-            return result;
-        });
+                    if (participants is not null)
+                    {
+                        chat.NotifyAllChats(participants, new ChatParticipant()
+                        { Id = data.Id, NickName = data.NickName, Online = true });
+                    }
+                    return result;
+                });
 
             Field<NonNullGraphType<IntGraphType>>("deleteUser")
-            .Argument<NonNullGraphType<UserRemoveInputGraphType>>("data")
-            .ResolveAsync(async context =>
-            {
-                var data = context.GetArgument<RemoveUser>("data");
-                data.Id = helper.GetUserId(context.User!);
-                var result = await userRepository.DeleteUserAsync(data);
-
-                if (result is not null)
+                .Argument<NonNullGraphType<UserRemoveInputGraphType>>("data")
+                .ResolveAsync(async context =>
                 {
-                    uploadRepository.DeleteFile(Path.Combine(userPictPath, result));
-                }
+                    var data = context.GetArgument<RemoveUser>("data");
+                    data.Id = helper.GetUserId(context.User!);
+                    var result = await userRepository.DeleteUserAsync(data);
 
-                var participants = helper.GetChatParticipant(context.UserContext);
+                    if (result is not null)
+                    {
+                        uploadRepository.DeleteFile(Path.Combine(userPictPath, result));
+                    }
 
-                if (participants is not null)
-                {
-                    chat.NotifyAllChats(participants, new ChatParticipant()
-                    { Id = data.Id, NickName = "DELETED", Online = false });
-                }
+                    var participants = helper.GetChatParticipant(context.UserContext);
 
-                return data.Id;
-            });
+                    if (participants is not null)
+                    {
+                        chat.NotifyAllChats(participants, new ChatParticipant()
+                        { Id = data.Id, NickName = "DELETED", Online = false });
+                    }
+
+                    return data.Id;
+                });
 
             Field<NonNullGraphType<StringGraphType>>("updateUserAvatart")
                 .Argument<NonNullGraphType<UploadGraphType>>("image")
                 .ResolveAsync(async context =>
                 {
                     var img = context.GetArgument<IFormFile>("image");
-
                     var userId = helper.GetUserId(context.User!);
-                    var newImg = await uploadRepository.SaveImgAsync(img, userPictPath, _maxFileSizeInKb);
+                    var newImg = await uploadRepository.SaveImgAsync(img, userPictPath);
 
                     try
                     {
@@ -301,7 +284,6 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
                 .Argument<NonNullGraphType<UploadGraphType>>("image")
                 .ResolveAsync(async context =>
                 {
-
                     var chatId = context.GetArgument<int>("chatId");
                     if (!helper.CheckChatOwner(chatId, context.UserContext))
                     {
@@ -309,7 +291,7 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
                     }
 
                     var img = context.GetArgument<IFormFile>("image");
-                    var newImg = await uploadRepository.SaveImgAsync(img, chatPictPath, _maxFileSizeInKb);
+                    var newImg = await uploadRepository.SaveImgAsync(img, chatPictPath);
 
                     try
                     {
@@ -328,7 +310,6 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
                         throw;
                     }
                 });
-
         }
 
         private void ThrowError(string message)

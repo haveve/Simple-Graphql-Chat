@@ -1,29 +1,21 @@
-﻿using GraphQLParser;
-using GraphQLParser.AST;
-using Microsoft.IdentityModel.Tokens;
+﻿using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
-using System.Net;
-using System.Net.WebSockets;
 using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Text.Json;
-using TimeTracker.GraphQL.Types.IdentityTipes.Models;
-using TimeTracker.Models;
-using TimeTracker.Repositories;
 using WebSocketGraphql.Repositories;
 using WebSocketGraphql.Services.AuthenticationServices;
 
-namespace TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager
+namespace WebSocketGraphql.GraphQL.Types.IdentityTipes.AuthorizationManager
 {
     public record class ValidateRefreshAndGetAccess(TokenResult? accessToken, bool isValid, string? erroMessage);
     public record class TokenResult(string token, DateTime expiredAt, DateTime issuedAt);
 
     public class AuthorizationManager : IAuthorizationManager
     {
-        public const int RefreshTokenExpiration = 31536000;
-        public const int AccessTokenExpiration = 60;
+        private const int refreshTokenExpiration = 31536000;
+        private const int accessTokenExpiration = 60;
 
-        public readonly IAuthorizationRepository _authRepo;
+        private readonly IAuthorizationRepository _authRepo;
         private readonly IConfiguration _configuration;
         private readonly IChat _chat;
         private readonly IUserRepository _userRepo;
@@ -39,21 +31,21 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager
 
         public TokenResult GetRefreshToken(int userId)
         {
-            var expiredAt = DateTime.UtcNow.Add(TimeSpan.FromSeconds(IAuthorizationManager.RefreshTokenExpiration));
+            var expiredAt = DateTime.UtcNow.Add(TimeSpan.FromSeconds(refreshTokenExpiration));
             var issuedAt = DateTime.UtcNow;
 
             DateTimeOffset issuedAtOffset = issuedAt;
 
             var refreshToken = new JwtSecurityToken(
-    issuer: _configuration.GetIssuer(),
-    audience: _configuration.GetAudience(),
-    claims: new[] {
-            new Claim("UserId", userId.ToString()),
-            new Claim(JwtRegisteredClaimNames.Iat, issuedAtOffset.ToUnixTimeSeconds().ToString()),
-            new Claim("isRefresh",true.ToString())
-    },
-    expires: expiredAt,
-    signingCredentials: new SigningCredentials(AuthOptions.GetSymmetricSecurityKey(_configuration.GetKey()), SecurityAlgorithms.HmacSha256));
+                issuer: _configuration.GetIssuer(),
+                audience: _configuration.GetAudience(),
+                claims: new[] {
+                        new Claim("UserId", userId.ToString()),
+                        new Claim(JwtRegisteredClaimNames.Iat, issuedAtOffset.ToUnixTimeSeconds().ToString()),
+                        new Claim("isRefresh",true.ToString())
+                },
+                expires: expiredAt,
+                signingCredentials: new SigningCredentials(AuthOptions.GetSymmetricSecurityKey(_configuration.GetKey()), SecurityAlgorithms.HmacSha256));
 
             return new(new JwtSecurityTokenHandler().WriteToken(refreshToken), expiredAt, issuedAt);
         }
@@ -136,7 +128,7 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager
 
         public async Task<TokenResult> GetAccessToken(int userId)
         {
-            var expiredAt = DateTime.UtcNow.Add(TimeSpan.FromSeconds(IAuthorizationManager.AccessTokenExpiration));
+            var expiredAt = DateTime.UtcNow.Add(TimeSpan.FromSeconds(accessTokenExpiration));
             var issuedAt = DateTime.UtcNow;
 
             var participatedChats = await _chat.GetUserChatsAsync(userId);
@@ -146,18 +138,18 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager
             DateTimeOffset issuedAtOffset = issuedAt;
 
             var newAccessToken = new JwtSecurityToken(
-    issuer: _configuration.GetIssuer(),
-    audience: _configuration.GetAudience(),
-    claims: new[] {
-            new Claim("UserId", userId.ToString()),
-            new Claim(JwtRegisteredClaimNames.Iat, issuedAtOffset.ToUnixTimeSeconds().ToString()),
-            new Claim("UserOwn",JsonSerializer.Serialize(ownChats)),
-            new Claim("UserParticipated",JsonSerializer.Serialize(participatedChats)),
-            new Claim("UserNickName",user!.NickName),
-            new Claim("IsAccess",true.ToString())
-    },
-    expires: expiredAt,
-    signingCredentials: new SigningCredentials(AuthOptions.GetSymmetricSecurityKey(_configuration.GetKey()), SecurityAlgorithms.HmacSha256));
+                issuer: _configuration.GetIssuer(),
+                audience: _configuration.GetAudience(),
+                claims: new[] {
+                        new Claim("UserId", userId.ToString()),
+                        new Claim(JwtRegisteredClaimNames.Iat, issuedAtOffset.ToUnixTimeSeconds().ToString()),
+                        new Claim("UserOwn",JsonSerializer.Serialize(ownChats)),
+                        new Claim("UserParticipated",JsonSerializer.Serialize(participatedChats)),
+                        new Claim("UserNickName",user!.NickName),
+                        new Claim("IsAccess",true.ToString())
+                },
+                expires: expiredAt,
+                signingCredentials: new SigningCredentials(AuthOptions.GetSymmetricSecurityKey(_configuration.GetKey()), SecurityAlgorithms.HmacSha256));
 
             return new(new JwtSecurityTokenHandler().WriteToken(newAccessToken), expiredAt, issuedAt);
 

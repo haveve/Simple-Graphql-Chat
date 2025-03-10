@@ -1,14 +1,13 @@
 using GraphQL.Types;
-using TimeTracker.GraphQL.Types.IdentityTipes.Models;
+using WebSocketGraphql.GraphQl.Directives.Validation;
+using WebSocketGraphql.ViewModels;
 
-namespace WebSocketGraphql.GraphQl.IdentityTypes
+namespace WebSocketGraphql.GraphQl.IdentityTypes;
+
+public class UserRemoveInputGraphType : InputObjectGraphType<RemoveUser>
 {
-    public class UserRemoveInputGraphType : InputObjectGraphType<RemoveUser>
+    public UserRemoveInputGraphType()
     {
-        public UserRemoveInputGraphType()
-        {
-            Field(l => l.Password, nullable: false)
-            .Directive("length", "min", RegistrationInputGraphType.minEmailLength, "max", RegistrationInputGraphType.maxEmailLength);
-        }
+        Field(l => l.Password, nullable: false).RestrictLength(RegistrationInputGraphType.minEmailLength, RegistrationInputGraphType.maxEmailLength);
     }
 }

@@ -1,19 +1,18 @@
 ﻿using GraphQL.Types;
-using TimeTracker.GraphQL.Queries;
-using WebSocketGraphql.GraphQl.Directives.Validation;
+using WebSocketGraphql.GraphQL.Queries;
+using WebSocketGraphql.GraphQl.Directives.Validation.Directives;
 using WebSocketGraphql.GraphQl.IdentityTypes;
 
-namespace TimeTracker.GraphQL.Schemas
-{
-        public class IdentitySchema : Schema
-        {
-            public IdentitySchema(IServiceProvider provider) : base(provider)
-            {
-                Directives.Register(new LengthDirective(),
-                                    new EmailDirective());
+namespace WebSocketGraphql.GraphQL.Schemas;
 
-                Query = provider.GetRequiredService<IdentityQuery>();
-                Mutation = provider.GetRequiredService<IdentityMutation>();
-        }
-        }
+public class IdentitySchema : Schema
+{
+    public IdentitySchema(IServiceProvider provider) : base(provider)
+    {
+        Directives.Register(new LengthDirective(),
+                            new EmailDirective());
+
+        Query = provider.GetRequiredService<IdentityQuery>();
+        Mutation = provider.GetRequiredService<IdentityMutation>();
+    }
 }

@@ -6,15 +6,20 @@ namespace WebSocketGraphql.Models
     {
         [Description("sent_at")]
         public DateTime SentAt { get; set; }
+        
         [Description("content")]
         public string Content { get; set; } = null!;
+
         [Description("from_id")]
-        public int? FromId { get; set; } = null;
+        public int? FromId { get; set; }
+
         [Description("chat_id")]
-        public int ChatId { get; set; } = 0;
+        public int ChatId { get; set; }
+
         [Description("nick_name")]
-        public string? NickName { get; set; } = null;
+        public string? NickName { get; set; }
+
         [Description("image")]
-        public string? Image { get; set; } = null;
+        public string? Image { get; set; }
     }
 }

@@ -1,7 +1,6 @@
 ﻿using Dapper;
 using System.ComponentModel;
 using System.Reflection;
-using TimeTracker.Models;
 
 namespace WebSocketGraphql.Services
 {

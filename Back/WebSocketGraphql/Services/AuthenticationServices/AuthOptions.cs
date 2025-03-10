@@ -6,7 +6,7 @@ namespace WebSocketGraphql.Services.AuthenticationServices
     public static class AuthOptions
     {
         public static SymmetricSecurityKey GetSymmetricSecurityKey(string KEY) =>
-            new SymmetricSecurityKey(Encoding.UTF8.GetBytes(KEY));
+            new (Encoding.UTF8.GetBytes(KEY));
 
         public static string GetKey(this IConfiguration configuration)
         {

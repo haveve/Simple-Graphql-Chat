@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc.ModelBinding;
 
-namespace TimeTracker.GraphQL.Types.IdentityTipes.Models
+namespace WebSocketGraphql.GraphQL.Types.IdentityTipes.Models
 {
     public class Login
     {

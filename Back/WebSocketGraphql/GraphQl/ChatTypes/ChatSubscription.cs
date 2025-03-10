@@ -58,7 +58,6 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
 
         private IObservable<object> SubscribeUserNotification(IResolveFieldContext context)
         {
-
             var ids = _authHelper.GetChatParticipant(context.UserContext);
             var userId = _authHelper.GetUserId(context.User!);
 

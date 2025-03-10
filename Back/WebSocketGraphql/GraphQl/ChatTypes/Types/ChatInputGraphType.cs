@@ -1,4 +1,5 @@
 ﻿using GraphQL.Types;
+using WebSocketGraphql.GraphQl.Directives.Validation;
 using WebSocketGraphql.Models;
 
 namespace WebSocketGraphql.GraphQl.ChatTypes.Types
@@ -10,7 +11,7 @@ namespace WebSocketGraphql.GraphQl.ChatTypes.Types
 
         public ChatInputGraphType()
         {
-            Field(el => el.Name, nullable: false).Directive("length", "min", minChatNameLength, "max", maxChatNameLength); ;
+            Field(el => el.Name, nullable: false).RestrictLength(minChatNameLength, maxChatNameLength); ;
             Field(el => el.Id, nullable: false);
         }
     }

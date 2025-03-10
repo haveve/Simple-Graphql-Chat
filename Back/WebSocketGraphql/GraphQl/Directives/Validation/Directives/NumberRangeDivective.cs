@@ -1,16 +1,18 @@
 using GraphQL.Types;
 using GraphQLParser.AST;
 
-namespace WebSocketGraphql.GraphQl.Directives.Validation
+namespace WebSocketGraphql.GraphQl.Directives.Validation.Directives
 {
     public class NumberRangeDivective : Directive
     {
         public override bool? Introspectable => true;
+
         public NumberRangeDivective()
-            : base("constraint_number", DirectiveLocation.InputFieldDefinition, DirectiveLocation.ArgumentDefinition)
+            : base(ValidationDirectives.NumberRange, DirectiveLocation.InputFieldDefinition, DirectiveLocation.ArgumentDefinition)
         {
-            base.Description = "Used to specify the minimum and/or maximum value of number for an input field or argument.";
-            base.Arguments = new QueryArguments(new QueryArgument<IntGraphType>
+            Description = "Used to specify the minimum and/or maximum value of number for an input field or argument.";
+
+            Arguments = new QueryArguments(new QueryArgument<IntGraphType>
             {
                 Name = "min",
                 Description = "If specified, specifies the minimum number that the input field or argument must have."

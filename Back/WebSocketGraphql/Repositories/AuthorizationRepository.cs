@@ -1,9 +1,9 @@
 ﻿using Dapper;
 using System.Data;
-using TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager;
-using TimeTracker.GraphQL.Types.IdentityTipes.Models;
+using WebSocketGraphql.GraphQL.Types.IdentityTipes.AuthorizationManager;
+using WebSocketGraphql.GraphQL.Types.IdentityTipes.Models;
 
-namespace TimeTracker.Repositories
+namespace WebSocketGraphql.Repositories
 {
     public class AuthorizationRepository : IAuthorizationRepository
     {

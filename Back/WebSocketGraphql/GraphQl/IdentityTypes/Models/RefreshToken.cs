@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 
-namespace TimeTracker.GraphQL.Types.IdentityTipes.Models
+namespace WebSocketGraphql.GraphQL.Types.IdentityTipes.Models
 {
     public class RefreshToken
     {

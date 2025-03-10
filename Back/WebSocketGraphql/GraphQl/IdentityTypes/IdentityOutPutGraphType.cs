@@ -1,17 +1,16 @@
 ﻿using GraphQL.Types;
-using TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager;
-using TimeTracker.GraphQL.Types.IdentityTipes.Models;
+using WebSocketGraphql.GraphQL.Types.IdentityTipes.AuthorizationManager;
+using WebSocketGraphql.GraphQL.Types.IdentityTipes.Models;
 
-namespace TimeTracker.GraphQL.Types.IdentityTipes
+namespace WebSocketGraphql.GraphQL.Types.IdentityTipes;
+
+public class IdentityOutPutGraphType : ObjectGraphType<LoginOutput>
 {
-    public class IdentityOutPutGraphType : ObjectGraphType<LoginOutput>
+    public IdentityOutPutGraphType()
     {
-        public IdentityOutPutGraphType()
-        {
-            Field(l => l.access_token, nullable: false, type: typeof(TokenResultGraphType));
-            Field(l => l.user_id, nullable: false);
-            Field(l => l.refresh_token, nullable: false, type: typeof(TokenResultGraphType));
-            Field(l => l.redirect_url, nullable: true);
-        }
+        Field(l => l.access_token, nullable: false, type: typeof(TokenResultGraphType));
+        Field(l => l.user_id, nullable: false);
+        Field(l => l.refresh_token, nullable: false, type: typeof(TokenResultGraphType));
+        Field(l => l.redirect_url, nullable: true);
     }
 }

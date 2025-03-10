@@ -1,6 +1,6 @@
-﻿using TimeTracker.Models;
+﻿using WebSocketGraphql.Models;
 
-namespace TimeTracker.Services
+namespace WebSocketGraphql.Services
 {
     public interface IEmailSender
     {

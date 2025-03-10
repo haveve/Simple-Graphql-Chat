@@ -15,7 +15,7 @@ namespace WebSocketGraphql.GraphQl.IdentityTypes.Errors
         }
 
         public InputAndArgumentEmailValidationError(ValidationContext context, GraphQLVariableDefinition node, VariableName variableName, string message)
-    : base(context.Document.Source, NUMBER, $"Variable '${variableName}' is invalid. {message}", node)
+            : base(context.Document.Source, NUMBER, $"Variable '${variableName}' is invalid. {message}", node)
         {
         }
 

@@ -8,6 +8,6 @@ export default function SelectLanguage() {
 
     return <DropdownButton variant='info' title={t("SelectLanguage")} drop={"end"} className='additional-info' >
         {Object.values(Languages)
-            .map(value => <Dropdown.Item onClick={() => SetLanguage(value as Languages)} className='additional-info-node'>{`${FullLangugeNames[value]} (${value})`}</Dropdown.Item>)}
+            .map((value, key) => <Dropdown.Item key={key} onClick={() => SetLanguage(value as Languages)} className='additional-info-node'>{`${FullLangugeNames[value]} (${value})`}</Dropdown.Item>)}
     </DropdownButton>
 }

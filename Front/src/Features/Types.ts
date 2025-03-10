@@ -16,8 +16,8 @@ export type ParticipantState = {
     id: number
 }
 
-export type DerivedMessageOrChatInfo = ParticipantState & (Message & { typeM: MessageType })
-export type DrivedUserOrChatInfo = (Chat & { typeC: ChatResultType }) & UserNotification
+export type DerivedMessageOrChatInfo = ParticipantState | (Message & { typeM: MessageType })
+export type DrivedUserOrChatInfo = (Chat & { typeC: ChatResultType }) | UserNotification
 export type BaseMessage = {
     id?: string
     content: string,

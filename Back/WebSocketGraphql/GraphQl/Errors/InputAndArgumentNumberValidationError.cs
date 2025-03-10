@@ -1,7 +1,7 @@
-using System;
 using GraphQL;
 using GraphQL.Validation;
 using GraphQLParser.AST;
+
 public class InputAndArgumentNumberValidationError : ValidationError
 {
     private const string NUMBER = "5.6.1";

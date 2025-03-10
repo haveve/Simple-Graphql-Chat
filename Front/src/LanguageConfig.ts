@@ -19,13 +19,13 @@ export default function Initiate() {
     LoadLanguageFromCookie();
 }
 
+export function LoadLanguageFromCookie() {
+    i18next.changeLanguage(getCookie('language') ?? Languages.en);
+}
+
 export function SetLanguage(language: Languages) {
     setCookie({ expires_second: Number.MAX_VALUE, name: 'language', value: language })
     i18next.changeLanguage(language);
-}
-
-export function LoadLanguageFromCookie() {
-    i18next.changeLanguage(getCookie('language') ?? Languages.en);
 }
 
 export enum Languages {

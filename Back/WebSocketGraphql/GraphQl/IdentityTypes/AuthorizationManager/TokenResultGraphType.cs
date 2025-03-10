@@ -1,6 +1,6 @@
 ﻿using GraphQL.Types;
 
-namespace TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager
+namespace WebSocketGraphql.GraphQL.Types.IdentityTipes.AuthorizationManager
 {
     public class TokenResultGraphType:ObjectGraphType<TokenResult>
     {

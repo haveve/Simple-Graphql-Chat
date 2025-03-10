@@ -1,7 +1,7 @@
 ﻿using Dapper;
 using System.Data;
 
-namespace TimeTracker.Services
+namespace WebSocketGraphql.Services
 {
     public static class DapperBulk
     {

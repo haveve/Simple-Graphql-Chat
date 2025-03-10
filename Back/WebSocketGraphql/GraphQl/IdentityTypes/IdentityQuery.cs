@@ -3,17 +3,16 @@ using Google.Authenticator;
 using GraphQL;
 using GraphQL.Types;
 using Microsoft.AspNetCore.WebUtilities;
-using TimeTracker.GraphQL.Types.IdentityTipes;
-using TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager;
-using TimeTracker.GraphQL.Types.IdentityTipes.Models;
-using TimeTracker.Helpers;
-using TimeTracker.Repositories;
-using TimeTracker.Services;
+using WebSocketGraphql.GraphQL.Types.IdentityTipes;
+using WebSocketGraphql.GraphQL.Types.IdentityTipes.AuthorizationManager;
+using WebSocketGraphql.GraphQL.Types.IdentityTipes.Models;
+using WebSocketGraphql.Helpers;
+using WebSocketGraphql.Repositories;
 using WebSocketGraphql.GraphQl.IdentityTypes;
 using WebSocketGraphql.GraphQl.IdentityTypes.Models;
 using WebSocketGraphql.Services.AuthenticationServices;
 
-namespace TimeTracker.GraphQL.Queries
+namespace WebSocketGraphql.GraphQL.Queries
 {
     public class IdentityQuery : ObjectGraphType
     {
@@ -21,74 +20,71 @@ namespace TimeTracker.GraphQL.Queries
         private readonly IAuthorizationRepository _authorizationRepository;
         private readonly IConfiguration _configuration;
         private readonly IUserRepository _userRepository;
-        private readonly IEmailSender _emailSender;
 
-
-        public IdentityQuery(IConfiguration configuration, IHostEnvironment hostEnvironment, IAuthorizationManager authorizationManager, IAuthorizationRepository authorizationRepository, IUserRepository userRepository, IEmailSender emailSender, AuthHelper helper)
+        public IdentityQuery(IConfiguration configuration, IHostEnvironment hostEnvironment, IAuthorizationManager authorizationManager, IAuthorizationRepository authorizationRepository, IUserRepository userRepository, AuthHelper helper)
         {
             _authorizationManager = authorizationManager;
             _authorizationRepository = authorizationRepository;
             _configuration = configuration;
             _userRepository = userRepository;
-            _emailSender = emailSender;
 
             Field<IdentityOutPutGraphType>("login")
                 .Argument<NonNullGraphType<LoginInputGraphType>>("login")
-            .ResolveAsync(async context =>
-            {
-                Login UserLogData = context.GetArgument<Login>("login");
-
-                var user = await _userRepository.GetUserByCredentialsAsync(UserLogData.NickNameOrEmail, UserLogData.Password);
-
-                if (user == null)
+                .ResolveAsync(async context =>
                 {
-                    throw new Exception("User does not exist");
-                }
+                    Login UserLogData = context.GetArgument<Login>("login");
 
-                if (user.ActivateCode != null)
-                {
-                    throw new Exception("User has not setted password");
-                }
+                    var user = await _userRepository.GetUserByCredentialsAsync(UserLogData.NickNameOrEmail, UserLogData.Password);
 
-                if (user.Key2Auth != null)
-                {
-                    var refresh_2f_tokens = authorizationManager.GetRefreshToken(user.Id);
-
-                    var tempToken = _2fAuthHelper.GetTemporaty2fAuthToken(user, refresh_2f_tokens, _configuration["Authorization:Issuer"], _configuration["Authorization:Audience"], _configuration["Authorization:Key"]);
-
-                    Dictionary<string, string?> tempQueryParams = new Dictionary<string, string?>
-            {
-                { "tempToken", tempToken }
-            };
-                    return new LoginOutput()
+                    if (user == null)
                     {
-                        access_token = new(string.Empty, DateTime.MinValue, DateTime.MinValue),
-                        user_id = -1,
-                        refresh_token = new(string.Empty, DateTime.MinValue, DateTime.MinValue),
-                        redirect_url = QueryHelpers.AddQueryString("/2f-auth", tempQueryParams)
+                        throw new Exception("User does not exist");
+                    }
+
+                    if (user.ActivateCode != null)
+                    {
+                        throw new Exception("User has not setted password");
+                    }
+
+                    if (user.Key2Auth != null)
+                    {
+                        var refresh_2f_tokens = authorizationManager.GetRefreshToken(user.Id);
+
+                        var tempToken = _2fAuthHelper.GetTemporaty2fAuthToken(user, refresh_2f_tokens, _configuration["Authorization:Issuer"], _configuration["Authorization:Audience"], _configuration["Authorization:Key"]);
+
+                        Dictionary<string, string?> tempQueryParams = new Dictionary<string, string?>
+                {
+                    { "tempToken", tempToken }
+                };
+                        return new LoginOutput()
+                        {
+                            access_token = new(string.Empty, DateTime.MinValue, DateTime.MinValue),
+                            user_id = -1,
+                            refresh_token = new(string.Empty, DateTime.MinValue, DateTime.MinValue),
+                            redirect_url = QueryHelpers.AddQueryString("/2f-auth", tempQueryParams)
+                        };
+
+                    }
+
+                    var encodedJwt = await _authorizationManager.GetAccessToken(user.Id);
+
+                    var refreshToken = _authorizationManager.GetRefreshToken(user.Id);
+                    await _authorizationRepository.CreateRefreshTokenAsync(refreshToken, user.Id);
+
+                    var response = new LoginOutput()
+                    {
+                        access_token = encodedJwt,
+                        user_id = user.Id,
+                        refresh_token = refreshToken
                     };
 
-                }
-
-                var encodedJwt = await _authorizationManager.GetAccessToken(user.Id);
-
-                var refreshToken = _authorizationManager.GetRefreshToken(user.Id);
-                await _authorizationRepository.CreateRefreshTokenAsync(refreshToken, user.Id);
-
-                var response = new LoginOutput()
-                {
-                    access_token = encodedJwt,
-                    user_id = user.Id,
-                    refresh_token = refreshToken
-                };
-
-                return response;
-            });
+                    return response;
+                });
 
             Field<IdentityOutPutGraphType>("refreshToken").
                 ResolveAsync(async (context) =>
                 {
-                    HttpContext httpContext = context.RequestServices!.GetService<IHttpContextAccessor>()!.HttpContext!;
+                    var httpContext = context.RequestServices!.GetService<IHttpContextAccessor>()!.HttpContext!;
 
                     var refreshToken = httpContext.Request.Headers.First(at => at.Key == "refresh_token").Value[0]!;
 
@@ -200,13 +196,13 @@ namespace TimeTracker.GraphQL.Queries
                 }
 
             });
-
-
         }
+
         private void ThrowError(string message)
         {
             throw new InvalidDataException(message);
         }
+
         public LoginOutput ExpiredSessionError(IResolveFieldContext<object?> context)
         {
             context.Errors.Add(new ExecutionError("User does not auth"));

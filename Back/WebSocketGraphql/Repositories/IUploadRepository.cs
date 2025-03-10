@@ -1,14 +1,13 @@
-﻿namespace CourseWorkDB.Repositories
+﻿namespace WebSocketGraphql.Repositories
 {
     public interface IUploadRepository
     {
-        public const string defaultSmallOnePostfix = "-small";
+        Task<string> SaveImgAsync(IFormFile formFile, string catalog, bool ignoreValidation = false);
 
-        Task<string> SaveImgAsync(IFormFile formFile, string catalog, int maxFileSizeInKB = 0);
-
-        Task<string> SaveImgWithSmallOneAsync(IFormFile formFile, string catalog, int smallWidth, int smallHeigh, string smallPostfix = "-small", int maxFileSizeInKB = 0);
+        Task<string> SaveImgWithSmallOneAsync(IFormFile formFile, string catalog, bool ignoreValidation = false);
+        
         void DeleteFile(string relatingPath);
 
-        void DeleteFileWithSmallOne(string relatingPath, string smallPostfix = defaultSmallOnePostfix);
+        void DeleteFileWithSmallOne(string relatingPath);
     }
 }

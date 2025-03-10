@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, JSX } from 'react';
+import { JSX } from 'react';
 import { GetAbbreviationFromPhrase } from '../Features/Functions';
 import { GetFullPicturePath } from '../Features/Constants';
 

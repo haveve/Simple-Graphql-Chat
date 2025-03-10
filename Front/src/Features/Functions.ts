@@ -3,7 +3,6 @@ import { redirect } from "react-router";
 import { maxVisibleLength } from "../Components/Chat";
 import { ChatParticipant } from "./Types";
 import { ReduxParticipant } from "../Redux/Slicers/ChatSlicer";
-import { Status } from "../Redux/Slicers/ChatSlicer";
 
 export function SetMessageId(message: Message | ReduxMessage) {
   const date = new Date(message.sentAt).toISOString()

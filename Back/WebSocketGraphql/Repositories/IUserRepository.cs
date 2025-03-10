@@ -1,10 +1,7 @@
-﻿using Dapper;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using TimeTracker.Models;
+﻿using WebSocketGraphql.ViewModels;
+using WebSocketGraphql.Models;
 
-namespace TimeTracker.Repositories
+namespace WebSocketGraphql.Repositories
 {
     public interface IUserRepository
     {

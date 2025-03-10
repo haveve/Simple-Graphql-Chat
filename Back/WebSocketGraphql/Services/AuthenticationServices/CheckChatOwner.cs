@@ -1,26 +1,20 @@
-﻿using System.Security.Claims;
-using System.Text;
+﻿using Microsoft.Extensions.Options;
+using System.Security.Claims;
 using System.Text.Json;
-using TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager;
-using TimeTracker.Repositories;
-using TimeTracker.Services;
-using WebSocketGraphql.Helpers;
-using WebSocketGraphql.Repositories;
+using WebSocketGraphql.Services;
+using WebSocketGraphql.Configurations;
 
 namespace WebSocketGraphql.Services.AuthenticationServices
 {
     public class AuthHelper
     {
-        private readonly IConfiguration _configuration;
+        private readonly int _iterations;
 
-        public AuthHelper(IConfiguration configuration)
-        {
-            _configuration = configuration;
-        }
+        public AuthHelper(IOptions<HashingSettings> settings)
+            => _iterations = settings.Value.Iteration;
 
         public bool CheckChatOwner(int chatId, IDictionary<string, object?> authUser)
         {
-
             var data = authUser["UserOwn"] as string;
 
             if (data is null)
@@ -84,7 +78,7 @@ namespace WebSocketGraphql.Services.AuthenticationServices
         public string GetRandomString()
         {
             var guid = Guid.NewGuid().ToString();
-            return guid.ComputeHash(guid, _configuration.GetIteration()).Replace('/', '_').Replace('+', '-');
+            return guid.ComputeHash(guid, _iterations).Replace('/', '_').Replace('+', '-');
         }
     }
 }

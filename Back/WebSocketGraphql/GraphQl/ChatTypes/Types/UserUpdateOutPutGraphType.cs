@@ -1,5 +1,5 @@
 using GraphQL.Types;
-using TimeTracker.GraphQL.Types.IdentityTipes.Models;
+using WebSocketGraphql.ViewModels;
 
 namespace WebSocketGraphql.GraphQl.IdentityTypes
 {

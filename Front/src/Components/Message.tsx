@@ -1,4 +1,4 @@
-import React, { forwardRef, memo, useCallback } from "react";
+import React, { forwardRef, memo, useCallback, useRef } from "react";
 import { TimeStringFromDate, DateFromString, GetDate } from "../Features/Functions";
 import { useTypedSelector, useTypedDispatch } from "../Redux/store";
 import { GetFullPicturePath } from "../Features/Constants";
@@ -10,6 +10,8 @@ const MessageComponent = memo(forwardRef<HTMLDivElement, { HandleContext: (chatI
 
   const el = useTypedSelector(store => store.chat.messages.find(el => el.id == id)!)
   const dispatch = useTypedDispatch();
+
+  const refF = useRef<HTMLImageElement>();
 
   const onContextMenu = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
     event.preventDefault();

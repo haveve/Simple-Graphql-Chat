@@ -1,59 +1,53 @@
-﻿using System.Net;
+﻿using Microsoft.Extensions.Options;
+using System.Net;
 using System.Net.Mail;
-using System.Text;
-using TimeTracker.Models;
+using WebSocketGraphql.Configurations;
 
-namespace TimeTracker.Services
+namespace WebSocketGraphql.Services
 {
     public class EmailSender : IEmailSender
     {
-        private const int _port = 587;
+        private readonly EmailSettings _settings;
 
-        private readonly string _emailFrom = null!;
-        private readonly string _emailPassword = null!;
-        private readonly string _serverUrl = "smtp.office365.com";
-        private readonly IConfiguration _configuration;
+        private readonly string _frontUrl;
 
-        public EmailSender(IConfiguration configuration) 
-        { 
-            _configuration = configuration;
-            _emailFrom = configuration["EmailSender:From"];
-            _emailPassword = configuration["EmailSender:Password"];
+        public EmailSender(IOptions<SpaSettings> spaSettings, IOptions<EmailSettings> emailSettings)
+        {
+            _settings = emailSettings.Value;
+            _frontUrl = spaSettings.Value.Url;
         }
 
         public async Task SendResetPassEmailAsync(string code, string email)
         {
-            var client = new SmtpClient(_serverUrl, _port)
-            {
-                EnableSsl = true,
-                UseDefaultCredentials = false,
-                Credentials = new NetworkCredential(_emailFrom, _emailPassword)
-            };
-            string resetUrl = $"{_configuration["FrontUrl"]}/set-password";
+            var subject = "Password recovery MyAwesomeChat";
+            var body = "To reset your password, follow the following link = {0}";
 
-            string url = $"{resetUrl}?code={code}&email={email}";
-
-            var mail = new MailMessage(_emailFrom, email);
-            mail.Subject = "Password recovery MyAwesomeChat";
-            mail.Body = $"To reset your password, follow the following link = {url}";
-
-            await client.SendMailAsync(mail);
+            await SendSetPasswordEmail(subject, body, code, email);
         }
+
         public async Task SendRegistrationEmailAsync(string code, string email)
         {
-            var client = new SmtpClient(_serverUrl, _port)
+            var subject = "MyAwesomeChat Registration";
+            var body = "To register, follow the link = {0}";
+
+            await SendSetPasswordEmail(subject, body, code, email);
+        }
+
+        private async Task SendSetPasswordEmail(string subject, string body, string code, string email)
+        {
+            var client = new SmtpClient(_settings.ServiceDomain, _settings.Port)
             {
                 EnableSsl = true,
                 UseDefaultCredentials = false,
-                Credentials = new NetworkCredential(_emailFrom, _emailPassword)
+                Credentials = new NetworkCredential(_settings.From, _settings.Password)
             };
-            string resetUrl = $"{_configuration["FrontUrl"]}/set-password";
+            string resetUrl = $"{_frontUrl}/set-password";
 
             string url = $"{resetUrl}?code={code}&email={email}";
 
-            var mail = new MailMessage(_emailFrom, email);
-            mail.Subject = "MyAwesomeChat Registration";
-            mail.Body = $"To register, follow the link = {url}";
+            var mail = new MailMessage(_settings.From, email);
+            mail.Subject = subject;
+            mail.Body = string.Format(body, url);
 
             await client.SendMailAsync(mail);
         }

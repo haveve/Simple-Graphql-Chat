@@ -1,6 +1,6 @@
 ﻿using System.Collections;
 
-namespace TimeTracker.Services
+namespace WebSocketGraphql.Services
 {
     public class Comparer : IEqualityComparer
     {

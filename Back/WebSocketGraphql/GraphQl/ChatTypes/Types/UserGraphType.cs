@@ -1,5 +1,5 @@
 ﻿using GraphQL.Types;
-using TimeTracker.Models;
+using WebSocketGraphql.Models;
 
 namespace WebSocketGraphql.GraphQl.ChatTypes.Types
 {

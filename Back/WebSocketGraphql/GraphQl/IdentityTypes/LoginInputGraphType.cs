@@ -1,13 +1,13 @@
 ﻿using GraphQL.Types;
-using TimeTracker.GraphQL.Types.IdentityTipes.Models;
+using WebSocketGraphql.GraphQL.Types.IdentityTipes.Models;
 
-namespace TimeTracker.GraphQL.Types.IdentityTipes
+namespace WebSocketGraphql.GraphQL.Types.IdentityTipes
 {
-    public class LoginInputGraphType:InputObjectGraphType<Login>
+    public class LoginInputGraphType : InputObjectGraphType<Login>
     {
-        public LoginInputGraphType() 
+        public LoginInputGraphType()
         {
-            Field(l => l.NickNameOrEmail,nullable:false);
+            Field(l => l.NickNameOrEmail, nullable: false);
             Field(l => l.Password, nullable: false);
         }
     }

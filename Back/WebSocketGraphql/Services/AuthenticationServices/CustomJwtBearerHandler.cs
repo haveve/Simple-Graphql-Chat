@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
-using TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager;
+using WebSocketGraphql.GraphQL.Types.IdentityTipes.AuthorizationManager;
 using Microsoft.Extensions.Configuration.UserSecrets;
 
 namespace WebSocketGraphql.Services.AuthenticationServices

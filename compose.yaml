@@ -22,9 +22,9 @@ services:
         env_file:
           - ../back.env
         environment:
-          - FrontUrl=http://localhost:3000
+          - Spa:Url=http://localhost:3000
         volumes:
-           - app_wwwroot:/app/wwwroot
+          - app_wwwroot:/app/wwwroot
         networks:
           - back
           - db

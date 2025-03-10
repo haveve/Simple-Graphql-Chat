@@ -1,29 +1,21 @@
 ﻿using Dapper;
-using System.Data.SqlClient;
-using Microsoft.Extensions.Configuration;
-using System.Data;
-using TimeTracker.Models;
-using TimeTracker.Services;
+using Microsoft.Extensions.Options;
+using WebSocketGraphql.Models;
 using WebSocketGraphql.Services;
-using WebSocketGraphql.Helpers;
-using Microsoft.AspNetCore.Mvc;
-using WebSocketGraphql.Repositories;
+using WebSocketGraphql.Configurations;
+using WebSocketGraphql.ViewModels;
 
-namespace TimeTracker.Repositories
+namespace WebSocketGraphql.Repositories
 {
     public class UserRepository : IUserRepository
     {
-        private readonly IConfiguration _configuration;
-        private readonly IAuthorizationRepository _authorizationRepository;
         private readonly DapperContext _dapperContext;
         private readonly int _iteration;
 
-        public UserRepository(DapperContext context, IConfiguration configuration, IAuthorizationRepository authorizationRepository)
+        public UserRepository(DapperContext context, IOptions<HashingSettings> hashingSettings)
         {
-            _configuration = configuration;
-            _authorizationRepository = authorizationRepository;
             _dapperContext = context;
-            _iteration = configuration.GetIteration();
+            _iteration = hashingSettings.Value.Iteration;
         }
 
         public async Task<string> CreateUserAsync(User user)

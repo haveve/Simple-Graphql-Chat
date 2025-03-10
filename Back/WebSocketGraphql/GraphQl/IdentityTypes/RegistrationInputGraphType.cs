@@ -1,4 +1,5 @@
 ﻿using GraphQL.Types;
+using WebSocketGraphql.GraphQl.Directives.Validation;
 using WebSocketGraphql.GraphQl.IdentityTypes.Models;
 
 namespace WebSocketGraphql.GraphQl.IdentityTypes
@@ -11,13 +12,13 @@ namespace WebSocketGraphql.GraphQl.IdentityTypes
         public const int maxEmailLength = 100;
         public const int minEmailLength = 5;
 
-
         public RegistrationInputGraphType()
         {
-            Field(el => el.NickName, nullable:false).Directive("length", "min", minNickNameLength, "max", maxNickNameLength);
+            Field(el => el.NickName, nullable: false)
+                .RestrictLength(minNickNameLength, maxNickNameLength);
+
             Field(el => el.Email, nullable: false)
-                .Directive("length", "min", minEmailLength, "max", maxEmailLength)
-                .Directive("email");
+                .RestrictLength(minEmailLength, maxEmailLength);
         }
     }
 }

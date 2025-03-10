@@ -2,9 +2,9 @@
 using GraphQL.Transport;
 using GraphQL;
 using System.Security.Claims;
-using TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager;
+using WebSocketGraphql.GraphQL.Types.IdentityTipes.AuthorizationManager;
 using System.ComponentModel;
-using TimeTracker.Models;
+using WebSocketGraphql.Models;
 
 namespace WebSocketGraphql.Services.AuthenticationServices
 {

@@ -2,36 +2,28 @@
 using System.Reactive.Subjects;
 using System.Reactive.Linq;
 using Message = WebSocketGraphql.Models.Message;
-using TimeTracker.Repositories;
+using WebSocketGraphql.Repositories;
 using Dapper;
 using WebSocketGraphql.Models;
 using System.Xml.Linq;
 using WebSocketGraphql.ViewModels;
+using Microsoft.Extensions.Options;
+using WebSocketGraphql.Configurations;
 
 namespace WebSocketGraphql.Repositories
 {
-
-
     public class Chat : IChat
     {
-        private const int _userInOneSubjectDefault = 1000;
-
         private readonly int _userNumberInSubject;
 
-        private ConcurrentDictionary<int, Subject<object>> _chats;
-        private ConcurrentDictionary<int, Subject<object>> _userChatNotifyer;
+        private readonly ConcurrentDictionary<int, Subject<object>> _chats = new();
+        private readonly ConcurrentDictionary<int, Subject<object>> _userChatNotifyer = new();
         private readonly DapperContext _dapperContext;
 
-        public Chat(DapperContext dapperContext, IConfiguration configuration)
+        public Chat(DapperContext dapperContext, IOptions<GeneralSettings> generalSettings)
         {
             _dapperContext = dapperContext;
-            _chats = new();
-            _userChatNotifyer = new ConcurrentDictionary<int, Subject<object>>();
-
-            if (!Int32.TryParse(configuration["ChatConfigData:UserSubNumber"], out _userNumberInSubject))
-            {
-                _userNumberInSubject = _userInOneSubjectDefault;
-            }
+            _userNumberInSubject = generalSettings.Value.UserSubNumber;
         }
 
         private int ComputeUserSubIndex(int userId)

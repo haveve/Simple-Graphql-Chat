@@ -1,8 +1,4 @@
-﻿using System.Collections.Concurrent;
-using System.Reactive.Subjects;
-using System.Threading.Tasks;
-using TimeTracker.Models;
-using WebSocketGraphql.Models;
+﻿using WebSocketGraphql.Models;
 using WebSocketGraphql.ViewModels;
 
 namespace WebSocketGraphql.Repositories
@@ -56,6 +52,5 @@ namespace WebSocketGraphql.Repositories
         Task<bool> LeaveFromChatAsync(string nickName, int chatId, bool deleteMessages = false);
 
         Task<bool> AddTechMessageAsync(int chatId, Message message);
-
     }
 }

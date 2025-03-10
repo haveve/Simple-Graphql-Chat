@@ -1,7 +1,7 @@
 ﻿using GraphQL;
 using GraphQL.Types;
-using TimeTracker.Repositories;
 using WebSocketGraphql.GraphQl.ChatTypes.Types;
+using WebSocketGraphql.GraphQl.Directives.Validation;
 using WebSocketGraphql.Repositories;
 using WebSocketGraphql.Services.AuthenticationServices;
 
@@ -13,8 +13,8 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
         {
             Field<ListGraphType<MessageGraphType>>("messages")
                 .Argument<NonNullGraphType<IntGraphType>>("chatId")
-                .Argument<NonNullGraphType<IntGraphType>>("take",el => el.ApplyDirective("constraint_number","min",1))
-                .Argument<NonNullGraphType<IntGraphType>>("skip",el => el.ApplyDirective("constraint_number","min",0))
+                .Argument<NonNullGraphType<IntGraphType>>("take", el => el.RestrictNumberRange(1, int.MaxValue))
+                .Argument<NonNullGraphType<IntGraphType>>("skip", el => el.RestrictNumberRange(0, int.MaxValue))
                 .Argument<DateTimeGraphType>("maxDate")
                 .ResolveAsync(async context =>
                 {
@@ -65,11 +65,5 @@ namespace WebSocketGraphql.GraphQl.ChatTypes
             Field<NonNullGraphType<StringGraphType>>("ping")
                 .Resolve(_ => "pong");
         }
-
-        private void ThrowError(string message)
-        {
-            throw new InvalidDataException(message);
-        }
     }
-
 }

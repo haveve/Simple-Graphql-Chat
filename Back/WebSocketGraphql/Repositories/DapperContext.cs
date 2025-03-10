@@ -1,16 +1,12 @@
 ﻿using System.Data.SqlClient;
 using System.Data;
-using System.ComponentModel;
-using System.Reflection;
 using Dapper;
-using TimeTracker.Models;
-using WebSocketGraphql.Services;
 using WebSocketGraphql.Models;
+using WebSocketGraphql.Services;
 using WebSocketGraphql.ViewModels;
-using System;
-using TimeTracker.GraphQL.Types.IdentityTipes.Models;
+using WebSocketGraphql.GraphQL.Types.IdentityTipes.Models;
 
-namespace TimeTracker.Repositories
+namespace WebSocketGraphql.Repositories
 {
     public class DapperContext
     {

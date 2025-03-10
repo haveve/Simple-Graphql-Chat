@@ -1,25 +1,30 @@
-﻿using CourseWorkDB.Repositories;
-using System;
-using System.Collections.Concurrent;
+﻿using Microsoft.Extensions.Options;
+using WebSocketGraphql.Configurations;
+using WebSocketGraphql.Helpers;
 
-namespace FileUploadSample
+namespace WebSocketGraphql.Repositories
 {
     public class UploadRepository : IUploadRepository
     {
         private readonly string _uploadDirectory;
-        private readonly Random _rnd;
+        private readonly Random _rnd = new();
+        private readonly string _smallPostfix;
+        private readonly long _maxImageSize;
+        private readonly int _smallImageSize;
 
-        public UploadRepository(IWebHostEnvironment env)
+        public UploadRepository(IWebHostEnvironment env, IOptions<GeneralSettings> settings)
         {
             _uploadDirectory = env.WebRootPath;
-            _rnd = new Random();
+            _smallPostfix = settings.Value.SmallImagePostfix;
+            _maxImageSize = settings.Value.MaxPictureSizeInKB * 1024;
+            _smallImageSize = settings.Value.SmallImageSize;
         }
 
-        public void DeleteFileWithSmallOne(string relatingPath, string smallPostfix = IUploadRepository.defaultSmallOnePostfix)
+        public void DeleteFileWithSmallOne(string relatingPath)
         {
             File.Delete(Path.Combine(_uploadDirectory, relatingPath));
-            string file = Path.GetFileNameWithoutExtension(relatingPath);
-            string NewPath = relatingPath.Replace(file, file + smallPostfix);
+            var file = Path.GetFileNameWithoutExtension(relatingPath);
+            var NewPath = relatingPath.Replace(file, file + _smallPostfix);
             File.Delete(Path.Combine(_uploadDirectory, NewPath));
         }
 
@@ -28,66 +33,57 @@ namespace FileUploadSample
             File.Delete(Path.Combine(_uploadDirectory, relatingPath));
         }
 
-        public async Task<string> SaveImgAsync(IFormFile formFile, string catalog, int maxFileSizeInKB = 0)
+        public async Task<string> SaveImgAsync(IFormFile formFile, string catalog, bool ignoreValidation = false)
         {
-
-            if (maxFileSizeInKB > 0 && formFile.Length > maxFileSizeInKB * 1024)
-            {
+            if (ignoreValidation && formFile.Length > _maxImageSize)
                 throw new InvalidDataException("You reached maximum size value of file");
-            }
 
             if (!formFile.ContentType.StartsWith("image"))
-            {
                 throw new InvalidDataException("File is not a image");
-            }
 
             var id = Guid.NewGuid().ToString().Replace('-', (char)(_rnd.Next(26) + 65));
             var categoryFolderPath = Path.Combine(_uploadDirectory, catalog);
 
-
             if (!Directory.Exists(categoryFolderPath))
-            {
                 Directory.CreateDirectory(categoryFolderPath);
-            }
 
             var path = id + Path.GetExtension(formFile.FileName);
             var safePath = Path.Combine(categoryFolderPath, path);
 
-            using (var fs = formFile.OpenReadStream())
-            using (var ws = System.IO.File.Create(safePath))
-            {
-                await fs.CopyToAsync(ws).ConfigureAwait(false);
-            }
+            using var fs = formFile.OpenReadStream();
+            using var ws = File.Create(safePath);
+
+            await fs.CopyToAsync(ws).ConfigureAwait(false);
 
             return path;
         }
 
-        public async Task<string> SaveImgWithSmallOneAsync(IFormFile formFile, string catalog, int smallWidth, int smallHeigh, string smallPostfix = IUploadRepository.defaultSmallOnePostfix, int maxFileSizeInKB = 0)
+        public async Task<string> SaveImgWithSmallOneAsync(IFormFile formFile, string catalog, bool ignoreValidation = false)
         {
-            var mainLink = await SaveImgAsync(formFile, catalog, maxFileSizeInKB);
-            using (var memoryStream = new MemoryStream())
-            {
-                try
-                {
-                    await formFile.CopyToAsync(memoryStream);
-                    var smallPict = ImageHelper.ScaleImage(memoryStream.ToArray(), smallWidth, smallHeigh);
+            var mainLink = await SaveImgAsync(formFile, catalog, ignoreValidation);
+            using var memoryStream = new MemoryStream();
 
-                    var extension = Path.GetExtension(mainLink);
-                    var safePath = Path.Combine(_uploadDirectory, catalog, Path.GetFileNameWithoutExtension(mainLink) + smallPostfix + extension);
-                    using (var ws = System.IO.File.Create(safePath))
-                    {
-                        await ws.WriteAsync(smallPict);
-                    }
-                }
-                catch
-                {
-                    if (mainLink is not null)
-                    {
-                        DeleteFile(Path.Combine(catalog, mainLink));
-                    }
-                    throw;
-                }
+            try
+            {
+                await formFile.CopyToAsync(memoryStream);
+                var smallPict = ImageHelper.ScaleImage(memoryStream.ToArray(), _smallImageSize, _smallImageSize);
+
+                var extension = Path.GetExtension(mainLink);
+                var safePath = Path.Combine(_uploadDirectory, catalog, $"{Path.GetFileNameWithoutExtension(mainLink)}{_smallPostfix}{extension}");
+
+                using var ws = File.Create(safePath);
+
+                await ws.WriteAsync(smallPict);
+
             }
+            catch
+            {
+                if (mainLink is not null)
+                    DeleteFile(Path.Combine(catalog, mainLink));
+
+                throw;
+            }
+
             return mainLink;
         }
 

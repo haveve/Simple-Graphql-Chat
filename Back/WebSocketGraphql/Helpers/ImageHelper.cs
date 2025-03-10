@@ -1,5 +1,7 @@
 using SkiaSharp;
 
+namespace WebSocketGraphql.Helpers;
+
 public static class ImageHelper
 {
     public static byte[] ScaleImage(byte[] imageBytes, int maxWidth, int maxHeight)

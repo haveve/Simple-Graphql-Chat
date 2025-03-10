@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { Chat, ReduxMessage, Message, ChatParticipant, User } from '../../Features/Types'
+import { User } from '../../Features/Types'
 import { Status } from './ChatSlicer'
 import { baseUserPictureFolder } from '../../Features/Constants'
 
